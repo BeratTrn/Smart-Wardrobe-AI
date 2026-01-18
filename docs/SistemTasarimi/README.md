@@ -27,7 +27,7 @@ Sistem, modern bulut tabanlı uygulamalar için standart kabul edilen **İstemci
 Kullanıcı arayüzü, **"Kullanılabilirlik"** ve **"Hız"** gereksinimleri gözetilerek tasarlanmıştır.
 
 * **Prototip Aracı:** Figma
-* **Tasarım Detayları:** [Tasarımlara Gitmek İçin Tıklayınız](../mockups) *(Mobil ve Web tasarımlarına bakabilirsiniz.)*
+* **Tasarım Detayları:** [Tasarımlara Gitmek İçin Tıklayınız](mockups) *(Mobil ve Web tasarımlarına bakabilirsiniz.)*
 
 ---
 
