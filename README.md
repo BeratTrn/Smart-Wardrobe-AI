@@ -56,18 +56,17 @@ Projenin tüm teknik detaylarına, analiz raporlarına ve mimari diyagramlarına
 * Test Case Tabloları
 * 📄 **[İlgili Dokümanlara Git](./docs/TestPlani)**
 
-### 4️⃣ DevOps Entegrasyonu ve CI/CD
-* CI/CD Pipeline Akışı ve Adımları
-* DevOps Diyagramı
-* Konteynerizasyon ve Dağıtım Süreçleri
-* 📄 **[İlgili Dokümanlara Git](./docs/DevOpsEntegrasyonu)**
-
-### 5️⃣ Proje Yönetimi ve Planlama
+### 4️⃣ Proje Yönetimi ve Planlama
 * Gantt Şeması ve Zaman Çizelgesi
 * Görev Dağılımı
 * Süreç Takibi
 * 📄 **[İlgili Dokümanlara Git](./docs/ProjeYonetimi)**
 
+### 5️⃣ DevOps Entegrasyonu ve CI/CD
+* CI/CD Pipeline Akışı ve Adımları
+* DevOps Diyagramı
+* Konteynerizasyon ve Dağıtım Süreçleri
+* 📄 **[İlgili Dokümanlara Git](./docs/DevOpsEntegrasyonu)**
 
 ---
 
