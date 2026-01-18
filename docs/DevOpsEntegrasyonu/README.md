@@ -78,20 +78,20 @@ Aşağıdaki diyagram, yerel ortamdan canlı ortama (Production) giden otomatik 
 
 ```mermaid
 graph LR
-    Dev[💻 Geliştirici] -->|Commit & Push| Repo[GitHub Repo]
-    Repo -->|Trigger| CI[⚙️ GitHub Actions CI]
+    Dev["💻 Geliştirici"] -->|Commit & Push| Repo["GitHub Repo"]
+    Repo -->|Trigger| CI["⚙️ GitHub Actions CI"]
     
     subgraph "CI Pipeline"
-        CI -->|1. Install| Deps[Bağımlılıklar]
-        Deps -->|2. Lint & Scan| Sec[Güvenlik Taraması]
-        Sec -->|3. Test| Tests[Birim Testler]
-        Tests -->|4. Build| Image[Docker Image]
+        CI -->|1. Install| Deps["Bağımlılıklar"]
+        Deps -->|2. Lint & Scan| Sec["Güvenlik Taraması"]
+        Sec -->|3. Test| Tests["Birim Testler"]
+        Tests -->|4. Build| Image["Docker Image"]
     end
     
-    Image -->|Push| Registry[Docker Registry]
-    Registry -->|Deploy| Cloud[☁️ Canlı Sunucu (Render)]
+    Image -->|Push| Registry["Docker Registry"]
+    Registry -->|Deploy| Cloud["☁️ Canlı Sunucu (Render)"]
     
-    Cloud -->|Monitor| Status[✅ Sistem Ayakta]
+    Cloud -->|Monitor| Status["✅ Sistem Ayakta"]
     
     style CI fill:#e1f5fe,stroke:#01579b,stroke-width:2px
     style Cloud fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
