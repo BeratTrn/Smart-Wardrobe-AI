@@ -28,7 +28,7 @@ Proje, modern yazılım mimarisi ve **Microservices/Monorepo** yaklaşımına uy
 | **Frontend (Web)** | React.js, Tailwind CSS |
 | **Frontend (Mobil)** | Flutter, Dart |
 | **Yapay Zeka (AI)** | Python, TensorFlow / PyTorch, OpenCV |
-| **Veritabanı** | MongoDB / PostgreSQL *(Projene göre burayı düzeltebilirsin)* |
+| **Veritabanı** | MongoDB |
 | **DevOps & CI/CD** | Docker, GitHub Actions |
 | **Tasarım (UI/UX)** | Figma |
 
