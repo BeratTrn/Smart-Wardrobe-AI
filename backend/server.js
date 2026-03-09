@@ -6,6 +6,10 @@ const connectDB = require('./config/db'); // Veritabanı bağlantı fonksiyonunu
 // Rotaları (Yolları) İçeri Aktar
 const authRoutes = require('./routes/authRoutes');
 
+// Rotaları (Yolları) İçeri Aktar kısmına eklenecek:
+const itemRoutes = require('./routes/itemRoutes');
+
+
 // Veritabanına Bağlan
 connectDB();
 
@@ -16,6 +20,9 @@ app.use(express.json());
 
 // API Rotalarını Kullan (Gelen istekleri ilgili kapıya yönlendir)
 app.use('/api/auth', authRoutes);
+
+// API Rotalarını Kullan kısmına eklenecek:
+app.use('/api/items', itemRoutes);
 
 // Test Uç Noktası
 app.get('/', (req, res) => {
