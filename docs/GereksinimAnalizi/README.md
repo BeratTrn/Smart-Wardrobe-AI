@@ -4,7 +4,7 @@ Bu doküman, **Smart Wardrobe AI** projesinin kapsamını, kullanıcı ihtiyaçl
 
 ---
 
-## 📖 2.1. Proje Tanımı
+## 📖 1.1. Proje Tanımı
 
 **Smart Wardrobe AI**, kullanıcıların gardıroplarını dijitalleştirerek tek bir platformda yönetmelerini sağlayan ve yapay zekâ desteğiyle kişiselleştirilmiş stil önerileri sunan akıllı bir asistan uygulamasıdır.
 
@@ -16,7 +16,7 @@ Bu doküman, **Smart Wardrobe AI** projesinin kapsamını, kullanıcı ihtiyaçl
 
 ---
 
-## 🎯 2.2. Hedef Kitle Analizi
+## 🎯 1.2. Hedef Kitle Analizi
 
 Proje, giyim alışkanlıklarını dijitalleştirmek isteyen aşağıdaki öncelikli profillere hitap eder:
 
@@ -27,7 +27,7 @@ Proje, giyim alışkanlıklarını dijitalleştirmek isteyen aşağıdaki öncel
 
 ---
 
-## 👥 2.3. Paydaşlar ve Kullanıcı Profilleri
+## 👥 1.3. Paydaşlar ve Kullanıcı Profilleri
 
 ### Paydaşlar
 * **Son Kullanıcılar:** Gardırobunu yöneten ve öneri alan kişiler.
@@ -42,7 +42,7 @@ Proje, giyim alışkanlıklarını dijitalleştirmek isteyen aşağıdaki öncel
 
 ---
 
-## 🔭 2.4. Proje Kapsamı (Scope)
+## 🔭 1.4. Proje Kapsamı (Scope)
 
 ### ✅ Kapsam Dahilinde (In-Scope)
 * **Otomatik Envanter (Vision AI):** Fotoğraftan tür, renk ve desen tespiti.
@@ -58,7 +58,7 @@ Proje, giyim alışkanlıklarını dijitalleştirmek isteyen aşağıdaki öncel
 
 ---
 
-## 📝 2.5. Kullanıcı Hikayeleri (User Stories)
+## 📝 1.5. Kullanıcı Hikayeleri (User Stories)
 
 | ID | Hikaye | Rol | Öncelik | Amaç & Değer | Kabul Kriterleri |
 | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -70,9 +70,9 @@ Proje, giyim alışkanlıklarını dijitalleştirmek isteyen aşağıdaki öncel
 
 ---
 
-## ⚙️ 2.6. Gereksinim Analizi
+## ⚙️ 1.6. Gereksinim Analizi
 
-### 2.6.1. Fonksiyonel Gereksinimler (FR)
+### 1.6.1. Fonksiyonel Gereksinimler (FR)
 
 | ID | Gereksinim Tanımı | İlgili US | Bileşen | Öncelik |
 | :--- | :--- | :--- | :--- | :--- |
@@ -83,7 +83,7 @@ Proje, giyim alışkanlıklarını dijitalleştirmek isteyen aşağıdaki öncel
 | **FR-05** | Kıyafet özellikleri manuel güncellenebilmeli ve silinebilmelidir (CRUD). | US-03 | Database | Orta |
 | **FR-06** | Gardırop verileri analiz edilerek istatistiksel grafikler sunulmalıdır. | US-05 | Frontend | Düşük |
 
-### 2.6.2. Fonksiyonel Olmayan Gereksinimler (NFR)
+### 1.6.2. Fonksiyonel Olmayan Gereksinimler (NFR)
 
 | ID | Kategori | Detaylar ve Kriterler |
 | :--- | :--- | :--- |
@@ -93,7 +93,7 @@ Proje, giyim alışkanlıklarını dijitalleştirmek isteyen aşağıdaki öncel
 | **NFR-04** | **Kullanılabilirlik** | • Kıyafet ekleme işlemi < 3 adım. |
 | **NFR-05** | **Ölçeklenebilirlik**| • Asenkron Node.js mimarisi. |
 
-### 2.6.3. Gereksinim İzlenebilirlik Matrisi
+### 1.6.3. Gereksinim İzlenebilirlik Matrisi
 
 | ID | Tanım | Tür | Öncelik | Paydaş | Doğrulama |
 | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -106,7 +106,7 @@ Proje, giyim alışkanlıklarını dijitalleştirmek isteyen aşağıdaki öncel
 
 ---
 
-## ⚠️ 2.7. Risk Analizi ve Önleme
+## ⚠️ 1.7. Risk Analizi ve Önleme
 
 | ID | Risk | Tür | Olasılık | Etki | Önleme Stratejisi |
 | :--- | :--- | :--- | :--- | :--- | :--- |

@@ -28,7 +28,7 @@ Proje, modern yazılım mimarisi ve **Microservices/Monorepo** yaklaşımına uy
 | **Frontend (Web)** | React.js, Tailwind CSS |
 | **Frontend (Mobil)** | Flutter, Dart |
 | **Yapay Zeka (AI)** | Python, TensorFlow / PyTorch, OpenCV |
-| **Veritabanı** | MongoDB / PostgreSQL *(Projene göre burayı düzeltebilirsin)* |
+| **Veritabanı** | MongoDB |
 | **DevOps & CI/CD** | Docker, GitHub Actions |
 | **Tasarım (UI/UX)** | Figma |
 
@@ -42,32 +42,31 @@ Projenin tüm teknik detaylarına, analiz raporlarına ve mimari diyagramlarına
 * Kullanıcı Hikayeleri (User Stories)
 * Fonksiyonel ve Fonksiyonel Olmayan Gereksinimler (FR/NFR)
 * Risk Analizi
-* 📄 **[İlgili Dokümanlara Git](./docs/)**
+* 📄 **[İlgili Dokümanlara Git](./docs/GereksinimAnalizi)**
 
 ### 2️⃣ Sistem Tasarımı ve Mimari
 * UML Diyagramları (Use Case, Class, Sequence)
 * Veritabanı Tasarımı (ER Diyagramları)
 * Sistem Mimarisi Şeması
-* 📄 **[İlgili Dokümanlara Git](./docs/)**
+* 📄 **[İlgili Dokümanlara Git](./docs/SistemTasarimi)**
 
 ### 3️⃣ Test Planı ve Senaryoları
 * Test Stratejileri ve Kullanılan Araçlar
 * Detaylı Test Senaryoları
 * Test Case Tabloları
-* 📄 **[İlgili Dokümanlara Git](./docs/)**
+* 📄 **[İlgili Dokümanlara Git](./docs/TestPlani)**
 
-### 4️⃣ DevOps Entegrasyonu ve CI/CD
-* CI/CD Pipeline Akışı ve Adımları
-* DevOps Diyagramı
-* Konteynerizasyon ve Dağıtım Süreçleri
-* 📄 **[İlgili Dokümanlara Git](./docs/)**
-
-### 5️⃣ Proje Yönetimi ve Planlama
+### 4️⃣ Proje Yönetimi ve Planlama
 * Gantt Şeması ve Zaman Çizelgesi
 * Görev Dağılımı
 * Süreç Takibi
-* 📄 **[İlgili Dokümanlara Git](./docs/)**
+* 📄 **[İlgili Dokümanlara Git](./docs/ProjeYonetimi)**
 
+### 5️⃣ DevOps Entegrasyonu ve CI/CD
+* CI/CD Pipeline Akışı ve Adımları
+* DevOps Diyagramı
+* Konteynerizasyon ve Dağıtım Süreçleri
+* 📄 **[İlgili Dokümanlara Git](./docs/DevOpsEntegrasyonu)**
 
 ---
 
