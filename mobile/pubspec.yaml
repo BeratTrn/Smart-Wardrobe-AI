@@ -30,10 +30,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  http: ^1.1.0 # Backend API bağlantısı için
+  http: ^1.6.0 # Backend API bağlantısı için
   google_fonts: ^6.1.0 # Tasarımdaki modern fontlar için
   flutter_svg: ^2.0.9 # Logoların net görünmesi için
-  shared_preferences: ^2.2.2 # Kullanıcı oturum bilgisi için
+  shared_preferences: ^2.5.4 # Kullanıcı oturum bilgisi için
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
