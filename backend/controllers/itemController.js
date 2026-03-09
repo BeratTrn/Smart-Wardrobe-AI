@@ -84,4 +84,30 @@ const getItems = async (req, res) => {
     }
 };
 
-module.exports = { analyzeAndAddItem, getItems };
+// Yeni Fonksiyon: Dolaptan Kıyafet Sil
+const deleteItem = async (req, res) => {
+    try {
+        // 1. Silinecek kıyafeti URL'den gelen ID'sine göre bul
+        const item = await Item.findById(req.params.id);
+
+        if (!item) {
+            return res.status(404).json({ mesaj: 'Silinmek istenen kıyafet bulunamadı!' });
+        }
+
+        // 2. Güvenlik Kontrolü: Bu kıyafet gerçekten giriş yapan kullanıcıya mı ait?
+        if (item.kullanici.toString() !== req.user.id) {
+            return res.status(401).json({ mesaj: 'Başkasının dolabından kıyafet silemezsiniz!' });
+        }
+
+        // 3. Kıyafeti veritabanından kalıcı olarak sil
+        await item.deleteOne();
+
+        res.status(200).json({ mesaj: 'Kıyafet dolabınızdan başarıyla silindi! 🗑️' });
+    } catch (error) {
+        console.error("Kıyafet Silme Hatası:", error);
+        res.status(500).json({ mesaj: 'Kıyafet silinemedi, sunucu hatası.' });
+    }
+};
+
+// DİKKAT: En alttaki dışa aktarma satırını şu şekilde güncelle ki deleteItem fonksiyonunu da dışarı açalım:
+module.exports = { analyzeAndAddItem, getItems, deleteItem };
