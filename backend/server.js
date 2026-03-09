@@ -1,20 +1,29 @@
+require('dotenv').config(); // .env dosyasını okuması için en başa ekliyoruz
 const express = require('express');
 const cors = require('cors');
+const connectDB = require('./config/db'); // Veritabanı bağlantı fonksiyonunu içeri aktar
 
-// Uygulamayı oluştur
+// Rotaları (Yolları) İçeri Aktar
+const authRoutes = require('./routes/authRoutes');
+
+// Veritabanına Bağlan
+connectDB();
+
 const app = express();
 
-// Ara yazılımlar (Middleware)
-app.use(cors()); // Farklı portlardan gelen isteklere izin ver
-app.use(express.json()); // Gelen JSON verilerini okuyabilmek için
+app.use(cors());
+app.use(express.json());
 
-// Test Uç Noktası (Endpoint)
+// API Rotalarını Kullan (Gelen istekleri ilgili kapıya yönlendir)
+app.use('/api/auth', authRoutes);
+
+// Test Uç Noktası
 app.get('/', (req, res) => {
-    res.json({ mesaj: 'Smart Wardrobe AI Backend API Çalışıyor!' });
+    res.json({ mesaj: 'Smart Wardrobe AI Backend API Çalışıyor! 🚀' });
 });
 
-// Sunucuyu Dinlemeye Başla
-const PORT = 3000;
+// Portu .env'den al, yoksa 3000 kullan
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Sunucu ${PORT} portunda başarıyla ayağa kalktı!`);
+    console.log(`🚀 Sunucu ${PORT} portunda başarıyla ayağa kalktı!`);
 });
