@@ -18,22 +18,25 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen>
     with SingleTickerProviderStateMixin {
-  final _emailCtrl    = TextEditingController();
+  final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
 
   bool _loading = false;
 
   late final AnimationController _floatCtrl;
-  late final Animation<double>   _floatAnim;
+  late final Animation<double> _floatAnim;
 
   @override
   void initState() {
     super.initState();
     _floatCtrl = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 2500))
-      ..repeat(reverse: true);
-    _floatAnim = Tween<double>(begin: -6, end: 6).animate(
-        CurvedAnimation(parent: _floatCtrl, curve: Curves.easeInOut));
+      vsync: this,
+      duration: const Duration(milliseconds: 2500),
+    )..repeat(reverse: true);
+    _floatAnim = Tween<double>(
+      begin: -6,
+      end: 6,
+    ).animate(CurvedAnimation(parent: _floatCtrl, curve: Curves.easeInOut));
   }
 
   @override
@@ -45,7 +48,7 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   Future<void> _login() async {
-    final email    = _emailCtrl.text.trim();
+    final email = _emailCtrl.text.trim();
     final password = _passwordCtrl.text.trim();
 
     if (email.isEmpty || password.isEmpty) {
@@ -68,7 +71,12 @@ class _LoginScreenState extends State<LoginScreen>
       if (res.statusCode == 200) {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('token', data['token'] ?? '');
-        await prefs.setString('userName', data['kullaniciAdi'] ?? data['name'] ?? '');
+
+        // Backend'den 'kullanici' nesnesi içinde geliyor: data['kullanici']['kullaniciAdi']
+        final k = data['kullanici'];
+        final userName = k != null ? (k['kullaniciAdi'] ?? '') : '';
+        await prefs.setString('userName', userName);
+
         if (!mounted) return;
         Navigator.pushAndRemoveUntil(
           context,
@@ -105,35 +113,47 @@ class _LoginScreenState extends State<LoginScreen>
                   child: AnimatedBuilder(
                     animation: _floatAnim,
                     builder: (_, child) => Transform.translate(
-                        offset: Offset(0, _floatAnim.value), child: child),
+                      offset: Offset(0, _floatAnim.value),
+                      child: child,
+                    ),
                     child: Container(
-                      width: 88, height: 88,
+                      width: 88,
+                      height: 88,
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(colors: [
-                          AuthColors.gold.withOpacity(.2),
-                          AuthColors.goldLight.withOpacity(.06),
-                        ]),
+                        gradient: LinearGradient(
+                          colors: [
+                            AuthColors.gold.withOpacity(.2),
+                            AuthColors.goldLight.withOpacity(.06),
+                          ],
+                        ),
                         shape: BoxShape.circle,
                         border: Border.all(
-                            color: AuthColors.gold.withOpacity(.25), width: 1.5),
+                          color: AuthColors.gold.withOpacity(.25),
+                          width: 1.5,
+                        ),
                       ),
-                      child: const Icon(Icons.checkroom_rounded,
-                          color: AuthColors.gold, size: 42),
+                      child: const Icon(
+                        Icons.checkroom_rounded,
+                        color: AuthColors.gold,
+                        size: 42,
+                      ),
                     ),
                   ),
                 ),
 
                 const SizedBox(height: 36),
 
-                Text('Tekrar\nHoş Geldin.',
-                    style: TextStyle(
-                      fontFamily: 'Cormorant',
-                      fontSize: 44,
-                      fontWeight: FontWeight.w700,
-                      height: 1.05,
-                      color: AuthColors.text,
-                      letterSpacing: -1,
-                    )),
+                Text(
+                  'Tekrar\nHoş Geldin.',
+                  style: TextStyle(
+                    fontFamily: 'Cormorant',
+                    fontSize: 44,
+                    fontWeight: FontWeight.w700,
+                    height: 1.05,
+                    color: AuthColors.text,
+                    letterSpacing: -1,
+                  ),
+                ),
 
                 const SizedBox(height: 32),
 
@@ -156,23 +176,30 @@ class _LoginScreenState extends State<LoginScreen>
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
-                    onPressed: () => Navigator.push(context,
-                        MaterialPageRoute(
-                            builder: (_) => const ForgotPasswordScreen())),
-                    child: const Text('Şifremi unuttum?',
-                        style: TextStyle(
-                            color: AuthColors.gold,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500)),
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const ForgotPasswordScreen(),
+                      ),
+                    ),
+                    child: const Text(
+                      'Şifremi unuttum?',
+                      style: TextStyle(
+                        color: AuthColors.gold,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                   ),
                 ),
 
                 const SizedBox(height: 8),
 
                 AuthPrimaryButton(
-                    label: 'Giriş Yap',
-                    onTap: _login,
-                    loading: _loading),
+                  label: 'Giriş Yap',
+                  onTap: _login,
+                  loading: _loading,
+                ),
 
                 const SizedBox(height: 24),
                 const AuthDivider(),
@@ -186,8 +213,11 @@ class _LoginScreenState extends State<LoginScreen>
                 ),
                 const SizedBox(height: 12),
                 AuthSocialButton(
-                  icon: const Icon(Icons.apple_rounded,
-                      color: AuthColors.text, size: 22),
+                  icon: const Icon(
+                    Icons.apple_rounded,
+                    color: AuthColors.text,
+                    size: 22,
+                  ),
                   label: 'Apple ile giriş yap',
                   onTap: () {},
                 ),
@@ -197,20 +227,21 @@ class _LoginScreenState extends State<LoginScreen>
                 // — kayıt ol
                 Center(
                   child: GestureDetector(
-                    onTap: () => Navigator.push(context,
-                        MaterialPageRoute(
-                            builder: (_) => const SignUpScreen())),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const SignUpScreen()),
+                    ),
                     child: RichText(
                       text: const TextSpan(
                         text: 'Hesabın yok mu? ',
-                        style: TextStyle(
-                            color: AuthColors.muted, fontSize: 14),
+                        style: TextStyle(color: AuthColors.muted, fontSize: 14),
                         children: [
                           TextSpan(
                             text: 'Hemen kaydol',
                             style: TextStyle(
-                                color: AuthColors.gold,
-                                fontWeight: FontWeight.w600),
+                              color: AuthColors.gold,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ],
                       ),

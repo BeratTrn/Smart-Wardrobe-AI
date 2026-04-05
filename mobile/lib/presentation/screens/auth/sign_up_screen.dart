@@ -83,7 +83,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
       if (res.statusCode == 201) {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('token', data['token'] ?? '');
-        await prefs.setString('userName', data['kullaniciAdi'] ?? '');
+
+        final k = data['kullanici'];
+        final userName = k != null ? (k['kullaniciAdi'] ?? '') : '';
+        await prefs.setString('userName', userName);
+
         if (!mounted) return;
         Navigator.pushAndRemoveUntil(
           context,
