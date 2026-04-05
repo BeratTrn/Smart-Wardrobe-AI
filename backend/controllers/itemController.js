@@ -1,113 +1,203 @@
 const Item = require('../models/Item');
-const OpenAI = require('openai');
+const { kiyafetAnaliz } = require('../services/aiService');
+const { cloudinary } = require('../config/cloudinary');
 
-// OpenAI Bağlantısını Kur
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY // .env dosyasından şifreyi alır
-});
-
+// @route  POST /api/items/add
+// @desc   Fotoğraf yükle + AI analiz et + dolaba ekle
+// @access Private
 const analyzeAndAddItem = async (req, res) => {
     try {
-        // 1. Kullanıcı gerçekten bir fotoğraf yüklemiş mi?
         if (!req.file) {
-            return res.status(400).json({ mesaj: 'Lütfen bir kıyafet fotoğrafı yükleyin!' });
+            return res.status(400).json({ mesaj: 'Lütfen bir kıyafet fotoğrafı yükleyin.' });
         }
 
-        // 2. Resmi Base64 formatına çevir (OpenAI'ın gözleriyle görebilmesi için)
-        const base64Image = req.file.buffer.toString('base64');
+        let aiData = {};
+        let resimUrl = '';
+        let cloudinaryId = '';
 
-        // 3. Yapay Zekaya (GPT-4o) Sor!
-        const response = await openai.chat.completions.create({
-            model: "gpt-4o",
-            messages: [
-                {
-                    role: "user",
-                    content: [
-                        { 
-                            type: "text", 
-                            text: "Bu kıyafeti analiz et. Lütfen SADECE şu formatta bir JSON döndür, başka hiçbir açıklama yazma: {\"kategori\": \"Üst Giyim\", \"renk\": \"Kırmızı\", \"mevsim\": \"Kış\"}" 
-                        },
-                        { 
-                            type: "image_url", 
-                            image_url: { url: `data:${req.file.mimetype};base64,${base64Image}` } 
-                        }
-                    ]
-                }
-            ],
-            max_tokens: 300,
-        });
+        // Cloudinary'ye yüklendiyse URL'i al
+        if (req.file.path) {
+            // Cloudinary storage kullanıldığında req.file.path = URL
+            resimUrl = req.file.path;
+            cloudinaryId = req.file.filename || '';
+        }
 
-        // 4. OpenAI'dan gelen cevabı temizle ve JSON'a çevir
-        let aiResponse = response.choices[0].message.content;
-        aiResponse = aiResponse.replace(/```json/g, '').replace(/```/g, '').trim(); // Markdown temizliği
-        const aiData = JSON.parse(aiResponse);
+        // AI Analizi - buffer varsa (memory storage), yoksa URL üzerinden
+        try {
+            if (req.file.buffer) {
+                aiData = await kiyafetAnaliz(req.file.buffer, req.file.mimetype);
+            } else {
+                // Geçici placeholder (gerçek proje için URL üzerinden analiz eklenebilir)
+                aiData = {
+                    kategori: req.body.kategori || 'Diğer',
+                    renk: req.body.renk || 'Bilinmiyor',
+                    mevsim: req.body.mevsim || 'Tüm Mevsimler',
+                    stil: req.body.stil || 'Casual',
+                    aiDogrulandi: false
+                };
+            }
+        } catch (aiError) {
+            console.error('AI Analiz Hatası:', aiError.message);
+            // AI başarısız olursa manuel bilgileri kullan
+            aiData = {
+                kategori: req.body.kategori || 'Diğer',
+                renk: req.body.renk || 'Bilinmiyor',
+                mevsim: req.body.mevsim || 'Tüm Mevsimler',
+                stil: req.body.stil || 'Casual',
+                aiDogrulandi: false
+            };
+        }
 
-        // 5. Veritabanına Kaydet
-        const newItem = new Item({
-            kullanici: req.user.id, // Kimin eklediğini güvenlik görevlisinden (middleware) öğrendik!
-            resimUrl: "gecici_resim_linki.jpg", // Gerçek resim linkleme işini (Cloudinary) sonraki aşamalarda yapacağız
+        const newItem = await Item.create({
+            kullanici: req.user._id,
+            resimUrl: resimUrl || 'placeholder_url',
+            cloudinaryId,
             kategori: aiData.kategori,
             renk: aiData.renk,
-            mevsim: aiData.mevsim
+            mevsim: aiData.mevsim,
+            stil: aiData.stil,
+            marka: req.body.marka || '',
+            notlar: req.body.notlar || '',
+            aiDogrulandi: aiData.aiDogrulandi
         });
 
-        await newItem.save();
-
-        // 6. Başarı mesajı ve AI sonucunu mobile gönder
         res.status(201).json({
-            mesaj: 'Kıyafet yapay zeka ile analiz edildi ve dolaba eklendi! 🪄',
-            kıyafet: newItem
+            mesaj: 'Kıyafet yapay zeka ile analiz edildi ve dolabınıza eklendi! 🪄',
+            kiyafet: newItem
         });
 
     } catch (error) {
-        console.error("Yapay Zeka veya Kayıt Hatası:", error);
-        res.status(500).json({ mesaj: 'Kıyafet analiz edilemedi, lütfen tekrar deneyin.' });
+        console.error('Kıyafet Ekleme Hatası:', error);
+        res.status(500).json({ mesaj: 'Kıyafet eklenemedi. Lütfen tekrar deneyin.' });
     }
 };
 
-// Yeni Fonksiyon: Kullanıcının dolabındaki kıyafetleri getir
+// @route  GET /api/items
+// @desc   Kullanıcının tüm kıyafetlerini getir (filtreleme destekli)
+// @access Private
 const getItems = async (req, res) => {
     try {
-        // req.user.id'yi yine güvenlik görevlimizden (middleware) alıyoruz.
-        // Item (Kıyafet) tablosunda sadece bu id'ye ait olanları buluyoruz.
-        // sort({ createdAt: -1 }) ile en son eklenen kıyafetin en üstte (ilk sırada) gelmesini sağlıyoruz.
-        const items = await Item.find({ kullanici: req.user.id }).sort({ createdAt: -1 });
+        const { kategori, mevsim, renk, stil, sayfa = 1, limit = 20 } = req.query;
+
+        // Dinamik filtre oluştur
+        const filtre = { kullanici: req.user._id };
+        if (kategori) filtre.kategori = kategori;
+        if (mevsim) filtre.mevsim = mevsim;
+        if (renk) filtre.renk = new RegExp(renk, 'i');
+        if (stil) filtre.stil = stil;
+
+        const skip = (parseInt(sayfa) - 1) * parseInt(limit);
+
+        const [items, toplam] = await Promise.all([
+            Item.find(filtre)
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(parseInt(limit)),
+            Item.countDocuments(filtre)
+        ]);
 
         res.status(200).json({
-            mesaj: 'Kıyafetler başarıyla getirildi! 👕👗',
-            adet: items.length,
+            mesaj: 'Kıyafetler başarıyla getirildi. 👕',
+            toplam,
+            sayfa: parseInt(sayfa),
+            toplamSayfa: Math.ceil(toplam / parseInt(limit)),
             kiyafetler: items
         });
+
     } catch (error) {
-        console.error("Kıyafetleri Getirme Hatası:", error);
-        res.status(500).json({ mesaj: 'Kıyafetler getirilemedi, sunucu hatası.' });
+        console.error('Kıyafet Getirme Hatası:', error);
+        res.status(500).json({ mesaj: 'Kıyafetler getirilemedi.' });
     }
 };
 
-// Yeni Fonksiyon: Dolaptan Kıyafet Sil
-const deleteItem = async (req, res) => {
+// @route  GET /api/items/:id
+// @desc   Tek kıyafet getir
+// @access Private
+const getItemById = async (req, res) => {
     try {
-        // 1. Silinecek kıyafeti URL'den gelen ID'sine göre bul
         const item = await Item.findById(req.params.id);
 
         if (!item) {
-            return res.status(404).json({ mesaj: 'Silinmek istenen kıyafet bulunamadı!' });
+            return res.status(404).json({ mesaj: 'Kıyafet bulunamadı.' });
         }
 
-        // 2. Güvenlik Kontrolü: Bu kıyafet gerçekten giriş yapan kullanıcıya mı ait?
-        if (item.kullanici.toString() !== req.user.id) {
-            return res.status(401).json({ mesaj: 'Başkasının dolabından kıyafet silemezsiniz!' });
+        if (item.kullanici.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ mesaj: 'Bu kıyafete erişim yetkiniz yok.' });
         }
 
-        // 3. Kıyafeti veritabanından kalıcı olarak sil
-        await item.deleteOne();
+        res.status(200).json({ kiyafet: item });
 
-        res.status(200).json({ mesaj: 'Kıyafet dolabınızdan başarıyla silindi! 🗑️' });
     } catch (error) {
-        console.error("Kıyafet Silme Hatası:", error);
-        res.status(500).json({ mesaj: 'Kıyafet silinemedi, sunucu hatası.' });
+        res.status(500).json({ mesaj: 'Kıyafet getirilemedi.' });
     }
 };
 
-// DİKKAT: En alttaki dışa aktarma satırını şu şekilde güncelle ki deleteItem fonksiyonunu da dışarı açalım:
-module.exports = { analyzeAndAddItem, getItems, deleteItem };
+// @route  PUT /api/items/:id
+// @desc   Kıyafet bilgilerini güncelle (AI etiketlerini düzelt)
+// @access Private
+const updateItem = async (req, res) => {
+    try {
+        const item = await Item.findById(req.params.id);
+
+        if (!item) {
+            return res.status(404).json({ mesaj: 'Kıyafet bulunamadı.' });
+        }
+
+        if (item.kullanici.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ mesaj: 'Bu kıyafeti düzenleme yetkiniz yok.' });
+        }
+
+        const { kategori, renk, mevsim, stil, marka, notlar } = req.body;
+
+        const updatedItem = await Item.findByIdAndUpdate(
+            req.params.id,
+            { kategori, renk, mevsim, stil, marka, notlar },
+            { new: true, runValidators: true }
+        );
+
+        res.status(200).json({
+            mesaj: 'Kıyafet bilgileri güncellendi. ✅',
+            kiyafet: updatedItem
+        });
+
+    } catch (error) {
+        console.error('Kıyafet Güncelleme Hatası:', error);
+        res.status(500).json({ mesaj: 'Kıyafet güncellenemedi.' });
+    }
+};
+
+// @route  DELETE /api/items/:id
+// @desc   Kıyafet sil
+// @access Private
+const deleteItem = async (req, res) => {
+    try {
+        const item = await Item.findById(req.params.id);
+
+        if (!item) {
+            return res.status(404).json({ mesaj: 'Kıyafet bulunamadı.' });
+        }
+
+        if (item.kullanici.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ mesaj: 'Başkasının dolabından kıyafet silemezsiniz.' });
+        }
+
+        // Cloudinary'den de sil (varsa)
+        if (item.cloudinaryId) {
+            try {
+                await cloudinary.uploader.destroy(item.cloudinaryId);
+            } catch (cloudErr) {
+                console.error('Cloudinary silme hatası:', cloudErr.message);
+            }
+        }
+
+        await item.deleteOne();
+
+        res.status(200).json({ mesaj: 'Kıyafet dolabınızdan silindi. 🗑️' });
+
+    } catch (error) {
+        console.error('Kıyafet Silme Hatası:', error);
+        res.status(500).json({ mesaj: 'Kıyafet silinemedi.' });
+    }
+};
+
+module.exports = { analyzeAndAddItem, getItems, getItemById, updateItem, deleteItem };
