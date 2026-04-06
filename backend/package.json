@@ -33,6 +33,11 @@
     "nodemon": "^3.0.2",
     "supertest": "^6.3.3"
   },
+  "overrides": {
+    "multer-storage-cloudinary": {
+      "cloudinary": "$cloudinary"
+    }
+  },
   "jest": {
     "testEnvironment": "node",
     "coverageDirectory": "coverage",
