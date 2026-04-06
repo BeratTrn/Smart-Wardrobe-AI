@@ -64,14 +64,13 @@ jobs:
         continue-on-error: true
 
   # ============================================
-  # STAGE 2: DOCKER IMAGE BUILD & PUSH
-  # Sadece main branch + testler geçince çalışır
+  # STAGE 2: DOCKER IMAGE BUILD & (PUSH IF MAIN)
+  # Testler geçince çalışır, sadece main'de push yapar
   # ============================================
   docker-build:
     name: 🐳 Docker Image Oluştur & Push
     runs-on: ubuntu-latest
     needs: test
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
     outputs:
       image-tag: ${{ steps.meta.outputs.tags }}
@@ -102,8 +101,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./backend
-          dockerfile: Dockerfile
-          push: true
+          push: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
