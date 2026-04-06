@@ -24,7 +24,7 @@ jobs:
       - name: 🐦 Flutter Kurulumu
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.22.x' # Kararlı güncel Flutter sürümü
+          channel: 'stable' # Projenin yerel Flutter sürümüyle eşleşmesi için her zaman güncel stabil kanalı kullanır
           cache: true # Flutter SDK ve pub cache ile performansı korur
 
       - name: 📦 Bağımlılıkları yükle
