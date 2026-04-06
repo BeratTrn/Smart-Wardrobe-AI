@@ -1,4 +1,4 @@
-name: 📱 Mobile CI Pipeline
+name: Mobile CI Pipeline
 
 on:
   push:
