@@ -229,7 +229,7 @@ class _GridFavorites extends StatelessWidget {
                 child: Container(
                   width: 30, height: 30,
                   decoration: BoxDecoration(
-                    color: AppColors.bg.withOpacity(.75), shape: BoxShape.circle),
+                    color: AppColors.bg.withValues(alpha: .75), shape: BoxShape.circle),
                   child: const Icon(Icons.favorite_rounded,
                       color: Color(0xFFE05C5C), size: 15),
                 ),
@@ -267,10 +267,10 @@ class _ListFavorites extends StatelessWidget {
                   child: item.imageUrl != null
                       ? Image.network(item.imageUrl!, fit: BoxFit.cover,
                           errorBuilder: (_, __, ___) => Container(
-                              color: color.withOpacity(.1),
-                              child: Icon(Icons.checkroom_outlined, color: color.withOpacity(.4))))
-                      : Container(color: color.withOpacity(.1),
-                          child: Icon(Icons.checkroom_outlined, color: color.withOpacity(.4))),
+                              color: color.withValues(alpha: .1),
+                              child: Icon(Icons.checkroom_outlined, color: color.withValues(alpha: .4))))
+                      : Container(color: color.withValues(alpha: .1),
+                          child: Icon(Icons.checkroom_outlined, color: color.withValues(alpha: .4))),
                 ),
               ),
               const SizedBox(width: 12),
@@ -283,7 +283,7 @@ class _ListFavorites extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: color.withOpacity(.12), borderRadius: BorderRadius.circular(6)),
+                      color: color.withValues(alpha: .12), borderRadius: BorderRadius.circular(6)),
                     child: Text(item.category,
                         style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w600)),
                   ),

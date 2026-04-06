@@ -27,8 +27,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
     final p = _passwordCtrl.text;
     if (p.length < 6) return .25;
     if (p.length < 8) return .50;
-    if (!p.contains(RegExp(r'[A-Z]')) && !p.contains(RegExp(r'[0-9]')))
+    if (!p.contains(RegExp(r'[A-Z]')) && !p.contains(RegExp(r'[0-9]'))) {
       return .60;
+    }
     if (p.length >= 12) return 1.0;
     return .80;
   }

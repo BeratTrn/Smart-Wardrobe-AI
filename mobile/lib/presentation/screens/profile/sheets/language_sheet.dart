@@ -84,7 +84,7 @@ class _LanguageItem extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: isSelected ? AppColors.gold.withOpacity(.10) : AppColors.bg,
+        color: isSelected ? AppColors.gold.withValues(alpha: .10) : AppColors.bg,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: isSelected ? AppColors.gold : AppColors.border,

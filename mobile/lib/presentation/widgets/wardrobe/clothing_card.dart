@@ -115,7 +115,7 @@ class _CategoryBadge extends StatelessWidget {
   Widget build(BuildContext context) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
         decoration: BoxDecoration(
-          color: color.withOpacity(.15),
+          color: color.withValues(alpha: .15),
           borderRadius: BorderRadius.circular(6),
         ),
         child: Text(
@@ -140,7 +140,7 @@ class _RemoveButton extends StatelessWidget {
         child: Container(
           width: 28, height: 28,
           decoration: BoxDecoration(
-            color: AppColors.bg.withOpacity(.8),
+            color: AppColors.bg.withValues(alpha: .8),
             shape: BoxShape.circle,
           ),
           child: const Icon(Icons.close_rounded,
@@ -157,8 +157,8 @@ class _ImagePlaceholder extends StatelessWidget {
   Widget build(BuildContext context) => Container(
         width: double.infinity,
         height: double.infinity,
-        color: color.withOpacity(.08),
+        color: color.withValues(alpha: .08),
         child: Icon(Icons.checkroom_outlined,
-            color: color.withOpacity(.4), size: 36),
+            color: color.withValues(alpha: .4), size: 36),
       );
 }

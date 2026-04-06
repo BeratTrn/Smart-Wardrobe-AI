@@ -42,7 +42,7 @@ class ProfileHeader extends StatelessWidget {
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.gold.withOpacity(.35),
+                          color: AppColors.gold.withValues(alpha: .35),
                           blurRadius: 18,
                           offset: const Offset(0, 5),
                         ),

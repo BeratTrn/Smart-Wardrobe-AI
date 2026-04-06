@@ -30,12 +30,12 @@ class AuthBackground extends StatelessWidget {
         Positioned(
           top: -120,
           right: -80,
-          child: _GlowOrb(color: AuthColors.gold.withOpacity(.12), size: 300),
+          child: _GlowOrb(color: AuthColors.gold.withValues(alpha: .12), size: 300),
         ),
         Positioned(
           bottom: -60,
           left: -60,
-          child: _GlowOrb(color: AuthColors.gold.withOpacity(.07), size: 200),
+          child: _GlowOrb(color: AuthColors.gold.withValues(alpha: .07), size: 200),
         ),
         child,
       ],
@@ -210,7 +210,7 @@ class AuthPrimaryButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: AuthColors.gold.withOpacity(.35),
+              color: AuthColors.gold.withValues(alpha: .35),
               blurRadius: 20,
               offset: const Offset(0, 6),
             ),
@@ -341,8 +341,8 @@ class _GooglePainter extends CustomPainter {
         ..strokeWidth = size.width * .2;
       canvas.drawArc(
         Rect.fromCircle(center: Offset(cx, cy), radius: r * .75),
-        s.$2 as double,
-        (s.$3 as double) - (s.$2 as double),
+        s.$2,
+        (s.$3) - (s.$2),
         false,
         paint,
       );

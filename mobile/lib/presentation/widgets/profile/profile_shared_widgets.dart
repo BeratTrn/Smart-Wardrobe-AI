@@ -45,7 +45,7 @@ class ProfileGoldButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: AppColors.gold.withOpacity(.3),
+            color: AppColors.gold.withValues(alpha: .3),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),

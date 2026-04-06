@@ -406,8 +406,8 @@ class _PhotoStep extends StatelessWidget {
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        AppColors.gold.withOpacity(.18),
-                        AppColors.goldLight.withOpacity(.06),
+                        AppColors.gold.withValues(alpha: .18),
+                        AppColors.goldLight.withValues(alpha: .06),
                       ],
                     ),
                     shape: BoxShape.circle,
@@ -638,7 +638,7 @@ class _ClothingStep extends StatelessWidget {
                 boxShadow: onStart != null
                     ? [
                         BoxShadow(
-                          color: AppColors.gold.withOpacity(.35),
+                          color: AppColors.gold.withValues(alpha: .35),
                           blurRadius: 16,
                           offset: const Offset(0, 5),
                         ),
@@ -719,7 +719,7 @@ class _ProcessingStep extends StatelessWidget {
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.gold.withOpacity(.4),
+                            color: AppColors.gold.withValues(alpha: .4),
                             blurRadius: 12,
                             offset: const Offset(0, 3),
                           ),
@@ -878,7 +878,7 @@ class _ResultStep extends StatelessWidget {
                 borderRadius: BorderRadius.circular(15),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.gold.withOpacity(.35),
+                    color: AppColors.gold.withValues(alpha: .35),
                     blurRadius: 16,
                     offset: const Offset(0, 5),
                   ),

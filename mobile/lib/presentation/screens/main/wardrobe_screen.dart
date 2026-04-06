@@ -209,10 +209,10 @@ class _WardrobeScreenState extends State<WardrobeScreen>
                             vertical: 8,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.gold.withOpacity(.1),
+                            color: AppColors.gold.withValues(alpha: .1),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: AppColors.gold.withOpacity(.3),
+                              color: AppColors.gold.withValues(alpha: .3),
                             ),
                           ),
                           child: Row(
@@ -390,7 +390,7 @@ class _DeleteDialog extends StatelessWidget {
             width: 54,
             height: 54,
             decoration: BoxDecoration(
-              color: AppColors.error.withOpacity(.12),
+              color: AppColors.error.withValues(alpha: .12),
               shape: BoxShape.circle,
             ),
             child: const Icon(

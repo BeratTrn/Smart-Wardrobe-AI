@@ -198,7 +198,7 @@ class _SuccessView extends StatelessWidget {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: AuthColors.gold.withOpacity(.4),
+                  color: AuthColors.gold.withValues(alpha: .4),
                   blurRadius: 24,
                   offset: const Offset(0, 8),
                 ),

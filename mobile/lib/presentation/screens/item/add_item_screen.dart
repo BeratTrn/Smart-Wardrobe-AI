@@ -300,8 +300,8 @@ class _PickStep extends StatelessWidget {
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          AppColors.gold.withOpacity(.2),
-                          AppColors.goldLight.withOpacity(.08),
+                          AppColors.gold.withValues(alpha: .2),
+                          AppColors.goldLight.withValues(alpha: .08),
                         ],
                       ),
                       shape: BoxShape.circle,
@@ -370,9 +370,9 @@ class _PickStep extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: AppColors.gold.withOpacity(.06),
+              color: AppColors.gold.withValues(alpha: .06),
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.gold.withOpacity(.2)),
+              border: Border.all(color: AppColors.gold.withValues(alpha: .2)),
             ),
             child: const Row(
               children: [
@@ -429,7 +429,7 @@ class _AnalyzingStep extends StatelessWidget {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: AppColors.gold.withOpacity(.3),
+                          color: AppColors.gold.withValues(alpha: .3),
                           width: 2,
                         ),
                       ),
@@ -446,7 +446,7 @@ class _AnalyzingStep extends StatelessWidget {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: AppColors.gold.withOpacity(.2),
+                          color: AppColors.gold.withValues(alpha: .2),
                           width: 1.5,
                         ),
                       ),
@@ -563,9 +563,9 @@ class _ReviewStep extends StatelessWidget {
                   vertical: 5,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.gold.withOpacity(.12),
+                  color: AppColors.gold.withValues(alpha: .12),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.gold.withOpacity(.3)),
+                  border: Border.all(color: AppColors.gold.withValues(alpha: .3)),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -679,7 +679,7 @@ class _ReviewStep extends StatelessWidget {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.gold.withOpacity(.35),
+                    color: AppColors.gold.withValues(alpha: .35),
                     blurRadius: 18,
                     offset: const Offset(0, 6),
                   ),
@@ -760,7 +760,7 @@ class _DoneStep extends StatelessWidget {
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.gold.withOpacity(.4),
+                      color: AppColors.gold.withValues(alpha: .4),
                       blurRadius: 28,
                       offset: const Offset(0, 8),
                     ),
@@ -806,7 +806,7 @@ class _DoneStep extends StatelessWidget {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.gold.withOpacity(.35),
+                      color: AppColors.gold.withValues(alpha: .35),
                       blurRadius: 18,
                       offset: const Offset(0, 5),
                     ),

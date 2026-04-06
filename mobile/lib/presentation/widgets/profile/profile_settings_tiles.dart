@@ -79,7 +79,7 @@ class ProfileToggleTile extends StatelessWidget {
         Switch(
           value: value,
           onChanged: onChanged,
-          activeColor: AppColors.gold,
+          activeThumbColor: AppColors.gold,
           activeTrackColor: AppColors.goldDim,
           inactiveTrackColor: AppColors.border,
           inactiveThumbColor: AppColors.muted,

@@ -11,11 +11,11 @@ class AppBackground extends StatelessWidget {
       Container(color: AppColors.bg),
       Positioned(
         top: -100, right: -100,
-        child: _GlowOrb(color: AppColors.gold.withOpacity(.10), size: 320),
+        child: _GlowOrb(color: AppColors.gold.withValues(alpha: .10), size: 320),
       ),
       Positioned(
         bottom: 80, left: -80,
-        child: _GlowOrb(color: AppColors.gold.withOpacity(.06), size: 220),
+        child: _GlowOrb(color: AppColors.gold.withValues(alpha: .06), size: 220),
       ),
       child,
     ]);

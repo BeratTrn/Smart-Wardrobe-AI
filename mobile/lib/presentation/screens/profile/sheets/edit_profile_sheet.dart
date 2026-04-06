@@ -74,6 +74,7 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
 
       if (res.statusCode == 200) {
         await prefs.setString('userName', name);
+        if (!mounted) return;
         Navigator.pop(context, true); // true = yenile sinyali
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(

@@ -32,7 +32,7 @@ class ProfileInfoDialog extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: AppColors.gold.withOpacity(.12),
+                  color: AppColors.gold.withValues(alpha: .12),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(icon, color: AppColors.gold, size: 20),

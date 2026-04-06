@@ -30,7 +30,7 @@ class ProfileConfirmDialog extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: (isDanger ? AppColors.error : AppColors.gold).withOpacity(.12),
+              color: (isDanger ? AppColors.error : AppColors.gold).withValues(alpha: .12),
               shape: BoxShape.circle,
             ),
             child: Icon(

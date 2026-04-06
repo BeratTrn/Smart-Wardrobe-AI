@@ -25,7 +25,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen>
     with SingleTickerProviderStateMixin {
-  int _navIndex = 0;
+  final int _navIndex = 0;
 
   String _userName = 'Kullanıcı';
   bool _loading = true;
@@ -362,7 +362,7 @@ class _TopBar extends StatelessWidget {
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.gold.withOpacity(.3),
+                    color: AppColors.gold.withValues(alpha: .3),
                     blurRadius: 10,
                     offset: const Offset(0, 2),
                   ),
@@ -388,12 +388,12 @@ class _AiBadge extends StatelessWidget {
     decoration: BoxDecoration(
       gradient: LinearGradient(
         colors: [
-          AppColors.gold.withOpacity(.18),
-          AppColors.goldLight.withOpacity(.08),
+          AppColors.gold.withValues(alpha: .18),
+          AppColors.goldLight.withValues(alpha: .08),
         ],
       ),
       borderRadius: BorderRadius.circular(20),
-      border: Border.all(color: AppColors.gold.withOpacity(.3)),
+      border: Border.all(color: AppColors.gold.withValues(alpha: .3)),
     ),
     child: Row(
       mainAxisSize: MainAxisSize.min,
@@ -518,11 +518,11 @@ class _ImgPlaceholder extends StatelessWidget {
   const _ImgPlaceholder({required this.color});
   @override
   Widget build(BuildContext context) => Container(
-    color: color.withOpacity(.08),
+    color: color.withValues(alpha: .08),
     child: Center(
       child: Icon(
         Icons.checkroom_outlined,
-        color: color.withOpacity(.4),
+        color: color.withValues(alpha: .4),
         size: 36,
       ),
     ),
@@ -565,7 +565,7 @@ class _CategoryGrid extends StatelessWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: c.$3.withOpacity(.12),
+                color: c.$3.withValues(alpha: .12),
                 shape: BoxShape.circle,
               ),
               child: Icon(c.$1, color: c.$3, size: 20),

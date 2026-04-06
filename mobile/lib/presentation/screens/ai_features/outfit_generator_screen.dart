@@ -289,12 +289,12 @@ class _AiBadge extends StatelessWidget {
     decoration: BoxDecoration(
       gradient: LinearGradient(
         colors: [
-          AppColors.gold.withOpacity(.18),
-          AppColors.goldLight.withOpacity(.08),
+          AppColors.gold.withValues(alpha: .18),
+          AppColors.goldLight.withValues(alpha: .08),
         ],
       ),
       borderRadius: BorderRadius.circular(10),
-      border: Border.all(color: AppColors.gold.withOpacity(.3)),
+      border: Border.all(color: AppColors.gold.withValues(alpha: .3)),
     ),
     child: Row(
       mainAxisSize: MainAxisSize.min,
@@ -380,7 +380,7 @@ class _GenerateButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: AppColors.gold.withOpacity(.4),
+              color: AppColors.gold.withValues(alpha: .4),
               blurRadius: 20,
               offset: const Offset(0, 6),
             ),
@@ -543,9 +543,9 @@ class _OutfitCard extends StatelessWidget {
                     width: 38,
                     height: 38,
                     decoration: BoxDecoration(
-                      color: AppColors.gold.withOpacity(.12),
+                      color: AppColors.gold.withValues(alpha: .12),
                       shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.gold.withOpacity(.3)),
+                      border: Border.all(color: AppColors.gold.withValues(alpha: .3)),
                     ),
                     child: const Icon(
                       Icons.bookmark_border_rounded,
@@ -653,7 +653,7 @@ class _InitialHint extends StatelessWidget {
             width: 46,
             height: 46,
             decoration: BoxDecoration(
-              color: AppColors.gold.withOpacity(.1),
+              color: AppColors.gold.withValues(alpha: .1),
               shape: BoxShape.circle,
             ),
             child: const Icon(

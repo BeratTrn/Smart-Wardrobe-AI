@@ -101,7 +101,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                 center: Alignment.topRight,
                 radius: 1.2,
                 colors: [
-                  _pages[_currentPage].color.withOpacity(.12),
+                  _pages[_currentPage].color.withValues(alpha: .12),
                   AppColors.bg,
                 ],
               ),
@@ -203,13 +203,13 @@ class _PageContent extends StatelessWidget {
                   decoration: BoxDecoration(
                     gradient: RadialGradient(
                       colors: [
-                        page.color.withOpacity(.25),
-                        page.color.withOpacity(.05),
+                        page.color.withValues(alpha: .25),
+                        page.color.withValues(alpha: .05),
                       ],
                     ),
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: page.color.withOpacity(.3),
+                      color: page.color.withValues(alpha: .3),
                       width: 1.5,
                     ),
                   ),
@@ -309,7 +309,7 @@ class _NextButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(.4),
+            color: color.withValues(alpha: .4),
             blurRadius: 18,
             offset: const Offset(0, 6),
           ),

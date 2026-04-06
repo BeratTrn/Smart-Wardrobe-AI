@@ -122,13 +122,13 @@ class _LoginScreenState extends State<LoginScreen>
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [
-                            AuthColors.gold.withOpacity(.2),
-                            AuthColors.goldLight.withOpacity(.06),
+                            AuthColors.gold.withValues(alpha: .2),
+                            AuthColors.goldLight.withValues(alpha: .06),
                           ],
                         ),
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: AuthColors.gold.withOpacity(.25),
+                          color: AuthColors.gold.withValues(alpha: .25),
                           width: 1.5,
                         ),
                       ),

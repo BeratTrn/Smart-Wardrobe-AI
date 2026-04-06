@@ -22,7 +22,7 @@ class ProfileFooter extends StatelessWidget {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.gold.withOpacity(.2),
+                  color: AppColors.gold.withValues(alpha: .2),
                   blurRadius: 12,
                 ),
               ],

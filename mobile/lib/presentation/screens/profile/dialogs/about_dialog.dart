@@ -26,7 +26,7 @@ class ProfileAboutDialog extends StatelessWidget {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.gold.withOpacity(.3),
+                  color: AppColors.gold.withValues(alpha: .3),
                   blurRadius: 16,
                 ),
               ],
