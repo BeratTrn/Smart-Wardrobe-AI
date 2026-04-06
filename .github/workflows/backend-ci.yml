@@ -6,6 +6,7 @@ on:
     paths:
       - 'backend/**'
       - '.github/workflows/backend-ci.yml'
+      - 'docker-compose.yml'
   pull_request:
     branches: [ main, develop ]
     paths:
@@ -13,7 +14,9 @@ on:
       - '.github/workflows/backend-ci.yml'
 
 jobs:
-  # TESTLER VE KALİTE KONTROLÜ
+  # ============================================
+  # STAGE 1: TESTLER VE KALİTE KONTROLÜ
+  # ============================================
   test:
     name: 🧪 Unit & Integration Testleri
     runs-on: ubuntu-latest
@@ -47,9 +50,8 @@ jobs:
         run: npm test
         env:
           NODE_ENV: test
-          JWT_SECRET: test_jwt_secret_key_for_ci
+          JWT_SECRET: test_jwt_secret_key_for_ci_only
           MONGO_URI: mongodb://localhost:27017/test_db
-          # Gerçek API anahtarları CI'da GitHub Secrets'tan gelir
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           OPENWEATHER_API_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
 
@@ -61,13 +63,18 @@ jobs:
           fail_ci_if_error: false
         continue-on-error: true
 
-
-  # DOCKER BUILD (Sadece main branch)
+  # ============================================
+  # STAGE 2: DOCKER IMAGE BUILD & PUSH
+  # Sadece main branch + testler geçince çalışır
+  # ============================================
   docker-build:
-    name: 🐳 Docker Image Oluştur
+    name: 🐳 Docker Image Oluştur & Push
     runs-on: ubuntu-latest
     needs: test
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tags }}
 
     steps:
       - name: 📥 Kodu al
@@ -82,30 +89,79 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: 🏗️ Docker image oluştur ve push et
+      - name: 🏷️ Image metadata oluştur
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ secrets.DOCKER_USERNAME }}/smart-wardrobe-backend
+          tags: |
+            type=raw,value=latest
+            type=sha,prefix=sha-,format=short
+
+      - name: 🏗️ Docker Image build et ve Docker Hub'a push et
         uses: docker/build-push-action@v5
         with:
           context: ./backend
+          dockerfile: ./backend/Dockerfile
           push: true
-          tags: |
-            ${{ secrets.DOCKER_USERNAME }}/smart-wardrobe-backend:latest
-            ${{ secrets.DOCKER_USERNAME }}/smart-wardrobe-backend:${{ github.sha }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-
-  # DEPLOY (Sadece main branch)
+  # ============================================
+  # STAGE 3: RENDER'A OTOMATİK DEPLOY (CD)
+  # Docker image hazır olduktan sonra çalışır
+  # ============================================
   deploy:
-    name: 🚀 Render'a Deploy Et
+    name: 🚀 Render'a Deploy Et (CD)
     runs-on: ubuntu-latest
     needs: docker-build
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
     steps:
-      - name: 🚀 Render Deploy Hook Tetikle
+      - name: 🚀 Render Deploy Hook'u Tetikle
         run: |
-          curl -s "${{ secrets.RENDER_DEPLOY_HOOK_URL }}" | jq .
-        continue-on-error: true
+          echo "🚀 Render deploy başlatılıyor..."
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
+            -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}")
+          
+          if [ "$RESPONSE" -ge 200 ] && [ "$RESPONSE" -lt 300 ]; then
+            echo "✅ Deploy tetiklendi! HTTP $RESPONSE"
+          else
+            echo "❌ Deploy tetiklenemedi! HTTP $RESPONSE"
+            exit 1
+          fi
 
-      - name: ✅ Deploy tamamlandı
-        run: echo "✅ Smart Wardrobe AI backend başarıyla deploy edildi!"
+      - name: ⏳ Render'ın deploy tamamlamasını bekle (60sn)
+        run: sleep 60
+
+      - name: 🔍 Canlı URL Sağlık Kontrolü
+        run: |
+          echo "🔍 Canlı URL kontrol ediliyor..."
+          HEALTH_URL="https://${{ secrets.RENDER_SERVICE_NAME }}.onrender.com/api/health"
+          
+          for i in {1..5}; do
+            RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "$HEALTH_URL" || echo "000")
+            if [ "$RESPONSE" = "200" ]; then
+              echo "✅ Uygulama canlıda! $HEALTH_URL"
+              break
+            fi
+            echo "⏳ Deneme $i/5 - HTTP $RESPONSE - 20sn bekleniyor..."
+            sleep 20
+          done
+          
+          if [ "$RESPONSE" != "200" ]; then
+            echo "⚠️ Health check başarısız, Render logs'larını kontrol et!"
+            exit 1
+          fi
+
+      - name: ✅ Deploy Özeti
+        run: |
+          echo "================================"
+          echo "✅ DEPLOY BAŞARIYLA TAMAMLANDI!"
+          echo "================================"
+          echo "🌐 Canlı URL: https://${{ secrets.RENDER_SERVICE_NAME }}.onrender.com"
+          echo "📋 Commit: ${{ github.sha }}"
+          echo "👤 Tetikleyen: ${{ github.actor }}"
+          echo "================================"

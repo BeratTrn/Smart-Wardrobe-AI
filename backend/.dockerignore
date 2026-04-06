@@ -1,0 +1,38 @@
+# Bağımlılık klasörü (çok büyük, imaja girmesin)
+node_modules
+
+# Ortam değişkenleri (GİZLİ - kesinlikle imaja girmesin)
+.env
+.env.*
+!.env.example
+
+# Test ve geliştirme çıktıları
+coverage
+*.test.js
+
+# Log dosyaları
+logs
+*.log
+npm-debug.log*
+
+# Versiyon kontrolü
+.git
+.gitignore
+
+# IDE / Editor dosyaları
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS dosyaları
+.DS_Store
+Thumbs.db
+
+# CI/CD
+.github
+
+# Geçici dosyalar
+tmp
+temp
+*.tmp
