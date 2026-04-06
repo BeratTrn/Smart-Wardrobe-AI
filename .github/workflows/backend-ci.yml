@@ -1,10 +1,16 @@
-name: Smart Wardrobe AI - CI/CD Pipeline
+name: Backend CI/CD Pipeline
 
 on:
   push:
     branches: [ main, develop ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci.yml'
   pull_request:
     branches: [ main, develop ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci.yml'
 
 jobs:
   # TESTLER VE KALİTE KONTROLÜ

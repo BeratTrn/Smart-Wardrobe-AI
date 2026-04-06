@@ -1,0 +1,40 @@
+name: Mobile CI Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'mobile/**'
+      - '.github/workflows/mobile-ci.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'mobile/**'
+      - '.github/workflows/mobile-ci.yml'
+
+jobs:
+  test:
+    name: 📱 Flutter Analiz & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Kodu al
+        uses: actions/checkout@v4
+
+      - name: 🐦 Flutter Kurulumu
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.22.x' # Kararlı güncel Flutter sürümü
+          cache: true # Flutter SDK ve pub cache ile performansı korur
+
+      - name: 📦 Bağımlılıkları yükle
+        working-directory: ./mobile
+        run: flutter pub get
+
+      - name: 🔍 Statik kod analizi (Lints)
+        working-directory: ./mobile
+        run: flutter analyze
+
+      - name: 🧪 Unit Testleri çalıştır
+        working-directory: ./mobile
+        run: flutter test
