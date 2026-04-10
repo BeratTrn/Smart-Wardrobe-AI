@@ -46,7 +46,7 @@
     "testMatch": [
       "**/tests/**/*.test.js"
     ],
-    "setupFilesAfterFramework": [],
+    "setupFilesAfterEnv": [],
     "testTimeout": 30000
   }
 }
