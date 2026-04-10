@@ -34,7 +34,7 @@ app.use(cors({
 // Rate Limiting: Brute-force saldırılarına karşı koruma
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 dakika
-    max: 100,                  // 15 dakikada max 100 istek
+    max: process.env.NODE_ENV === 'test' ? 10000 : 100, // Testte throttle devre dışına yakın
     message: { mesaj: 'Çok fazla istek gönderildi, lütfen 15 dakika sonra tekrar deneyin.' }
 });
 app.use('/api/', limiter);
@@ -42,7 +42,7 @@ app.use('/api/', limiter);
 // Auth için daha sıkı limit
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 20,
+    max: process.env.NODE_ENV === 'test' ? 10000 : 20,
     message: { mesaj: 'Çok fazla giriş denemesi, lütfen 15 dakika sonra tekrar deneyin.' }
 });
 

@@ -77,6 +77,25 @@ describe('GET /api/items', () => {
 // TEK KIYAFETİ GETIRME
 // =============================================
 describe('GET /api/items/:id', () => {
+    test('✅ Olusturulan kiyafet ID ile getirilebilmeli', async () => {
+        const createRes = await request(app)
+            .post('/api/items/add')
+            .set('Authorization', `Bearer ${authToken}`)
+            .field('kategori', 'Üst Giyim')
+            .field('renk', 'Siyah')
+            .field('mevsim', 'Yaz')
+            .field('stil', 'Casual')
+            .attach('resim', Buffer.from('mock image payload'), 'test.jpg');
+
+        const itemId = createRes.body.kiyafet._id;
+        const getRes = await request(app)
+            .get(`/api/items/${itemId}`)
+            .set('Authorization', `Bearer ${authToken}`);
+
+        expect(getRes.statusCode).toBe(200);
+        expect(getRes.body).toHaveProperty('kiyafet');
+        expect(getRes.body.kiyafet._id).toBe(itemId);
+    });
 
     test('❌ Geçersiz ID formatında 500 veya 400 dönmeli', async () => {
         const res = await request(app)
@@ -100,6 +119,26 @@ describe('GET /api/items/:id', () => {
 // KIYAFETİ GÜNCELLEME (PUT)
 // =============================================
 describe('PUT /api/items/:id', () => {
+    test('✅ Kullanicinin kendi kiyafeti guncellenebilmeli', async () => {
+        const createRes = await request(app)
+            .post('/api/items/add')
+            .set('Authorization', `Bearer ${authToken}`)
+            .field('kategori', 'Üst Giyim')
+            .field('renk', 'Siyah')
+            .field('mevsim', 'Yaz')
+            .field('stil', 'Casual')
+            .attach('resim', Buffer.from('mock image payload'), 'test.jpg');
+
+        const itemId = createRes.body.kiyafet._id;
+        const updateRes = await request(app)
+            .put(`/api/items/${itemId}`)
+            .set('Authorization', `Bearer ${authToken}`)
+            .send({ renk: 'Mavi', stil: 'Formal' });
+
+        expect(updateRes.statusCode).toBe(200);
+        expect(updateRes.body.kiyafet.renk).toBe('Mavi');
+        expect(updateRes.body.kiyafet.stil).toBe('Formal');
+    });
 
     test('❌ Başka kullanıcının kıyafetini güncelleyemez (403)', async () => {
         // İkinci kullanıcı oluştur
@@ -124,6 +163,28 @@ describe('PUT /api/items/:id', () => {
 // KIYAFETİ SİLME (DELETE)
 // =============================================
 describe('DELETE /api/items/:id', () => {
+    test('✅ Kullanicinin kendi kiyafeti silinebilmeli', async () => {
+        const createRes = await request(app)
+            .post('/api/items/add')
+            .set('Authorization', `Bearer ${authToken}`)
+            .field('kategori', 'Üst Giyim')
+            .field('renk', 'Siyah')
+            .field('mevsim', 'Yaz')
+            .field('stil', 'Casual')
+            .attach('resim', Buffer.from('mock image payload'), 'test.jpg');
+
+        const itemId = createRes.body.kiyafet._id;
+        const deleteRes = await request(app)
+            .delete(`/api/items/${itemId}`)
+            .set('Authorization', `Bearer ${authToken}`);
+
+        expect(deleteRes.statusCode).toBe(200);
+
+        const getRes = await request(app)
+            .get(`/api/items/${itemId}`)
+            .set('Authorization', `Bearer ${authToken}`);
+        expect(getRes.statusCode).toBe(404);
+    });
 
     test('❌ Var olmayan kıyafeti silmeye çalışırsa 404 dönmeli', async () => {
         const fakeId = new mongoose.Types.ObjectId();

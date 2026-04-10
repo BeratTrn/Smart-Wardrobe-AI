@@ -2,6 +2,7 @@ const request = require('supertest');
 const mongoose = require('mongoose');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const { app, server } = require('../server');
+const User = require('../models/User');
 
 let mongoServer;
 
@@ -173,5 +174,150 @@ describe('GET /api/auth/me', () => {
             .set('Authorization', 'Bearer sahte.token.degeri');
 
         expect(res.statusCode).toBe(401);
+    });
+});
+
+// =============================================
+// PROFIL GUNCELLEME TESTLERI
+// =============================================
+describe('PUT /api/auth/update', () => {
+    let token;
+
+    beforeEach(async () => {
+        const res = await request(app)
+            .post('/api/auth/register')
+            .send({ kullaniciAdi: 'UpdateUser', email: 'update@example.com', sifre: 'sifre123' });
+        token = res.body.token;
+    });
+
+    test('✅ Gecerli token ile kullanici profili guncellenebilmeli', async () => {
+        const res = await request(app)
+            .put('/api/auth/update')
+            .set('Authorization', `Bearer ${token}`)
+            .send({
+                kullaniciAdi: 'UpdateUserV2',
+                tercihler: {
+                    favoriStil: 'Elegant',
+                    favoriRenkler: ['Siyah', 'Beyaz'],
+                    bildirimler: false
+                }
+            });
+
+        expect(res.statusCode).toBe(200);
+        expect(res.body).toHaveProperty('kullanici');
+        expect(res.body.kullanici.kullaniciAdi).toBe('UpdateUserV2');
+        expect(res.body.kullanici.tercihler.favoriStil).toBe('Elegant');
+    });
+
+    test('❌ Token olmadan profil guncelleme 401 donmeli', async () => {
+        const res = await request(app)
+            .put('/api/auth/update')
+            .send({ kullaniciAdi: 'NoTokenUpdate' });
+
+        expect(res.statusCode).toBe(401);
+    });
+});
+
+// =============================================
+// SIFRE DEGISTIRME TESTLERI
+// =============================================
+describe('PUT /api/auth/change-password', () => {
+    let token;
+
+    beforeEach(async () => {
+        const res = await request(app)
+            .post('/api/auth/register')
+            .send({ kullaniciAdi: 'ChangePassUser', email: 'changepass@example.com', sifre: 'sifre123' });
+        token = res.body.token;
+    });
+
+    test('✅ Mevcut sifre dogruysa sifre degistirilebilmeli', async () => {
+        const changeRes = await request(app)
+            .put('/api/auth/change-password')
+            .set('Authorization', `Bearer ${token}`)
+            .send({ mevcutSifre: 'sifre123', yeniSifre: 'yenisifre123' });
+
+        expect(changeRes.statusCode).toBe(200);
+
+        const loginRes = await request(app)
+            .post('/api/auth/login')
+            .send({ email: 'changepass@example.com', sifre: 'yenisifre123' });
+
+        expect(loginRes.statusCode).toBe(200);
+        expect(loginRes.body).toHaveProperty('token');
+    });
+
+    test('❌ Mevcut sifre yanlissa 401 donmeli', async () => {
+        const res = await request(app)
+            .put('/api/auth/change-password')
+            .set('Authorization', `Bearer ${token}`)
+            .send({ mevcutSifre: 'yanlis', yeniSifre: 'yenisifre123' });
+
+        expect(res.statusCode).toBe(401);
+    });
+});
+
+// =============================================
+// SIFRE SIFIRLAMA TESTLERI
+// =============================================
+describe('Sifre sifirlama akis testleri', () => {
+    beforeEach(async () => {
+        await request(app)
+            .post('/api/auth/register')
+            .send({ kullaniciAdi: 'ForgotUser', email: 'forgot@example.com', sifre: 'sifre123' });
+    });
+
+    test('✅ forgot-password token dondurmeli, reset-password yeni sifreyi kaydetmeli', async () => {
+        const forgotRes = await request(app)
+            .post('/api/auth/forgot-password')
+            .send({ email: 'forgot@example.com' });
+
+        expect(forgotRes.statusCode).toBe(200);
+        expect(forgotRes.body).toHaveProperty('resetToken');
+
+        const resetRes = await request(app)
+            .put(`/api/auth/reset-password/${forgotRes.body.resetToken}`)
+            .send({ yeniSifre: 'yenisifre123' });
+
+        expect(resetRes.statusCode).toBe(200);
+        expect(resetRes.body).toHaveProperty('token');
+
+        const loginRes = await request(app)
+            .post('/api/auth/login')
+            .send({ email: 'forgot@example.com', sifre: 'yenisifre123' });
+
+        expect(loginRes.statusCode).toBe(200);
+    });
+
+    test('❌ forgot-password email olmadan 400 donmeli', async () => {
+        const res = await request(app)
+            .post('/api/auth/forgot-password')
+            .send({});
+
+        expect(res.statusCode).toBe(400);
+    });
+
+    test('❌ reset-password gecersiz token ile 400 donmeli', async () => {
+        const res = await request(app)
+            .put('/api/auth/reset-password/gecersiztoken')
+            .send({ yeniSifre: 'yenisifre123' });
+
+        expect(res.statusCode).toBe(400);
+    });
+
+    test('❌ reset-password suresi dolmus token ile 400 donmeli', async () => {
+        const forgotRes = await request(app)
+            .post('/api/auth/forgot-password')
+            .send({ email: 'forgot@example.com' });
+
+        const user = await User.findOne({ email: 'forgot@example.com' });
+        user.resetPasswordExpire = Date.now() - 1000;
+        await user.save({ validateBeforeSave: false });
+
+        const resetRes = await request(app)
+            .put(`/api/auth/reset-password/${forgotRes.body.resetToken}`)
+            .send({ yeniSifre: 'yenisifre123' });
+
+        expect(resetRes.statusCode).toBe(400);
     });
 });
