@@ -69,7 +69,7 @@ class _WardrobeScreenState extends State<WardrobeScreen>
     try {
       final res = await http
           .get(
-            Uri.parse('${ApiConstants.baseUrl}/kiyafetler'),
+            Uri.parse('${ApiConstants.baseUrl}/items'),
             headers: {
               'Content-Type': 'application/json',
               'Authorization': 'Bearer $token',
@@ -114,7 +114,7 @@ class _WardrobeScreenState extends State<WardrobeScreen>
     final token = prefs.getString('token') ?? '';
     try {
       await http.delete(
-        Uri.parse('${ApiConstants.baseUrl}/kiyafetler/${item.id}'),
+        Uri.parse('${ApiConstants.baseUrl}/items/${item.id}'),
         headers: {'Authorization': 'Bearer $token'},
       );
       setState(() {

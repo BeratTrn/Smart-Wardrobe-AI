@@ -30,12 +30,18 @@ class AuthBackground extends StatelessWidget {
         Positioned(
           top: -120,
           right: -80,
-          child: _GlowOrb(color: AuthColors.gold.withValues(alpha: .12), size: 300),
+          child: _GlowOrb(
+            color: AuthColors.gold.withValues(alpha: .12),
+            size: 300,
+          ),
         ),
         Positioned(
           bottom: -60,
           left: -60,
-          child: _GlowOrb(color: AuthColors.gold.withValues(alpha: .07), size: 200),
+          child: _GlowOrb(
+            color: AuthColors.gold.withValues(alpha: .07),
+            size: 200,
+          ),
         ),
         child,
       ],

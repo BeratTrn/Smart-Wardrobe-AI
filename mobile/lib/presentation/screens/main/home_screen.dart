@@ -67,7 +67,7 @@ class _HomeScreenState extends State<HomeScreen>
     try {
       final res = await http
           .get(
-            Uri.parse('${ApiConstants.baseUrl}/kiyafetler'),
+            Uri.parse('${ApiConstants.baseUrl}/items'),
             headers: {
               'Content-Type': 'application/json',
               'Authorization': 'Bearer $token',
