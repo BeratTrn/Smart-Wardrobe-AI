@@ -4,6 +4,9 @@ const User = require('../models/User');
 const protect = async (req, res, next) => {
     let token;
 
+    // DEBUG: Gelen header'ı logla
+    console.log(`[AUTH DEBUG] ${req.method} ${req.path} | Authorization: ${req.headers.authorization ? req.headers.authorization.substring(0, 30) + '...' : 'YOK'}`);
+
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
         try {
             token = req.headers.authorization.split(' ')[1];

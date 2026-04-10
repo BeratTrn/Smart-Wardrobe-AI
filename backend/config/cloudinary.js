@@ -25,11 +25,19 @@ if (process.env.NODE_ENV === 'test') {
     });
 
     const fileFilter = (req, file, cb) => {
-        const izinliTipler = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-        if (izinliTipler.includes(file.mimetype)) {
+        console.log(`[Cloudinary] Yüklenen dosya türü: ${file.mimetype}`);
+        const izinliTipler = [
+            'image/jpeg', 
+            'image/jpg', 
+            'image/png', 
+            'image/webp', 
+            'application/octet-stream' // Android cihazlardan bazen uzantısız dosyalarda bu tip gelir
+        ];
+        
+        if (izinliTipler.includes(file.mimetype) || file.mimetype.startsWith('image/')) {
             cb(null, true);
         } else {
-            cb(new Error('Sadece resim dosyaları yüklenebilir! (jpg, jpeg, png, webp)'), false);
+            cb(new Error(`Sadece resim dosyaları yüklenebilir! (Gelen tip: ${file.mimetype})`), false);
         }
     };
 
