@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:smart_wardrobe_ai/core/constants/api_constants.dart';
 import 'package:smart_wardrobe_ai/presentation/screens/auth/login_screen.dart';
 import 'package:smart_wardrobe_ai/presentation/screens/main/home_screen.dart';
 import 'package:smart_wardrobe_ai/presentation/screens/startup/onboarding_screen.dart';
@@ -29,17 +31,41 @@ void main() async {
   runApp(SmartWardrobeApp(startScreen: startScreen));
 }
 
-// SharedPreferences'e göre başlangıç ekranını belirler.
+// SharedPreferences'e göre ve backend'i doğrulayarak başlangıç ekranını belirler.
 Future<Widget> _resolveStartScreen() async {
   final prefs = await SharedPreferences.getInstance();
 
+  // 1. Onboarding tamamlanmamışsa oraya gönder
   final onboardingDone = prefs.getBool('onboardingDone') ?? false;
   if (!onboardingDone) return const OnboardingScreen();
 
+  // 2. Token yoksa Login'e gönder
   final token = prefs.getString('token') ?? '';
   if (token.isEmpty) return const LoginScreen();
 
-  return const HomeScreen();
+  // 3. Token var — backend'e doğrulat (/api/auth/me)
+  try {
+    final res = await http
+        .get(
+          Uri.parse('${ApiConstants.baseUrl}/auth/me'),
+          headers: {'Authorization': 'Bearer $token'},
+        )
+        .timeout(const Duration(seconds: 8));
+
+    if (res.statusCode == 200) {
+      // Token geçerli → Ana sayfaya
+      return const HomeScreen();
+    } else {
+      // Token geçersiz/süresi dolmuş → temizle ve Login'e
+      await prefs.remove('token');
+      await prefs.remove('userName');
+      return const LoginScreen();
+    }
+  } catch (_) {
+    // Sunucuya ulaşılamadı (internet yok vb.) →
+    // Token'ı silmeden Login'e yönlendir (internet geldiğinde tekrar dener)
+    return const LoginScreen();
+  }
 }
 
 // UYGULAMA KÖKÜ
