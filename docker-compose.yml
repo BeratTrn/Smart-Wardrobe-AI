@@ -16,16 +16,10 @@ services:
     restart: unless-stopped
     ports:
       - "3000:3000"
+    env_file:
+      - ./backend/.env
     environment:
-      - NODE_ENV=development
-      - PORT=3000
       - MONGO_URI=mongodb://mongodb:27017/smartwardrobe
-      - JWT_SECRET=${JWT_SECRET:-local_dev_secret_change_in_production}
-      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
-      - OPENWEATHER_API_KEY=${OPENWEATHER_API_KEY:-}
-      - CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME:-}
-      - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY:-}
-      - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET:-}
       - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8080
     depends_on:
       mongodb:
@@ -33,7 +27,7 @@ services:
     networks:
       - wardrobe-network
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
+      test: [ "CMD", "wget", "-qO-", "http://localhost:3000/api/health" ]
       interval: 15s
       timeout: 5s
       retries: 3
@@ -45,13 +39,13 @@ services:
     container_name: smart-wardrobe-mongo
     restart: unless-stopped
     ports:
-      - "27017:27017"
+      - "27018:27017"
     volumes:
-      - mongo_data:/data/db   # Veriler container silinse bile korunur
+      - mongo_data:/data/db # Veriler container silinse bile korunur
     networks:
       - wardrobe-network
     healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
       interval: 10s
       timeout: 5s
       retries: 5
