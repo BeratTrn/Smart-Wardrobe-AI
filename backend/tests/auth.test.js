@@ -1,8 +1,17 @@
+jest.mock('../services/emailService', () => ({
+    sendVerificationEmail: jest.fn().mockResolvedValue({
+        accepted: ['test@example.com'],
+        rejected: []
+    })
+}));
+
 const request = require('supertest');
 const mongoose = require('mongoose');
 const { MongoMemoryServer } = require('mongodb-memory-server');
-const { app, server } = require('../server');
 const User = require('../models/User');
+const bcrypt = require('bcryptjs');
+const { sendVerificationEmail } = require('../services/emailService');
+const { app, server } = require('../server');
 
 let mongoServer;
 
@@ -46,17 +55,19 @@ describe('POST /api/auth/register', () => {
             .send(gecerliKullanici);
 
         expect(res.statusCode).toBe(201);
-        expect(res.body).toHaveProperty('token');
-        expect(res.body).toHaveProperty('kullanici');
-        expect(res.body.kullanici.email).toBe('test@example.com');
-        expect(res.body.kullanici).not.toHaveProperty('sifre'); // Şifre döndürülmemeli
+        expect(res.body).toHaveProperty('email', 'test@example.com');
+        expect(res.body).not.toHaveProperty('token');
     });
 
     test('❌ Aynı e-posta ile ikinci kayıt reddedilmeli', async () => {
-        // İlk kayıt
-        await request(app).post('/api/auth/register').send(gecerliKullanici);
+        const hashed = await bcrypt.hash('sifre123', 10);
+        await User.create({
+            kullaniciAdi: 'VarOlan',
+            email: gecerliKullanici.email,
+            sifre: hashed,
+            isVerified: true
+        });
 
-        // İkinci kayıt - aynı email
         const res = await request(app)
             .post('/api/auth/register')
             .send(gecerliKullanici);
@@ -86,12 +97,59 @@ describe('POST /api/auth/register', () => {
             .post('/api/auth/register')
             .send(gecerliKullanici);
 
-        expect(res.body.token).toBeDefined();
-        expect(typeof res.body.token).toBe('string');
-        // JWT formatı: üç parça nokta ile ayrılır
-        expect(res.body.token.split('.')).toHaveLength(3);
+        expect(res.statusCode).toBe(201);
+        expect(res.body.token).toBeUndefined();
+    });
+
+    test('❌ E-posta gönderimi başarısız olursa yanıltıcı başarı dönmemeli', async () => {
+        sendVerificationEmail.mockRejectedValueOnce(new Error('SMTP Down'));
+
+        const res = await request(app)
+            .post('/api/auth/register')
+            .send({
+                kullaniciAdi: 'MailFailUser',
+                email: 'mailfail@example.com',
+                sifre: 'sifre123'
+            });
+
+        expect(res.statusCode).toBe(503);
+        expect(res.body.emailSendFailed).toBe(true);
+    });
+
+    test('❌ Provider accepted dönmezse başarı sayılmamalı', async () => {
+        sendVerificationEmail.mockResolvedValueOnce({
+            accepted: [],
+            rejected: ['nobody@example.com']
+        });
+
+        const res = await request(app)
+            .post('/api/auth/register')
+            .send({
+                kullaniciAdi: 'DeliveryFailUser',
+                email: 'deliveryfail@example.com',
+                sifre: 'sifre123'
+            });
+
+        expect(res.statusCode).toBe(503);
+        expect(res.body.emailSendFailed).toBe(true);
     });
 });
+
+const createVerifiedUserAndToken = async (payload) => {
+    const hashed = await bcrypt.hash(payload.sifre, 10);
+    await User.create({
+        kullaniciAdi: payload.kullaniciAdi,
+        email: payload.email.toLowerCase(),
+        sifre: hashed,
+        isVerified: true
+    });
+
+    const loginRes = await request(app)
+        .post('/api/auth/login')
+        .send({ email: payload.email, sifre: payload.sifre });
+
+    return loginRes.body.token;
+};
 
 // =============================================
 // GİRİŞ (LOGIN) TESTLERİ
@@ -99,10 +157,11 @@ describe('POST /api/auth/register', () => {
 describe('POST /api/auth/login', () => {
 
     beforeEach(async () => {
-        // Her login testinden önce bir kullanıcı oluştur
-        await request(app)
-            .post('/api/auth/register')
-            .send({ kullaniciAdi: 'LoginTest', email: 'login@example.com', sifre: 'sifre123' });
+        await createVerifiedUserAndToken({
+            kullaniciAdi: 'LoginTest',
+            email: 'login@example.com',
+            sifre: 'sifre123'
+        });
     });
 
     test('✅ Doğru bilgilerle giriş yapılabilmeli', async () => {
@@ -148,10 +207,11 @@ describe('GET /api/auth/me', () => {
     let token;
 
     beforeEach(async () => {
-        const res = await request(app)
-            .post('/api/auth/register')
-            .send({ kullaniciAdi: 'MeTest', email: 'me@example.com', sifre: 'sifre123' });
-        token = res.body.token;
+        token = await createVerifiedUserAndToken({
+            kullaniciAdi: 'MeTest',
+            email: 'me@example.com',
+            sifre: 'sifre123'
+        });
     });
 
     test('✅ Geçerli token ile kullanıcı bilgileri alınabilmeli', async () => {
@@ -184,10 +244,11 @@ describe('PUT /api/auth/update', () => {
     let token;
 
     beforeEach(async () => {
-        const res = await request(app)
-            .post('/api/auth/register')
-            .send({ kullaniciAdi: 'UpdateUser', email: 'update@example.com', sifre: 'sifre123' });
-        token = res.body.token;
+        token = await createVerifiedUserAndToken({
+            kullaniciAdi: 'UpdateUser',
+            email: 'update@example.com',
+            sifre: 'sifre123'
+        });
     });
 
     test('✅ Gecerli token ile kullanici profili guncellenebilmeli', async () => {
@@ -225,10 +286,11 @@ describe('PUT /api/auth/change-password', () => {
     let token;
 
     beforeEach(async () => {
-        const res = await request(app)
-            .post('/api/auth/register')
-            .send({ kullaniciAdi: 'ChangePassUser', email: 'changepass@example.com', sifre: 'sifre123' });
-        token = res.body.token;
+        token = await createVerifiedUserAndToken({
+            kullaniciAdi: 'ChangePassUser',
+            email: 'changepass@example.com',
+            sifre: 'sifre123'
+        });
     });
 
     test('✅ Mevcut sifre dogruysa sifre degistirilebilmeli', async () => {
@@ -262,9 +324,11 @@ describe('PUT /api/auth/change-password', () => {
 // =============================================
 describe('Sifre sifirlama akis testleri', () => {
     beforeEach(async () => {
-        await request(app)
-            .post('/api/auth/register')
-            .send({ kullaniciAdi: 'ForgotUser', email: 'forgot@example.com', sifre: 'sifre123' });
+        await createVerifiedUserAndToken({
+            kullaniciAdi: 'ForgotUser',
+            email: 'forgot@example.com',
+            sifre: 'sifre123'
+        });
     });
 
     test('✅ forgot-password token dondurmeli, reset-password yeni sifreyi kaydetmeli', async () => {
@@ -319,5 +383,36 @@ describe('Sifre sifirlama akis testleri', () => {
             .send({ yeniSifre: 'yenisifre123' });
 
         expect(resetRes.statusCode).toBe(400);
+    });
+});
+
+describe('POST /api/auth/resend-verification', () => {
+    test('✅ Doğrulanmamış kullanıcı için kod yeniden gönderilmeli', async () => {
+        await request(app).post('/api/auth/register').send({
+            kullaniciAdi: 'ResendUser',
+            email: 'resend@example.com',
+            sifre: 'sifre123'
+        });
+
+        const res = await request(app)
+            .post('/api/auth/resend-verification')
+            .send({ email: 'resend@example.com' });
+
+        expect(res.statusCode).toBe(200);
+        expect(res.body).toHaveProperty('email', 'resend@example.com');
+    });
+
+    test('❌ Doğrulanmış hesap için yeniden kod gönderilmemeli', async () => {
+        await createVerifiedUserAndToken({
+            kullaniciAdi: 'AlreadyVerified',
+            email: 'verified@example.com',
+            sifre: 'sifre123'
+        });
+
+        const res = await request(app)
+            .post('/api/auth/resend-verification')
+            .send({ email: 'verified@example.com' });
+
+        expect(res.statusCode).toBe(400);
     });
 });

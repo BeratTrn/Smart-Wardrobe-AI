@@ -1,3 +1,10 @@
+jest.mock('../services/emailService', () => ({
+    sendVerificationEmail: jest.fn().mockResolvedValue({
+        accepted: ['outfit@test.com'],
+        rejected: []
+    })
+}));
+
 const request = require('supertest');
 const mongoose = require('mongoose');
 const { MongoMemoryServer } = require('mongodb-memory-server');
@@ -13,11 +20,18 @@ beforeAll(async () => {
     mongoServer = await MongoMemoryServer.create();
     await mongoose.connect(mongoServer.getUri());
 
-    const res = await request(app)
+    await request(app)
         .post('/api/auth/register')
         .send({ kullaniciAdi: 'OutfitTester', email: 'outfit@test.com', sifre: 'sifre123' });
 
-    authToken = res.body.token;
+    await User.updateOne(
+        { email: 'outfit@test.com' },
+        { isVerified: true, otpCode: undefined, otpExpire: undefined }
+    );
+    const loginRes = await request(app)
+        .post('/api/auth/login')
+        .send({ email: 'outfit@test.com', sifre: 'sifre123' });
+    authToken = loginRes.body.token;
 });
 
 afterEach(async () => {

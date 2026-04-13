@@ -1,3 +1,10 @@
+jest.mock('../services/emailService', () => ({
+    sendVerificationEmail: jest.fn().mockResolvedValue({
+        accepted: ['entegrasyon@example.com'],
+        rejected: []
+    })
+}));
+
 const request = require('supertest');
 const { app, server } = require('../server');
 const User = require('../models/User');
@@ -47,7 +54,10 @@ describe('Kısmi Entegrasyon Testi (Uçtan Uca İş Akışı)', () => {
             .send(registerData);
 
         expect(registerRes.status).toBe(201);
-        expect(registerRes.body).toHaveProperty('token');
+        await User.updateOne(
+            { email: registerData.email.toLowerCase() },
+            { isVerified: true, otpCode: undefined, otpExpire: undefined }
+        );
 
         // 2. Kullanıcı Girişi (Login)
         const loginData = {

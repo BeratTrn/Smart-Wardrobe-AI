@@ -1,3 +1,10 @@
+jest.mock('../services/emailService', () => ({
+    sendVerificationEmail: jest.fn().mockResolvedValue({
+        accepted: ['item@test.com'],
+        rejected: []
+    })
+}));
+
 const request = require('supertest');
 const mongoose = require('mongoose');
 const { MongoMemoryServer } = require('mongodb-memory-server');
@@ -12,11 +19,18 @@ beforeAll(async () => {
     await mongoose.connect(mongoServer.getUri());
 
     // Test kullanıcısı oluştur ve token al
-    const res = await request(app)
+    await request(app)
         .post('/api/auth/register')
         .send({ kullaniciAdi: 'ItemTester', email: 'item@test.com', sifre: 'sifre123' });
 
-    authToken = res.body.token;
+    await mongoose.connection.collection('users').updateOne(
+        { email: 'item@test.com' },
+        { $set: { isVerified: true }, $unset: { otpCode: '', otpExpire: '' } }
+    );
+    const loginRes = await request(app)
+        .post('/api/auth/login')
+        .send({ email: 'item@test.com', sifre: 'sifre123' });
+    authToken = loginRes.body.token;
 });
 
 afterEach(async () => {
@@ -142,11 +156,18 @@ describe('PUT /api/items/:id', () => {
 
     test('❌ Başka kullanıcının kıyafetini güncelleyemez (403)', async () => {
         // İkinci kullanıcı oluştur
-        const res2 = await request(app)
+        await request(app)
             .post('/api/auth/register')
             .send({ kullaniciAdi: 'Diger', email: 'diger@test.com', sifre: 'sifre123' });
 
-        const token2 = res2.body.token;
+        await mongoose.connection.collection('users').updateOne(
+            { email: 'diger@test.com' },
+            { $set: { isVerified: true }, $unset: { otpCode: '', otpExpire: '' } }
+        );
+        const loginRes = await request(app)
+            .post('/api/auth/login')
+            .send({ email: 'diger@test.com', sifre: 'sifre123' });
+        const token2 = loginRes.body.token;
 
         // Var olmayan / başkasına ait ID dene
         const fakeId = new mongoose.Types.ObjectId();
