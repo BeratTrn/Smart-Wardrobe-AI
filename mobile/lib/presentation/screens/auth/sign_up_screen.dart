@@ -2,9 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_wardrobe_ai/core/constants/api_constants.dart';
-import 'package:smart_wardrobe_ai/presentation/screens/main/home_screen.dart';
+import 'package:smart_wardrobe_ai/presentation/screens/auth/verification_screen.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/auth/auth_widgets.dart';
 
 class SignUpScreen extends StatefulWidget {
@@ -22,6 +21,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   bool _loading = false;
   bool _termsAccepted = false;
+
+  Map<String, dynamic> _safeJsonDecode(String body) {
+    try {
+      final decoded = jsonDecode(body);
+      if (decoded is Map<String, dynamic>) return decoded;
+    } catch (_) {}
+    return {};
+  }
 
   double get _passwordStrength {
     final p = _passwordCtrl.text;
@@ -78,25 +85,28 @@ class _SignUpScreenState extends State<SignUpScreen> {
           'sifre': _passwordCtrl.text,
         }),
       );
-      final data = jsonDecode(res.body);
+      final data = _safeJsonDecode(res.body);
       if (!mounted) return;
 
       if (res.statusCode == 201) {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('token', data['token'] ?? '');
-
-        final k = data['kullanici'];
-        final userName = k != null ? (k['kullaniciAdi'] ?? '') : '';
-        await prefs.setString('userName', userName);
-
-        if (!mounted) return;
-        Navigator.pushAndRemoveUntil(
+        // JWT YOK — kullanıcıyı doğrulama ekranına yönlendir
+        final email = data['email'] ?? _emailCtrl.text.trim();
+        Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
-          (_) => false,
+          MaterialPageRoute(
+            builder: (_) => VerificationScreen(email: email),
+          ),
         );
       } else {
-        showAuthSnack(context, data['mesaj'] ?? 'Kayıt başarısız.');
+        if (data['emailSendFailed'] == true) {
+          showAuthSnack(
+            context,
+            data['mesaj'] ??
+                'Doğrulama maili gönderilemedi. Lütfen birkaç dakika sonra tekrar deneyin.',
+          );
+        } else {
+          showAuthSnack(context, data['mesaj'] ?? 'Kayıt başarısız.');
+        }
       }
     } catch (_) {
       if (mounted) showAuthSnack(context, 'Sunucuya bağlanılamadı.');
