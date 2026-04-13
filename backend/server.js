@@ -6,11 +6,16 @@ const rateLimit = require('express-rate-limit');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
 
+const currentEnv = process.env.NODE_ENV;
 // .env dosyasını yükle
 dotenv.config({
     path: `${__dirname}/.env`,
     override: true
 });
+// Eğer test komutuyla ('test') başlatıldıysa, .env'nin onu ezmesini engelle:
+if (currentEnv === 'test') {
+    process.env.NODE_ENV = 'test';
+}
 
 const { verifySmtpConnection } = require('./services/emailService');
 

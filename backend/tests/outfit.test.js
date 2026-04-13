@@ -24,10 +24,9 @@ beforeAll(async () => {
         .post('/api/auth/register')
         .send({ kullaniciAdi: 'OutfitTester', email: 'outfit@test.com', sifre: 'sifre123' });
 
-    await User.updateOne(
-        { email: 'outfit@test.com' },
-        { isVerified: true, otpCode: undefined, otpExpire: undefined }
-    );
+    const { sendVerificationEmail } = require('../services/emailService');
+    const otpCode = sendVerificationEmail.mock.calls[sendVerificationEmail.mock.calls.length - 1][2];
+    await request(app).post('/api/auth/verify-email').send({ email: 'outfit@test.com', otpCode });
     const loginRes = await request(app)
         .post('/api/auth/login')
         .send({ email: 'outfit@test.com', sifre: 'sifre123' });

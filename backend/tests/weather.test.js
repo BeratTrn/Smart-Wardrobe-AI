@@ -13,14 +13,19 @@ const { app, server } = require('../server');
 let mongoServer;
 let token;
 
+const User = require('../models/User');
+const bcrypt = require('bcryptjs');
+
 beforeAll(async () => {
     mongoServer = await MongoMemoryServer.create();
     await mongoose.connect(mongoServer.getUri());
 
-    const res = await request(app)
-        .post('/api/auth/register')
-        .send({ kullaniciAdi: 'WeatherUser', email: 'weather@test.com', sifre: 'sifre123' });
-    token = res.body.token;
+    const hashed = await bcrypt.hash('sifre123', 10);
+    await User.create({ kullaniciAdi: 'WeatherUser', email: 'weather@test.com', sifre: hashed, isVerified: true });
+    const loginRes = await request(app)
+        .post('/api/auth/login')
+        .send({ email: 'weather@test.com', sifre: 'sifre123' });
+    token = loginRes.body.token;
 });
 
 afterEach(async () => {
@@ -30,10 +35,12 @@ afterEach(async () => {
         await collections[key].deleteMany({});
     }
 
-    const res = await request(app)
-        .post('/api/auth/register')
-        .send({ kullaniciAdi: 'WeatherUser', email: 'weather@test.com', sifre: 'sifre123' });
-    token = res.body.token;
+    const hashed = await bcrypt.hash('sifre123', 10);
+    await User.create({ kullaniciAdi: 'WeatherUser', email: 'weather@test.com', sifre: hashed, isVerified: true });
+    const loginRes = await request(app)
+        .post('/api/auth/login')
+        .send({ email: 'weather@test.com', sifre: 'sifre123' });
+    token = loginRes.body.token;
 });
 
 afterAll(async () => {

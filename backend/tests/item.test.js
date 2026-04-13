@@ -23,10 +23,9 @@ beforeAll(async () => {
         .post('/api/auth/register')
         .send({ kullaniciAdi: 'ItemTester', email: 'item@test.com', sifre: 'sifre123' });
 
-    await mongoose.connection.collection('users').updateOne(
-        { email: 'item@test.com' },
-        { $set: { isVerified: true }, $unset: { otpCode: '', otpExpire: '' } }
-    );
+    const { sendVerificationEmail } = require('../services/emailService');
+    const otpCode = sendVerificationEmail.mock.calls[sendVerificationEmail.mock.calls.length - 1][2];
+    await request(app).post('/api/auth/verify-email').send({ email: 'item@test.com', otpCode });
     const loginRes = await request(app)
         .post('/api/auth/login')
         .send({ email: 'item@test.com', sifre: 'sifre123' });
@@ -160,10 +159,9 @@ describe('PUT /api/items/:id', () => {
             .post('/api/auth/register')
             .send({ kullaniciAdi: 'Diger', email: 'diger@test.com', sifre: 'sifre123' });
 
-        await mongoose.connection.collection('users').updateOne(
-            { email: 'diger@test.com' },
-            { $set: { isVerified: true }, $unset: { otpCode: '', otpExpire: '' } }
-        );
+        const { sendVerificationEmail } = require('../services/emailService');
+        const otpCode2 = sendVerificationEmail.mock.calls[sendVerificationEmail.mock.calls.length - 1][2];
+        await request(app).post('/api/auth/verify-email').send({ email: 'diger@test.com', otpCode: otpCode2 });
         const loginRes = await request(app)
             .post('/api/auth/login')
             .send({ email: 'diger@test.com', sifre: 'sifre123' });

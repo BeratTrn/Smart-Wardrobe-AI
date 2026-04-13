@@ -54,10 +54,14 @@ describe('Kısmi Entegrasyon Testi (Uçtan Uca İş Akışı)', () => {
             .send(registerData);
 
         expect(registerRes.status).toBe(201);
-        await User.updateOne(
-            { email: registerData.email.toLowerCase() },
-            { isVerified: true, otpCode: undefined, otpExpire: undefined }
-        );
+        const { sendVerificationEmail } = require('../services/emailService');
+        const otpCode = sendVerificationEmail.mock.calls[sendVerificationEmail.mock.calls.length - 1][2];
+
+        const verifyRes = await request(app)
+            .post('/api/auth/verify-email')
+            .send({ email: registerData.email, otpCode });
+
+        expect(verifyRes.status).toBe(200);
 
         // 2. Kullanıcı Girişi (Login)
         const loginData = {
