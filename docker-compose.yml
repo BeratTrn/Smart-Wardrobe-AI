@@ -1,0 +1,62 @@
+# ================================================
+# Smart Wardrobe AI - Docker Compose
+# Kullanım: docker compose up -d
+# ================================================
+
+version: '3.9'
+
+services:
+
+  # ── Backend API ──────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: smart-wardrobe-backend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./backend/.env
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017/smartwardrobe
+      - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8080
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - wardrobe-network
+    healthcheck:
+      test: [ "CMD", "wget", "-qO-", "http://localhost:3000/api/health" ]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  # ── MongoDB ──────────────────────────────────
+  mongodb:
+    image: mongo:7-jammy
+    container_name: smart-wardrobe-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db # Veriler container silinse bile korunur
+    networks:
+      - wardrobe-network
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+# ── Volumes ──────────────────────────────────
+volumes:
+  mongo_data:
+    driver: local
+
+# ── Networks ─────────────────────────────────
+networks:
+  wardrobe-network:
+    driver: bridge

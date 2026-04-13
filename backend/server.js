@@ -7,11 +7,17 @@ const dotenv = require('dotenv');
 const connectDB = require('./config/db');
 
 // .env dosyasını yükle
-dotenv.config();
+dotenv.config({
+    path: `${__dirname}/.env`,
+    override: true
+});
+
+const { verifySmtpConnection } = require('./services/emailService');
 
 // Veritabanına bağlan
 if (process.env.NODE_ENV !== 'test') {
     connectDB();
+    verifySmtpConnection();
 }
 
 const app = express();
