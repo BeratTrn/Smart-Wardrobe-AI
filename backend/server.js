@@ -27,6 +27,9 @@ if (process.env.NODE_ENV !== 'test') {
 
 const app = express();
 
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./config/swagger');
+
 // ========================
 // GÜVENLİK MİDDLEWARE'LERİ
 // ========================
@@ -80,8 +83,23 @@ app.use('/api/weather', weatherRoutes);
 app.use('/api/stats', statsRoutes);
 
 // ========================
+// SWAGGER HANDLER
+// ========================
+app.use('/api', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+// ========================
 // SAĞLIK KONTROLÜ (Health Check)
 // ========================
+/**
+ * @swagger
+ * /api/health:
+ *   get:
+ *     summary: Sunucu durumunu kontrol eder
+ *     tags: [Health]
+ *     responses:
+ *       200:
+ *         description: Sunucu çalışıyor
+ */
 app.get('/api/health', (req, res) => {
     res.status(200).json({
         durum: 'Sunucu çalışıyor ✅',
