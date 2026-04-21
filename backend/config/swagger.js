@@ -10,12 +10,8 @@ const options = {
     },
     servers: [
       {
-        url: 'http://localhost:3000',
-        description: 'Geliştirme Sunucusu',
-      },
-      {
-         url: 'http://localhost:5000',
-         description: 'Alternatif Geliştirme Sunucusu'
+        url: '/',
+        description: 'Smart Wardrobe Başlangıç Sunucusu',
       }
     ],
     components: {
