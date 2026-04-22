@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_wardrobe_ai/presentation/screens/auth/sign_up_screen.dart';
@@ -22,6 +23,9 @@ class _LoginScreenState extends State<LoginScreen>
   final _passwordCtrl = TextEditingController();
 
   bool _loading = false;
+  bool _googleLoading = false;
+
+  final _googleSignIn = GoogleSignIn(scopes: ['email']);
 
   late final AnimationController _floatCtrl;
   late final Animation<double> _floatAnim;
@@ -90,6 +94,53 @@ class _LoginScreenState extends State<LoginScreen>
       if (mounted) showAuthSnack(context, 'Sunucuya bağlanılamadı.');
     } finally {
       if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _signInWithGoogle() async {
+    setState(() => _googleLoading = true);
+    try {
+      final googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) {
+        setState(() => _googleLoading = false);
+        return;
+      }
+      final googleAuth = await googleUser.authentication;
+      final idToken = googleAuth.idToken;
+
+      if (idToken == null) {
+        if (mounted) showAuthSnack(context, 'Google token alınamadı.');
+        setState(() => _googleLoading = false);
+        return;
+      }
+
+      final res = await http.post(
+        Uri.parse('${ApiConstants.baseUrl}/auth/google'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'idToken': idToken}),
+      );
+      final data = jsonDecode(res.body);
+
+      if (!mounted) return;
+
+      if (res.statusCode == 200) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('token', data['token'] ?? '');
+        final k = data['kullanici'];
+        await prefs.setString('userName', k != null ? (k['kullaniciAdi'] ?? '') : '');
+        if (!mounted) return;
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => const HomeScreen()),
+          (_) => false,
+        );
+      } else {
+        showAuthSnack(context, data['mesaj'] ?? 'Google ile giriş başarısız.');
+      }
+    } catch (_) {
+      if (mounted) showAuthSnack(context, 'Google ile giriş yapılamadı.');
+    } finally {
+      if (mounted) setState(() => _googleLoading = false);
     }
   }
 
@@ -207,9 +258,18 @@ class _LoginScreenState extends State<LoginScreen>
 
                 // — sosyal
                 AuthSocialButton(
-                  icon: const GoogleIcon(),
+                  icon: _googleLoading
+                      ? const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AuthColors.gold,
+                          ),
+                        )
+                      : const GoogleIcon(),
                   label: 'Google ile giriş yap',
-                  onTap: () {},
+                  onTap: _googleLoading ? () {} : _signInWithGoogle,
                 ),
                 const SizedBox(height: 12),
                 AuthSocialButton(
@@ -219,7 +279,13 @@ class _LoginScreenState extends State<LoginScreen>
                     size: 22,
                   ),
                   label: 'Apple ile giriş yap',
-                  onTap: () {},
+                  onTap: () {
+                    showAuthSnack(
+                      context,
+                      'Apple ile giriş yakında gelecek.',
+                      isError: false,
+                    );
+                  },
                 ),
 
                 const SizedBox(height: 32),
