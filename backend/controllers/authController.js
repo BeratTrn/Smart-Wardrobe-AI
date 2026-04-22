@@ -3,7 +3,7 @@ const User = require('../models/User');
 const PendingRegistration = require('../models/PendingRegistration');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { sendVerificationEmail } = require('../services/emailService');
+const { sendVerificationEmail, sendPasswordResetEmail } = require('../services/emailService');
 
 // ─── Yardımcı: JWT token üretici ────────────────────────────────────────────
 const tokenUret = (id) => {
@@ -331,19 +331,38 @@ const forgotPassword = async (req, res) => {
 
         const user = await User.findOne({ email: email.toLowerCase() });
         if (!user) {
-            return res.status(404).json({ mesaj: 'Bu e-posta adresine kayıtlı hesap bulunamadı.' });
+            // Güvenlik: e-posta bulunsun ya da bulunsun aynı yanıtı ver
+            return res.status(200).json({
+                mesaj: 'Eğer bu e-posta kayıtlıysa sıfırlama bağlantısı gönderildi.'
+            });
         }
 
-        // Token oluştur
+        // Token oluştur ve kaydet
         const resetToken = user.getResetPasswordToken();
         await user.save({ validateBeforeSave: false });
 
-        const resetUrl = `${req.protocol}://${req.get('host')}/api/auth/reset-password/${resetToken}`;
-        console.log(`[E-POSTA SIMULASYONU] Şifre sıfırlama linki: ${resetUrl}`);
+        // E-posta gönder
+        // RESET_BASE_URL .env'de tanımlıysa onu kullan (tunnel/prod URL),
+        // tanımlı değilse isteğin geldiği host'u kullan.
+        const baseUrl = process.env.RESET_BASE_URL
+            || `${req.protocol}://${req.get('host')}`;
+        const resetUrl = `${baseUrl}/api/auth/reset-password/${resetToken}`;
+
+        try {
+            await sendPasswordResetEmail(user.email, user.kullaniciAdi, resetUrl);
+        } catch (emailErr) {
+            // E-posta gönderilemezse token'ı temizle
+            console.error('[RESET EMAIL HATASI]', emailErr.message);
+            user.resetPasswordToken = undefined;
+            user.resetPasswordExpire = undefined;
+            await user.save({ validateBeforeSave: false });
+            return res.status(503).json({
+                mesaj: 'Şifre sıfırlama e-postası gönderilemedi. Lütfen daha sonra tekrar deneyin.'
+            });
+        }
 
         res.status(200).json({
-            mesaj: 'Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.',
-            resetToken
+            mesaj: 'Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.'
         });
     } catch (error) {
         console.error('Şifre Sıfırlama Hatası:', error);
@@ -422,6 +441,33 @@ const changePassword = async (req, res) => {
     }
 };
 
+// ────────────────────────────────────────────────────────────────────────────
+// @route  DELETE /api/auth/me
+// @desc   Hesabı ve tüm ilgili verileri kalıcı olarak sil
+// @access Private
+// ────────────────────────────────────────────────────────────────────────────
+const deleteAccount = async (req, res) => {
+    try {
+        const userId = req.user._id;
+
+        // Kullanıcıya ait kıyafet öğelerini sil
+        const Item = require('../models/Item');
+        await Item.deleteMany({ kullanici: userId });
+
+        // Kullanıcıya ait kombinleri sil
+        const Outfit = require('../models/Outfit');
+        await Outfit.deleteMany({ kullanici: userId });
+
+        // Kullanıcıyı sil
+        await User.findByIdAndDelete(userId);
+
+        res.status(200).json({ mesaj: 'Hesabınız ve tüm verileriniz kalıcı olarak silindi.' });
+    } catch (error) {
+        console.error('Hesap Silme Hatası:', error);
+        res.status(500).json({ mesaj: 'Hesap silinirken bir hata oluştu.' });
+    }
+};
+
 module.exports = {
     registerUser,
     resendVerification,
@@ -431,5 +477,6 @@ module.exports = {
     updateProfile,
     changePassword,
     forgotPassword,
-    resetPassword
+    resetPassword,
+    deleteAccount
 };
