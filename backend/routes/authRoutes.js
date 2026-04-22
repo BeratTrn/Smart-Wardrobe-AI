@@ -15,19 +15,7 @@ const { protect } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
-// --- Public routes ---
-<<<<<<< Updated upstream
-router.post('/register', registerUser);          // Adım 1: Kayıt (OTP gönderir, JWT yok)
-router.post('/resend-verification', resendVerification);
-router.post('/verify-email', verifyEmail);       // Adım 2: OTP doğrula → JWT al
-router.post('/login', loginUser);
-router.post('/forgot-password', forgotPassword);
-router.put('/reset-password/:resettoken', resetPassword);
 
-// --- Private routes (JWT gerektirir) ---
-router.get('/me', protect, getMe);
-router.put('/update', protect, updateProfile);
-=======
 /**
  * @swagger
  * /api/auth/register:
@@ -229,7 +217,6 @@ router.put('/update', protect, updateProfile);
  *       200:
  *         description: Åifre baÅŸarÄ±yla deÄŸiÅŸtirildi
  */
->>>>>>> Stashed changes
 router.put('/change-password', protect, changePassword);
 
 /**
