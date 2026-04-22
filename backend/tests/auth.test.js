@@ -2,6 +2,10 @@ jest.mock('../services/emailService', () => ({
     sendVerificationEmail: jest.fn().mockResolvedValue({
         accepted: ['test@example.com'],
         rejected: []
+    }),
+    sendPasswordResetEmail: jest.fn().mockResolvedValue({
+        accepted: ['test@example.com'],
+        rejected: []
     })
 }));
 
@@ -331,16 +335,27 @@ describe('Sifre sifirlama akis testleri', () => {
         });
     });
 
-    test('✅ forgot-password token dondurmeli, reset-password yeni sifreyi kaydetmeli', async () => {
+    test('✅ forgot-password mail gonderir, reset-password yeni sifreyi kaydetmeli', async () => {
         const forgotRes = await request(app)
             .post('/api/auth/forgot-password')
             .send({ email: 'forgot@example.com' });
 
         expect(forgotRes.statusCode).toBe(200);
-        expect(forgotRes.body).toHaveProperty('resetToken');
+        expect(forgotRes.body).toHaveProperty('mesaj');
+
+        // Token API'den donmez (guvenlik), DB'den aliyoruz
+        const user = await User.findOne({ email: 'forgot@example.com' });
+        expect(user.resetPasswordToken).toBeDefined();
+        expect(user.resetPasswordExpire).toBeDefined();
+
+        // Ham token controller tarafindan getResetPasswordToken() ile uretildi
+        // Test ortaminda DB'deki hash'e karsilik gelen ham tokeni bulmak icin
+        // yeni bir token uretip DB'ye yaziyoruz (ayni akisi simule etmek icin)
+        const rawToken = user.getResetPasswordToken();
+        await user.save({ validateBeforeSave: false });
 
         const resetRes = await request(app)
-            .put(`/api/auth/reset-password/${forgotRes.body.resetToken}`)
+            .put(`/api/auth/reset-password/${rawToken}`)
             .send({ yeniSifre: 'yenisifre123' });
 
         expect(resetRes.statusCode).toBe(200);
@@ -370,16 +385,17 @@ describe('Sifre sifirlama akis testleri', () => {
     });
 
     test('❌ reset-password suresi dolmus token ile 400 donmeli', async () => {
-        const forgotRes = await request(app)
+        await request(app)
             .post('/api/auth/forgot-password')
             .send({ email: 'forgot@example.com' });
 
         const user = await User.findOne({ email: 'forgot@example.com' });
-        user.resetPasswordExpire = Date.now() - 1000;
+        const rawToken = user.getResetPasswordToken();
+        user.resetPasswordExpire = Date.now() - 1000; // Suresi gecmis
         await user.save({ validateBeforeSave: false });
 
         const resetRes = await request(app)
-            .put(`/api/auth/reset-password/${forgotRes.body.resetToken}`)
+            .put(`/api/auth/reset-password/${rawToken}`)
             .send({ yeniSifre: 'yenisifre123' });
 
         expect(resetRes.statusCode).toBe(400);
