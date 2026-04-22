@@ -27,6 +27,9 @@ if (process.env.NODE_ENV !== 'test') {
 
 const app = express();
 
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./config/swagger');
+
 // ========================
 // GÜVENLİK MİDDLEWARE'LERİ
 // ========================
@@ -35,10 +38,25 @@ const app = express();
 app.use(helmet());
 
 // CORS: Frontend'den gelen isteklere izin ver
+// Flutter web her çalıştırmada rastgele port kullandığı için
+// geliştirme ortamında tüm localhost portlarına izin veriyoruz.
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(',')
+    : [];
+
 app.use(cors({
-    origin: process.env.ALLOWED_ORIGINS
-        ? process.env.ALLOWED_ORIGINS.split(',')
-        : ['http://localhost:3000', 'http://localhost:8080'],
+    origin: (origin, callback) => {
+        // Origin yoksa (curl, Swagger, mobil uygulama) izin ver
+        if (!origin) return callback(null, true);
+        // .env'de tanımlı tam adreslerden biri mi?
+        if (allowedOrigins.includes(origin)) return callback(null, true);
+        // Localhost'un herhangi bir portundan mı? (Flutter web geliştirme)
+        if (/^http:\/\/localhost(:\d+)?$/.test(origin)) return callback(null, true);
+        // MS Tunnels veya devtunnels.ms adresi mi?
+        if (origin.endsWith('.devtunnels.ms')) return callback(null, true);
+        // Hiçbiri değilse engelle
+        return callback(new Error(`CORS: ${origin} adresine izin verilmiyor.`));
+    },
     credentials: true
 }));
 
@@ -80,8 +98,23 @@ app.use('/api/weather', weatherRoutes);
 app.use('/api/stats', statsRoutes);
 
 // ========================
+// SWAGGER HANDLER
+// ========================
+app.use('/swagger', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+// ========================
 // SAĞLIK KONTROLÜ (Health Check)
 // ========================
+/**
+ * @swagger
+ * /api/health:
+ *   get:
+ *     summary: Sunucu durumunu kontrol eder
+ *     tags: [Health]
+ *     responses:
+ *       200:
+ *         description: Sunucu çalışıyor
+ */
 app.get('/api/health', (req, res) => {
     res.status(200).json({
         durum: 'Sunucu çalışıyor ✅',
