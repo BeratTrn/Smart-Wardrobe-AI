@@ -30,6 +30,10 @@ const userSchema = new mongoose.Schema({
         favoriRenkler: [{ type: String }],
         bildirimler: { type: Boolean, default: true }
     },
+    googleId: {
+        type: String,
+        default: null
+    },
     resetPasswordToken: String,
     resetPasswordExpire: Date,
 

@@ -9,7 +9,8 @@ const {
     changePassword,
     forgotPassword,
     resetPassword,
-    deleteAccount
+    deleteAccount,
+    googleAuth
 } = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -106,6 +107,32 @@ router.post('/verify-email', verifyEmail);       // AdÄ±m 2: OTP doÄŸrula â
  *         description: GiriÅŸ baÅŸarÄ±lÄ± (JWT token dÃ¶ner)
  */
 router.post('/login', loginUser);
+
+/**
+ * @swagger
+ * /api/auth/google:
+ *   post:
+ *     summary: Google hesabı ile giriş yap veya kayıt ol
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [idToken]
+ *             properties:
+ *               idToken:
+ *                 type: string
+ *                 description: Flutter google_sign_in'den alınan Google ID token
+ *     responses:
+ *       200:
+ *         description: Giriş başarılı (JWT token döner)
+ *       401:
+ *         description: Geçersiz Google token
+ */
+router.post('/google', googleAuth);
+
 /**
  * @swagger
  * /api/auth/forgot-password:

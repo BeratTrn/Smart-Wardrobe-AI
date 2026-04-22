@@ -468,6 +468,76 @@ const deleteAccount = async (req, res) => {
     }
 };
 
+
+// ────────────────────────────────────────────────────────────────────────────
+// @route  POST /api/auth/google
+// @desc   Google ID token ile giriş / kayıt
+// @access Public
+// ────────────────────────────────────────────────────────────────────────────
+const { OAuth2Client } = require('google-auth-library');
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+const googleAuth = async (req, res) => {
+    try {
+        const { idToken } = req.body;
+        if (!idToken) {
+            return res.status(400).json({ mesaj: 'Google ID token eksik.' });
+        }
+
+        // Token'ı Google ile doğrula
+        const ticket = await googleClient.verifyIdToken({
+            idToken,
+            audience: process.env.GOOGLE_CLIENT_ID,
+        });
+        const payload = ticket.getPayload();
+        const { sub: googleId, email, name, picture } = payload;
+
+        if (!email) {
+            return res.status(400).json({ mesaj: 'Google hesabından e-posta alınamadı.' });
+        }
+
+        // Kullanıcıyı googleId veya e-posta ile bul
+        let user = await User.findOne({ $or: [{ googleId }, { email }] });
+
+        if (user) {
+            // Mevcut kullanıcıya googleId bağla (daha önce normal kayıt yapmışsa)
+            if (!user.googleId) {
+                user.googleId = googleId;
+                if (picture && !user.profilFoto) user.profilFoto = picture;
+                await user.save({ validateBeforeSave: false });
+            }
+        } else {
+            // İlk kez Google ile giriş → yeni kullanıcı oluştur
+            const randomPass = crypto.randomBytes(32).toString('hex');
+            const salt = await bcrypt.genSalt(12);
+            const hashedPass = await bcrypt.hash(randomPass, salt);
+
+            user = await User.create({
+                kullaniciAdi: name || email.split('@')[0],
+                email,
+                sifre: hashedPass,
+                googleId,
+                profilFoto: picture || '',
+                isVerified: true, // Google hesabı zaten doğrulanmış
+            });
+        }
+
+        res.status(200).json({
+            mesaj: 'Google ile giriş başarılı.',
+            token: tokenUret(user._id),
+            kullanici: {
+                _id: user._id,
+                kullaniciAdi: user.kullaniciAdi,
+                email: user.email,
+                profilFoto: user.profilFoto,
+            },
+        });
+    } catch (error) {
+        console.error('Google Auth Hatası:', error.message);
+        res.status(401).json({ mesaj: 'Google doğrulaması başarısız.' });
+    }
+};
+
 module.exports = {
     registerUser,
     resendVerification,
@@ -478,5 +548,6 @@ module.exports = {
     changePassword,
     forgotPassword,
     resetPassword,
-    deleteAccount
+    deleteAccount,
+    googleAuth,
 };
