@@ -258,16 +258,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   label: 'Google ile kayıt ol',
                   onTap: () {},
                 ),
-                const SizedBox(height: 12),
-                AuthSocialButton(
-                  icon: const Icon(
-                    Icons.apple_rounded,
-                    color: AuthColors.text,
-                    size: 22,
-                  ),
-                  label: 'Apple ile kayıt ol',
-                  onTap: () {},
-                ),
+
 
                 const SizedBox(height: 32),
 
