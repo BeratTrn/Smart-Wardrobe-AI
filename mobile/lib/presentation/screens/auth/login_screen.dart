@@ -25,7 +25,11 @@ class _LoginScreenState extends State<LoginScreen>
   bool _loading = false;
   bool _googleLoading = false;
 
-  final _googleSignIn = GoogleSignIn(scopes: ['email']);
+  final _googleSignIn = GoogleSignIn(
+    clientId: ApiConstants.GOOGLE_CLIENT_ID,
+    serverClientId: ApiConstants.GOOGLE_CLIENT_ID,
+    scopes: ['email'],
+  );
 
   late final AnimationController _floatCtrl;
   late final Animation<double> _floatAnim;
@@ -100,6 +104,9 @@ class _LoginScreenState extends State<LoginScreen>
   Future<void> _signInWithGoogle() async {
     setState(() => _googleLoading = true);
     try {
+      // Önce çıkış yap ki her seferinde hesap seçme ekranı gelsin
+      await _googleSignIn.signOut();
+      
       final googleUser = await _googleSignIn.signIn();
       if (googleUser == null) {
         setState(() => _googleLoading = false);
@@ -127,7 +134,10 @@ class _LoginScreenState extends State<LoginScreen>
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('token', data['token'] ?? '');
         final k = data['kullanici'];
-        await prefs.setString('userName', k != null ? (k['kullaniciAdi'] ?? '') : '');
+        await prefs.setString(
+          'userName',
+          k != null ? (k['kullaniciAdi'] ?? '') : '',
+        );
         if (!mounted) return;
         Navigator.pushAndRemoveUntil(
           context,
@@ -271,22 +281,7 @@ class _LoginScreenState extends State<LoginScreen>
                   label: 'Google ile giriş yap',
                   onTap: _googleLoading ? () {} : _signInWithGoogle,
                 ),
-                const SizedBox(height: 12),
-                AuthSocialButton(
-                  icon: const Icon(
-                    Icons.apple_rounded,
-                    color: AuthColors.text,
-                    size: 22,
-                  ),
-                  label: 'Apple ile giriş yap',
-                  onTap: () {
-                    showAuthSnack(
-                      context,
-                      'Apple ile giriş yakında gelecek.',
-                      isError: false,
-                    );
-                  },
-                ),
+
 
                 const SizedBox(height: 32),
 
