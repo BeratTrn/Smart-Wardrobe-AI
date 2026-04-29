@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -7,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_wardrobe_ai/core/constants/api_constants.dart';
 import 'package:smart_wardrobe_ai/core/constants/app_colors.dart';
+import 'package:smart_wardrobe_ai/presentation/screens/auth/login_screen.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/shared/app_background.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/shared/app_text_styles.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/wardrobe/app_filter_chip.dart';
@@ -33,14 +35,20 @@ class _AddItemScreenState extends State<AddItemScreen>
   late final Animation<double> _pulseAnim;
 
   static const _categories = [
-    'Üstler',
-    'Altlar',
-    'Elbiseler',
+    'Üst Giyim',
+    'Alt Giyim',
+    'Elbise & Etek',
     'Ayakkabı',
     'Aksesuar',
     'Dış Giyim',
   ];
-  static const _seasons = ['İlkbahar', 'Yaz', 'Sonbahar', 'Kış', 'Her Mevsim'];
+  static const _seasons = [
+    'İlkbahar',
+    'Yaz',
+    'Sonbahar',
+    'Kış',
+    'Tüm Mevsimler',
+  ];
 
   @override
   void initState() {
@@ -74,41 +82,10 @@ class _AddItemScreenState extends State<AddItemScreen>
   }
 
   Future<void> _analyze() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token') ?? '';
-
-    try {
-      final req =
-          http.MultipartRequest(
-              'POST',
-              Uri.parse('${ApiConstants.baseUrl}/kiyafetler/analyze'),
-            )
-            ..headers['Authorization'] = 'Bearer $token'
-            ..files.add(
-              await http.MultipartFile.fromPath('image', _image!.path),
-            );
-
-      final streamed = await req.send().timeout(const Duration(seconds: 30));
-      final res = await http.Response.fromStream(streamed);
-      final data = jsonDecode(res.body);
-
-      if (!mounted) return;
-
-      if (res.statusCode == 200) {
-        final analiz = data['analiz'] ?? data;
-        setState(() {
-          _nameCtrl.text = analiz['ad'] ?? analiz['name'] ?? '';
-          _colorCtrl.text = analiz['renk'] ?? analiz['color'] ?? '';
-          _selectedCategory = analiz['kategori'] ?? analiz['category'] ?? '';
-          _selectedSeason = analiz['mevsim'] ?? analiz['season'] ?? '';
-          _step = 'review';
-        });
-      } else {
-        setState(() => _step = 'review');
-      }
-    } catch (_) {
-      if (mounted) setState(() => _step = 'review');
-    }
+    // Analiz API yoksa direkt review adımına geç,
+    // kullanıcı bilgileri manuel girebilir.
+    if (!mounted) return;
+    setState(() => _step = 'review');
   }
 
   Future<void> _save() async {
@@ -116,37 +93,85 @@ class _AddItemScreenState extends State<AddItemScreen>
       _snack('Kıyafet adı girin.', isError: true);
       return;
     }
+    if (_selectedCategory.isEmpty) {
+      _snack('Lütfen bir kategori seçin.', isError: true);
+      return;
+    }
+    if (_selectedSeason.isEmpty) {
+      _snack('Lütfen bir mevsim seçin.', isError: true);
+      return;
+    }
     setState(() => _step = 'saving');
 
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token') ?? '';
 
+    // Token yoksa oturum sona ermiş — login'e yönlendir
+    if (token.isEmpty) {
+      if (mounted) {
+        setState(() => _step = 'review');
+        _snack(
+          'Oturumunuz sona erdi, lütfen tekrar giriş yapın.',
+          isError: true,
+        );
+        await Future.delayed(const Duration(seconds: 2));
+        if (mounted) {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (_) => const LoginScreen()),
+            (_) => false,
+          );
+        }
+      }
+      return;
+    }
+
     try {
-      final req =
-          http.MultipartRequest(
-              'POST',
-              Uri.parse('${ApiConstants.baseUrl}/kiyafetler'),
-            )
-            ..headers['Authorization'] = 'Bearer $token'
-            ..fields['ad'] = _nameCtrl.text.trim()
-            ..fields['kategori'] = _selectedCategory
-            ..fields['renk'] = _colorCtrl.text.trim()
-            ..fields['mevsim'] = _selectedSeason;
+      // http.Client ile gönder — Authorization header güvenilir şekilde iletilir
+      final uri = Uri.parse('${ApiConstants.baseUrl}/items/add');
+      final req = http.MultipartRequest('POST', uri);
+
+      req.headers['Authorization'] = 'Bearer ${token.trim()}';
+      req.headers['Accept'] = 'application/json';
+
+      req.fields['ad'] = _nameCtrl.text.trim();
+      req.fields['kategori'] = _selectedCategory;
+      req.fields['renk'] = _colorCtrl.text.trim();
+      req.fields['mevsim'] = _selectedSeason;
 
       if (_image != null) {
-        req.files.add(await http.MultipartFile.fromPath('image', _image!.path));
+        req.files.add(await http.MultipartFile.fromPath('resim', _image!.path));
       }
 
-      final streamed = await req.send();
-      if (!mounted) return;
+      final client = http.Client();
+      try {
+        final streamed = await client
+            .send(req)
+            .timeout(const Duration(seconds: 30));
+        final res = await http.Response.fromStream(streamed);
 
-      if (streamed.statusCode == 201) {
-        setState(() => _step = 'done');
-      } else {
+        if (!mounted) return;
+
+        if (res.statusCode == 201) {
+          setState(() => _step = 'done');
+        } else {
+          Map<String, dynamic> body = {};
+          try {
+            body = jsonDecode(res.body) as Map<String, dynamic>;
+          } catch (_) {}
+          final mesaj = body['mesaj'] ?? 'Kaydedilemedi (${res.statusCode})';
+          setState(() => _step = 'review');
+          _snack(mesaj, isError: true);
+        }
+      } finally {
+        client.close();
+      }
+    } on TimeoutException catch (_) {
+      if (mounted) {
         setState(() => _step = 'review');
-        _snack('Kaydedilemedi, tekrar dene.', isError: true);
+        _snack('Sunucu yanıt vermedi, tekrar dene.', isError: true);
       }
-    } catch (_) {
+    } catch (e) {
       if (mounted) {
         setState(() => _step = 'review');
         _snack('Sunucuya bağlanılamadı.', isError: true);
@@ -565,7 +590,9 @@ class _ReviewStep extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: AppColors.gold.withValues(alpha: .12),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.gold.withValues(alpha: .3)),
+                  border: Border.all(
+                    color: AppColors.gold.withValues(alpha: .3),
+                  ),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,

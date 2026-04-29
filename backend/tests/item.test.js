@@ -1,3 +1,10 @@
+jest.mock('../services/emailService', () => ({
+    sendVerificationEmail: jest.fn().mockResolvedValue({
+        accepted: ['item@test.com'],
+        rejected: []
+    })
+}));
+
 const request = require('supertest');
 const mongoose = require('mongoose');
 const { MongoMemoryServer } = require('mongodb-memory-server');
@@ -12,11 +19,17 @@ beforeAll(async () => {
     await mongoose.connect(mongoServer.getUri());
 
     // Test kullanıcısı oluştur ve token al
-    const res = await request(app)
+    await request(app)
         .post('/api/auth/register')
         .send({ kullaniciAdi: 'ItemTester', email: 'item@test.com', sifre: 'sifre123' });
 
-    authToken = res.body.token;
+    const { sendVerificationEmail } = require('../services/emailService');
+    const otpCode = sendVerificationEmail.mock.calls[sendVerificationEmail.mock.calls.length - 1][2];
+    await request(app).post('/api/auth/verify-email').send({ email: 'item@test.com', otpCode });
+    const loginRes = await request(app)
+        .post('/api/auth/login')
+        .send({ email: 'item@test.com', sifre: 'sifre123' });
+    authToken = loginRes.body.token;
 });
 
 afterEach(async () => {
@@ -77,6 +90,25 @@ describe('GET /api/items', () => {
 // TEK KIYAFETİ GETIRME
 // =============================================
 describe('GET /api/items/:id', () => {
+    test('✅ Olusturulan kiyafet ID ile getirilebilmeli', async () => {
+        const createRes = await request(app)
+            .post('/api/items/add')
+            .set('Authorization', `Bearer ${authToken}`)
+            .field('kategori', 'Üst Giyim')
+            .field('renk', 'Siyah')
+            .field('mevsim', 'Yaz')
+            .field('stil', 'Casual')
+            .attach('resim', Buffer.from('mock image payload'), 'test.jpg');
+
+        const itemId = createRes.body.kiyafet._id;
+        const getRes = await request(app)
+            .get(`/api/items/${itemId}`)
+            .set('Authorization', `Bearer ${authToken}`);
+
+        expect(getRes.statusCode).toBe(200);
+        expect(getRes.body).toHaveProperty('kiyafet');
+        expect(getRes.body.kiyafet._id).toBe(itemId);
+    });
 
     test('❌ Geçersiz ID formatında 500 veya 400 dönmeli', async () => {
         const res = await request(app)
@@ -100,14 +132,40 @@ describe('GET /api/items/:id', () => {
 // KIYAFETİ GÜNCELLEME (PUT)
 // =============================================
 describe('PUT /api/items/:id', () => {
+    test('✅ Kullanicinin kendi kiyafeti guncellenebilmeli', async () => {
+        const createRes = await request(app)
+            .post('/api/items/add')
+            .set('Authorization', `Bearer ${authToken}`)
+            .field('kategori', 'Üst Giyim')
+            .field('renk', 'Siyah')
+            .field('mevsim', 'Yaz')
+            .field('stil', 'Casual')
+            .attach('resim', Buffer.from('mock image payload'), 'test.jpg');
+
+        const itemId = createRes.body.kiyafet._id;
+        const updateRes = await request(app)
+            .put(`/api/items/${itemId}`)
+            .set('Authorization', `Bearer ${authToken}`)
+            .send({ renk: 'Mavi', stil: 'Formal' });
+
+        expect(updateRes.statusCode).toBe(200);
+        expect(updateRes.body.kiyafet.renk).toBe('Mavi');
+        expect(updateRes.body.kiyafet.stil).toBe('Formal');
+    });
 
     test('❌ Başka kullanıcının kıyafetini güncelleyemez (403)', async () => {
         // İkinci kullanıcı oluştur
-        const res2 = await request(app)
+        await request(app)
             .post('/api/auth/register')
             .send({ kullaniciAdi: 'Diger', email: 'diger@test.com', sifre: 'sifre123' });
 
-        const token2 = res2.body.token;
+        const { sendVerificationEmail } = require('../services/emailService');
+        const otpCode2 = sendVerificationEmail.mock.calls[sendVerificationEmail.mock.calls.length - 1][2];
+        await request(app).post('/api/auth/verify-email').send({ email: 'diger@test.com', otpCode: otpCode2 });
+        const loginRes = await request(app)
+            .post('/api/auth/login')
+            .send({ email: 'diger@test.com', sifre: 'sifre123' });
+        const token2 = loginRes.body.token;
 
         // Var olmayan / başkasına ait ID dene
         const fakeId = new mongoose.Types.ObjectId();
@@ -124,6 +182,28 @@ describe('PUT /api/items/:id', () => {
 // KIYAFETİ SİLME (DELETE)
 // =============================================
 describe('DELETE /api/items/:id', () => {
+    test('✅ Kullanicinin kendi kiyafeti silinebilmeli', async () => {
+        const createRes = await request(app)
+            .post('/api/items/add')
+            .set('Authorization', `Bearer ${authToken}`)
+            .field('kategori', 'Üst Giyim')
+            .field('renk', 'Siyah')
+            .field('mevsim', 'Yaz')
+            .field('stil', 'Casual')
+            .attach('resim', Buffer.from('mock image payload'), 'test.jpg');
+
+        const itemId = createRes.body.kiyafet._id;
+        const deleteRes = await request(app)
+            .delete(`/api/items/${itemId}`)
+            .set('Authorization', `Bearer ${authToken}`);
+
+        expect(deleteRes.statusCode).toBe(200);
+
+        const getRes = await request(app)
+            .get(`/api/items/${itemId}`)
+            .set('Authorization', `Bearer ${authToken}`);
+        expect(getRes.statusCode).toBe(404);
+    });
 
     test('❌ Var olmayan kıyafeti silmeye çalışırsa 404 dönmeli', async () => {
         const fakeId = new mongoose.Types.ObjectId();

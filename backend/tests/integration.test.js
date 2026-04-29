@@ -1,5 +1,12 @@
+jest.mock('../services/emailService', () => ({
+    sendVerificationEmail: jest.fn().mockResolvedValue({
+        accepted: ['entegrasyon@example.com'],
+        rejected: []
+    })
+}));
+
 const request = require('supertest');
-const { app } = require('../server');
+const { app, server } = require('../server');
 const User = require('../models/User');
 const Item = require('../models/Item');
 const mongoose = require('mongoose');
@@ -21,6 +28,7 @@ beforeAll(async () => {
 afterAll(async () => {
     await mongoose.disconnect();
     await mongoServer.stop();
+    server.close();
 });
 
 beforeEach(async () => {
@@ -46,7 +54,14 @@ describe('Kısmi Entegrasyon Testi (Uçtan Uca İş Akışı)', () => {
             .send(registerData);
 
         expect(registerRes.status).toBe(201);
-        expect(registerRes.body).toHaveProperty('token');
+        const { sendVerificationEmail } = require('../services/emailService');
+        const otpCode = sendVerificationEmail.mock.calls[sendVerificationEmail.mock.calls.length - 1][2];
+
+        const verifyRes = await request(app)
+            .post('/api/auth/verify-email')
+            .send({ email: registerData.email, otpCode });
+
+        expect(verifyRes.status).toBe(200);
 
         // 2. Kullanıcı Girişi (Login)
         const loginData = {

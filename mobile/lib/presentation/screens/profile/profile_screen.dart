@@ -152,18 +152,45 @@ class _ProfileScreenState extends State<ProfileScreen>
     final token = prefs.getString('token') ?? '';
 
     try {
-      await http.delete(
-        Uri.parse('${ApiConstants.baseUrl}/kullanici'),
-        headers: {'Authorization': 'Bearer $token'},
-      );
-      await prefs.clear();
+      final res = await http
+          .delete(
+            Uri.parse('${ApiConstants.baseUrl}/auth/me'),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $token',
+            },
+          )
+          .timeout(const Duration(seconds: 10));
+
       if (!mounted) return;
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
-        (_) => false,
+
+      if (res.statusCode == 200) {
+        await prefs.clear();
+        if (!mounted) return;
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+          (_) => false,
+        );
+      } else {
+        if (!mounted) return;
+        final body = jsonDecode(res.body);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(body['mesaj'] ?? 'Hesap silinemedi.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Sunucuya bağlanılamadı. Lütfen tekrar deneyin.'),
+          backgroundColor: Colors.red,
+        ),
       );
-    } catch (_) {}
+    }
   }
 
   // ─────────────────────────────────────── Sheet / Dialog açıcılar ──
@@ -235,10 +262,7 @@ class _ProfileScreenState extends State<ProfileScreen>
   }
 
   void _showAbout() {
-    showDialog(
-      context: context,
-      builder: (_) => const ProfileAboutDialog(),
-    );
+    showDialog(context: context, builder: (_) => const ProfileAboutDialog());
   }
 
   Future<bool> _showConfirm({

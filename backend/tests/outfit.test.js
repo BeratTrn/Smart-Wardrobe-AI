@@ -1,7 +1,17 @@
+jest.mock('../services/emailService', () => ({
+    sendVerificationEmail: jest.fn().mockResolvedValue({
+        accepted: ['outfit@test.com'],
+        rejected: []
+    })
+}));
+
 const request = require('supertest');
 const mongoose = require('mongoose');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const { app, server } = require('../server');
+const User = require('../models/User');
+const Item = require('../models/Item');
+const Outfit = require('../models/Outfit');
 
 let mongoServer;
 let authToken;
@@ -10,11 +20,17 @@ beforeAll(async () => {
     mongoServer = await MongoMemoryServer.create();
     await mongoose.connect(mongoServer.getUri());
 
-    const res = await request(app)
+    await request(app)
         .post('/api/auth/register')
         .send({ kullaniciAdi: 'OutfitTester', email: 'outfit@test.com', sifre: 'sifre123' });
 
-    authToken = res.body.token;
+    const { sendVerificationEmail } = require('../services/emailService');
+    const otpCode = sendVerificationEmail.mock.calls[sendVerificationEmail.mock.calls.length - 1][2];
+    await request(app).post('/api/auth/verify-email').send({ email: 'outfit@test.com', otpCode });
+    const loginRes = await request(app)
+        .post('/api/auth/login')
+        .send({ email: 'outfit@test.com', sifre: 'sifre123' });
+    authToken = loginRes.body.token;
 });
 
 afterEach(async () => {
@@ -89,6 +105,32 @@ describe('GET /api/outfits', () => {
 // KOMBİN GERİ BİLDİRİMİ TESTLERİ
 // =============================================
 describe('PUT /api/outfits/:id/feedback', () => {
+    test('✅ Mevcut kombine feedback verilebilmeli', async () => {
+        const user = await User.findOne({ email: 'outfit@test.com' });
+        const item = await Item.create({
+            kullanici: user._id,
+            resimUrl: 'https://example.com/item.jpg',
+            kategori: 'Üst Giyim',
+            renk: 'Siyah',
+            mevsim: 'Yaz',
+            stil: 'Casual'
+        });
+
+        const outfit = await Outfit.create({
+            kullanici: user._id,
+            kiyafetler: [item._id],
+            aiAciklama: 'Test kombin'
+        });
+
+        const res = await request(app)
+            .put(`/api/outfits/${outfit._id}/feedback`)
+            .set('Authorization', `Bearer ${authToken}`)
+            .send({ begeniyor: true });
+
+        expect(res.statusCode).toBe(200);
+        expect(res.body.kombin.begeniyor).toBe(true);
+        expect(res.body.kombin.kaydedildi).toBe(true);
+    });
 
     test('❌ Var olmayan kombin için feedback 404 dönmeli', async () => {
         const fakeId = new mongoose.Types.ObjectId();
@@ -114,6 +156,23 @@ describe('PUT /api/outfits/:id/feedback', () => {
 // KOMBİN SİLME TESTLERİ
 // =============================================
 describe('DELETE /api/outfits/:id', () => {
+    test('✅ Kullanici kendi kombinini silebilmeli', async () => {
+        const user = await User.findOne({ email: 'outfit@test.com' });
+        const outfit = await Outfit.create({
+            kullanici: user._id,
+            kiyafetler: [],
+            aiAciklama: 'Silinecek kombin'
+        });
+
+        const res = await request(app)
+            .delete(`/api/outfits/${outfit._id}`)
+            .set('Authorization', `Bearer ${authToken}`);
+
+        expect(res.statusCode).toBe(200);
+
+        const deleted = await Outfit.findById(outfit._id);
+        expect(deleted).toBeNull();
+    });
 
     test('❌ Var olmayan kombini silmeye çalışırsa 404 dönmeli', async () => {
         const fakeId = new mongoose.Types.ObjectId();

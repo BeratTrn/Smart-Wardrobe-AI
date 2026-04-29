@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:smart_wardrobe_ai/core/constants/app_colors.dart';
 
 // AUTH RENK PALETİ (auth ekranlarına özgü)
@@ -30,12 +31,18 @@ class AuthBackground extends StatelessWidget {
         Positioned(
           top: -120,
           right: -80,
-          child: _GlowOrb(color: AuthColors.gold.withValues(alpha: .12), size: 300),
+          child: _GlowOrb(
+            color: AuthColors.gold.withValues(alpha: .12),
+            size: 300,
+          ),
         ),
         Positioned(
           bottom: -60,
           left: -60,
-          child: _GlowOrb(color: AuthColors.gold.withValues(alpha: .07), size: 200),
+          child: _GlowOrb(
+            color: AuthColors.gold.withValues(alpha: .07),
+            size: 200,
+          ),
         ),
         child,
       ],
@@ -309,49 +316,20 @@ class AuthDivider extends StatelessWidget {
   }
 }
 
-// GOOGLE İKONU (custom painter)
+// GOOGLE İKONU (SVG asset)
 
 class GoogleIcon extends StatelessWidget {
   final double size;
-  const GoogleIcon({super.key, this.size = 20});
+  const GoogleIcon({super.key, this.size = 22});
 
   @override
-  Widget build(BuildContext context) =>
-      CustomPaint(size: Size(size, size), painter: _GooglePainter());
-}
-
-class _GooglePainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final cx = size.width / 2;
-    final cy = size.height / 2;
-    final r = size.width / 2;
-
-    final segments = [
-      (Colors.red, -0.52, 0.52),
-      (Colors.green, 0.52, 1.57),
-      (Colors.yellow, 1.57, 2.62),
-      (Colors.blue, 2.62, 3.67),
-    ];
-
-    for (final s in segments) {
-      final paint = Paint()
-        ..color = s.$1 as Color
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = size.width * .2;
-      canvas.drawArc(
-        Rect.fromCircle(center: Offset(cx, cy), radius: r * .75),
-        s.$2,
-        (s.$3) - (s.$2),
-        false,
-        paint,
+  Widget build(BuildContext context) => SvgPicture.asset(
+        'assets/icons/google_logo.svg',
+        width: size,
+        height: size,
       );
-    }
-  }
-
-  @override
-  bool shouldRepaint(_) => false;
 }
+
 
 // SNACKBAR YARDIMCISI
 

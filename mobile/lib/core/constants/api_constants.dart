@@ -15,6 +15,6 @@ class ApiConstants {
     return 'http://192.168.1.103:3000/api';
   }
 
-  static const String GOOGLE_CLIENT_ID =
+  static const String googleClientId =
       '743327952521-btdahvqrg64r8r3iin2sqqalck7bfdbk.apps.googleusercontent.com';
 }

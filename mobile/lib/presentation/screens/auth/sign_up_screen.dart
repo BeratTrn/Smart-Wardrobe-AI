@@ -2,9 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_wardrobe_ai/core/constants/api_constants.dart';
-import 'package:smart_wardrobe_ai/presentation/screens/main/home_screen.dart';
+import 'package:smart_wardrobe_ai/presentation/screens/auth/verification_screen.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/auth/auth_widgets.dart';
 
 class SignUpScreen extends StatefulWidget {
@@ -23,23 +22,54 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool _loading = false;
   bool _termsAccepted = false;
 
+  @override
+  void initState() {
+    super.initState();
+    _passwordCtrl.addListener(() => setState(() {}));
+    _confirmCtrl.addListener(() => setState(() {}));
+  }
+
+  Map<String, dynamic> _safeJsonDecode(String body) {
+    try {
+      final decoded = jsonDecode(body);
+      if (decoded is Map<String, dynamic>) return decoded;
+    } catch (_) {}
+    return {};
+  }
+
   double get _passwordStrength {
     final p = _passwordCtrl.text;
-    if (p.length < 6) return .25;
-    if (p.length < 8) return .50;
-    if (!p.contains(RegExp(r'[A-Z]')) && !p.contains(RegExp(r'[0-9]'))) {
-      return .60;
-    }
-    if (p.length >= 12) return 1.0;
-    return .80;
+    if (p.isEmpty) return 0.0;
+    
+    bool hasSeq = RegExp(r'(0123|1234|2345|3456|4567|5678|6789|7890|abcd|bcde|cdef|defg|efgh|fghi|ghij|hijk|ijkl|jklm|klmn|lmno|mnop|nopq|opqr|pqrs|qrst|rstu|stuv|tuvw|uvwx|vwxy|wxyz)', caseSensitive: false).hasMatch(p);
+
+    if (p.length < 6 || hasSeq) return 0.25;
+
+    int score = 0;
+    if (p.length >= 8) score++;
+    if (RegExp(r'[A-Z]').hasMatch(p)) score++;
+    if (RegExp(r'[a-z]').hasMatch(p)) score++;
+    if (RegExp(r'[0-9]').hasMatch(p)) score++;
+    if (RegExp(r'[!@#\$&*~_.?\-]').hasMatch(p)) score++;
+
+    if (score <= 2) return 0.50;
+    if (score <= 4) return 0.80;
+    return 1.0;
   }
 
   String get _strengthLabel {
+    final p = _passwordCtrl.text;
+    if (p.isEmpty) return '';
+    bool hasSeq = RegExp(r'(0123|1234|2345|3456|4567|5678|6789|7890|abcd|bcde|cdef|defg|efgh|fghi|ghij|hijk|ijkl|jklm|klmn|lmno|mnop|nopq|opqr|pqrs|qrst|rstu|stuv|tuvw|uvwx|vwxy|wxyz)', caseSensitive: false).hasMatch(p);
+    
+    if (hasSeq) return 'Zayıf (Ardışık Karakter)';
+    if (p.length < 6) return 'Zayıf (Çok Kısa)';
+
     final s = _passwordStrength;
     if (s <= .25) return 'Zayıf';
     if (s <= .50) return 'Orta';
     if (s <= .80) return 'İyi';
-    return 'Güçlü';
+    return 'Çok Güçlü';
   }
 
   Color get _strengthColor {
@@ -49,6 +79,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
     if (s <= .80) return Colors.yellow;
     return AuthColors.success;
   }
+
+  bool get _passwordsMatch => _passwordCtrl.text == _confirmCtrl.text;
+  bool get _showMismatchError => _confirmCtrl.text.isNotEmpty && !_passwordsMatch;
 
   Future<void> _register() async {
     if (_nameCtrl.text.trim().isEmpty ||
@@ -78,25 +111,28 @@ class _SignUpScreenState extends State<SignUpScreen> {
           'sifre': _passwordCtrl.text,
         }),
       );
-      final data = jsonDecode(res.body);
+      final data = _safeJsonDecode(res.body);
       if (!mounted) return;
 
       if (res.statusCode == 201) {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('token', data['token'] ?? '');
-
-        final k = data['kullanici'];
-        final userName = k != null ? (k['kullaniciAdi'] ?? '') : '';
-        await prefs.setString('userName', userName);
-
-        if (!mounted) return;
-        Navigator.pushAndRemoveUntil(
+        // JWT YOK — kullanıcıyı doğrulama ekranına yönlendir
+        final email = data['email'] ?? _emailCtrl.text.trim();
+        Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
-          (_) => false,
+          MaterialPageRoute(
+            builder: (_) => VerificationScreen(email: email),
+          ),
         );
       } else {
-        showAuthSnack(context, data['mesaj'] ?? 'Kayıt başarısız.');
+        if (data['emailSendFailed'] == true) {
+          showAuthSnack(
+            context,
+            data['mesaj'] ??
+                'Doğrulama maili gönderilemedi. Lütfen birkaç dakika sonra tekrar deneyin.',
+          );
+        } else {
+          showAuthSnack(context, data['mesaj'] ?? 'Kayıt başarısız.');
+        }
       }
     } catch (_) {
       if (mounted) showAuthSnack(context, 'Sunucuya bağlanılamadı.');
@@ -192,6 +228,26 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   isPassword: true,
                 ),
 
+                // — Şifre uyuşmazlık hatası
+                if (_showMismatchError)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8, left: 4),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.error_outline_rounded, color: AuthColors.error, size: 14),
+                        const SizedBox(width: 6),
+                        const Text(
+                          'Şifreler birbiriyle eşleşmiyor.',
+                          style: TextStyle(
+                            color: AuthColors.error,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
                 const SizedBox(height: 20),
 
                 // — terms
@@ -237,26 +293,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   label: 'Kayıt Ol',
                   onTap: _register,
                   loading: _loading,
-                ),
-
-                const SizedBox(height: 24),
-                const AuthDivider(),
-                const SizedBox(height: 24),
-
-                AuthSocialButton(
-                  icon: const GoogleIcon(),
-                  label: 'Google ile kayıt ol',
-                  onTap: () {},
-                ),
-                const SizedBox(height: 12),
-                AuthSocialButton(
-                  icon: const Icon(
-                    Icons.apple_rounded,
-                    color: AuthColors.text,
-                    size: 22,
-                  ),
-                  label: 'Apple ile kayıt ol',
-                  onTap: () {},
                 ),
 
                 const SizedBox(height: 32),

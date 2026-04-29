@@ -30,21 +30,40 @@ const userSchema = new mongoose.Schema({
         favoriRenkler: [{ type: String }],
         bildirimler: { type: Boolean, default: true }
     },
+    googleId: {
+        type: String,
+        default: null
+    },
     resetPasswordToken: String,
-    resetPasswordExpire: Date
+    resetPasswordExpire: Date,
+
+    // E-posta doğrulama
+    isVerified: {
+        type: Boolean,
+        default: false
+    },
+    otpCode: String,          // SHA-256 hashli OTP
+    otpExpire: Date           // OTP son kullanma tarihi
 }, { timestamps: true });
 
-// Geçici şifre sıfırlama token'ı oluşturma metodu
+// Şifre sıfırlama token'ı oluşturma metodu
 userSchema.methods.getResetPasswordToken = function () {
     const crypto = require('crypto');
-    // Doğrudan URL'ye eklenecek şifresiz token oluştur
     const resetToken = crypto.randomBytes(20).toString('hex');
-
-    // Veritabanına şifrelenmiş (hash) halini kaydet
     this.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
-    this.resetPasswordExpire = Date.now() + 10 * 60 * 1000; // 10 dakika geçerli
-
+    this.resetPasswordExpire = Date.now() + 60 * 60 * 1000; // 1 saat geçerli
     return resetToken;
+};
+
+// 6 haneli OTP kodu üretme metodu
+userSchema.methods.getOtpCode = function () {
+    const crypto = require('crypto');
+    // 6 haneli düz kod (e-postaya gönderilecek)
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    // Veritabanına hash'li halini kaydet
+    this.otpCode = crypto.createHash('sha256').update(otpCode).digest('hex');
+    this.otpExpire = Date.now() + 10 * 60 * 1000; // 10 dakika geçerli
+    return otpCode;
 };
 
 module.exports = mongoose.model('User', userSchema);

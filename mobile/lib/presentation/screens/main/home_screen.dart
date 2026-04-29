@@ -66,10 +66,12 @@ class _HomeScreenState extends State<HomeScreen>
     setState(() => _userName = name);
 
     if (token.isEmpty) {
-      if (mounted) setState(() {
-        _weatherDesc = 'Oturum yok';
-        _loading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _weatherDesc = 'Oturum yok';
+          _loading = false;
+        });
+      }
       return;
     }
 
@@ -131,8 +133,10 @@ class _HomeScreenState extends State<HomeScreen>
       Position? position;
       try {
         position = await Geolocator.getCurrentPosition(
-            desiredAccuracy: LocationAccuracy.low,
-            timeLimit: const Duration(seconds: 4));
+            locationSettings: const LocationSettings(
+              accuracy: LocationAccuracy.low,
+              timeLimit: Duration(seconds: 4),
+            ));
       } catch (e) {
         position = await Geolocator.getLastKnownPosition();
         if (position == null) {
@@ -152,9 +156,9 @@ class _HomeScreenState extends State<HomeScreen>
         if (mounted) setState(() => _weatherDesc = 'Hava durumu kapalı');
       }
     } catch (e) {
-      if (mounted) setState(() {
-         _weatherDesc = 'Bağlantı hatası';
-      });
+      if (mounted) {
+        setState(() => _weatherDesc = 'Bağlantı hatası');
+      }
     }
   }
 

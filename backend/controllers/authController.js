@@ -1,15 +1,34 @@
+const crypto = require('crypto');
 const User = require('../models/User');
+const PendingRegistration = require('../models/PendingRegistration');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { sendVerificationEmail, sendPasswordResetEmail } = require('../services/emailService');
 
-// JWT token üretici
+// ─── Yardımcı: JWT token üretici ────────────────────────────────────────────
 const tokenUret = (id) => {
     return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
 };
 
+// ─── Yardımcı: OTP hash kontrolü ────────────────────────────────────────────
+const hashOtp = (otp) => crypto.createHash('sha256').update(otp).digest('hex');
+
+const logDevOtp = (email, otpCode) => {
+    if (process.env.NODE_ENV === 'development') {
+        console.log(`[OTP KODU - ${email}]: ${otpCode}`);
+    }
+};
+
+const isEmailDelivered = (sendResult) =>
+    Array.isArray(sendResult?.accepted) &&
+    sendResult.accepted.length > 0 &&
+    (!Array.isArray(sendResult?.rejected) || sendResult.rejected.length === 0);
+
+// ────────────────────────────────────────────────────────────────────────────
 // @route  POST /api/auth/register
-// @desc   Yeni kullanıcı kaydı
+// @desc   1. Adım — Geçici kayıt oluştur ve OTP gönder (User oluşturmaz)
 // @access Public
+// ────────────────────────────────────────────────────────────────────────────
 const registerUser = async (req, res) => {
     try {
         const { kullaniciAdi, email, sifre } = req.body;
@@ -24,24 +43,169 @@ const registerUser = async (req, res) => {
             return res.status(400).json({ mesaj: 'Şifre en az 6 karakter olmalıdır.' });
         }
 
-        // E-posta kontrolü
-        const userExists = await User.findOne({ email: email.toLowerCase() });
-        if (userExists) {
+        const normalizedEmail = email.toLowerCase();
+        const existingUser = await User.findOne({ email: normalizedEmail });
+
+        if (existingUser) {
+            if (!existingUser.isVerified) {
+                await User.deleteOne({ _id: existingUser._id });
+            } else {
+                return res.status(400).json({ mesaj: 'Bu e-posta adresi zaten kullanımda.' });
+            }
+        }
+
+        const verifiedUser = await User.findOne({ email: normalizedEmail, isVerified: true });
+        if (verifiedUser) {
             return res.status(400).json({ mesaj: 'Bu e-posta adresi zaten kullanımda.' });
         }
 
-        // Şifreyi hashle
         const salt = await bcrypt.genSalt(12);
         const hashedPassword = await bcrypt.hash(sifre, salt);
 
-        const newUser = await User.create({
-            kullaniciAdi,
-            email: email.toLowerCase(),
-            sifre: hashedPassword
-        });
+        let pending = await PendingRegistration.findOne({ email: normalizedEmail });
+        if (!pending) {
+            pending = new PendingRegistration({
+                kullaniciAdi,
+                email: normalizedEmail,
+                sifre: hashedPassword,
+                otpCode: 'placeholder',
+                otpExpire: new Date(Date.now() + 60 * 1000)
+            });
+        } else {
+            pending.kullaniciAdi = kullaniciAdi;
+            pending.sifre = hashedPassword;
+        }
+
+        const otpCode = pending.getOtpCode();
+        await pending.save();
+
+        try {
+            const sendResult = await sendVerificationEmail(pending.email, pending.kullaniciAdi, otpCode);
+            if (!isEmailDelivered(sendResult)) {
+                return res.status(503).json({
+                    mesaj: 'Doğrulama e-postası teslim edilemedi. Lütfen kodu tekrar isteyin.',
+                    emailSendFailed: true,
+                    email: pending.email
+                });
+            }
+        } catch (emailErr) {
+            console.error('[EMAIL HATASI][REGISTER-NEW]', emailErr.message);
+            logDevOtp(pending.email, otpCode);
+            return res.status(503).json({
+                mesaj: 'Doğrulama e-postası gönderilemedi. Lütfen kodu tekrar isteyin.',
+                emailSendFailed: true,
+                email: pending.email
+            });
+        }
 
         res.status(201).json({
-            mesaj: 'Hesap başarıyla oluşturuldu! 🎉',
+            mesaj: 'Doğrulama kodu e-posta adresinize gönderildi.',
+            email: pending.email
+        });
+
+    } catch (error) {
+        console.error('Kayıt Hatası:', error);
+        res.status(500).json({ mesaj: 'Kayıt sırasında sunucu hatası oluştu.' });
+    }
+};
+
+// @route  POST /api/auth/resend-verification
+// @desc   Doğrulanmamış kullanıcı için yeni OTP üretip tekrar gönder
+// @access Public
+const resendVerification = async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({ mesaj: 'E-posta adresi zorunludur.' });
+        }
+
+        const normalizedEmail = email.toLowerCase();
+        const verifiedUser = await User.findOne({ email: normalizedEmail, isVerified: true });
+        if (verifiedUser) {
+            return res.status(400).json({ mesaj: 'Bu hesap zaten doğrulanmış. Giriş yapabilirsiniz.' });
+        }
+
+        const pending = await PendingRegistration.findOne({ email: normalizedEmail });
+        if (!pending) {
+            return res.status(404).json({ mesaj: 'Doğrulama bekleyen bir kayıt bulunamadı. Lütfen tekrar kayıt olun.' });
+        }
+
+        const otpCode = pending.getOtpCode();
+        await pending.save();
+
+        try {
+            const sendResult = await sendVerificationEmail(pending.email, pending.kullaniciAdi, otpCode);
+            if (!isEmailDelivered(sendResult)) {
+                return res.status(503).json({
+                    mesaj: 'Doğrulama kodu teslim edilemedi. Lütfen tekrar deneyin.',
+                    emailSendFailed: true
+                });
+            }
+        } catch (emailErr) {
+            console.error('[EMAIL HATASI][RESEND]', emailErr.message);
+            logDevOtp(pending.email, otpCode);
+            return res.status(503).json({
+                mesaj: 'Doğrulama kodu gönderilemedi. Lütfen tekrar deneyin.',
+                emailSendFailed: true
+            });
+        }
+
+        return res.status(200).json({
+            mesaj: 'Yeni doğrulama kodu e-posta adresinize gönderildi.',
+            email: pending.email
+        });
+    } catch (error) {
+        console.error('Resend Verification Hatası:', error);
+        return res.status(500).json({ mesaj: 'Kod yeniden gönderilirken sunucu hatası oluştu.' });
+    }
+};
+
+// ────────────────────────────────────────────────────────────────────────────
+// @route  POST /api/auth/verify-email
+// @desc   2. Adım — OTP doğrula → isVerified: true yap → JWT döndür
+// @access Public
+// ────────────────────────────────────────────────────────────────────────────
+const verifyEmail = async (req, res) => {
+    try {
+        const { email, otpCode } = req.body;
+
+        if (!email || !otpCode) {
+            return res.status(400).json({ mesaj: 'E-posta ve doğrulama kodu zorunludur.' });
+        }
+
+        const normalizedEmail = email.toLowerCase();
+        const alreadyVerified = await User.findOne({ email: normalizedEmail, isVerified: true });
+        if (alreadyVerified) {
+            return res.status(400).json({ mesaj: 'Bu hesap zaten doğrulanmış. Giriş yapabilirsiniz.' });
+        }
+
+        const pending = await PendingRegistration.findOne({ email: normalizedEmail });
+        if (!pending || !pending.otpCode || !pending.otpExpire) {
+            return res.status(400).json({ mesaj: 'Doğrulama bekleyen bir kayıt bulunamadı. Lütfen tekrar kayıt olun.' });
+        }
+
+        if (pending.otpExpire < Date.now()) {
+            return res.status(400).json({ mesaj: 'Doğrulama kodunun süresi dolmuş. Lütfen yeni kod talep edin.' });
+        }
+
+        const hashedInput = hashOtp(otpCode.toString().trim());
+        if (hashedInput !== pending.otpCode) {
+            return res.status(400).json({ mesaj: 'Hatalı doğrulama kodu. Lütfen tekrar deneyin.' });
+        }
+
+        const newUser = await User.create({
+            kullaniciAdi: pending.kullaniciAdi,
+            email: pending.email,
+            sifre: pending.sifre,
+            isVerified: true,
+            otpCode: undefined,
+            otpExpire: undefined
+        });
+        await PendingRegistration.deleteOne({ _id: pending._id });
+
+        res.status(200).json({
+            mesaj: 'E-posta adresiniz doğrulandı! Hoş geldiniz. 🎉',
             token: tokenUret(newUser._id),
             kullanici: {
                 id: newUser._id,
@@ -52,14 +216,16 @@ const registerUser = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Kayıt Hatası:', error);
-        res.status(500).json({ mesaj: 'Kayıt sırasında sunucu hatası oluştu.' });
+        console.error('OTP Doğrulama Hatası:', error);
+        res.status(500).json({ mesaj: 'Doğrulama sırasında sunucu hatası oluştu.' });
     }
 };
 
+// ────────────────────────────────────────────────────────────────────────────
 // @route  POST /api/auth/login
 // @desc   Kullanıcı girişi
 // @access Public
+// ────────────────────────────────────────────────────────────────────────────
 const loginUser = async (req, res) => {
     try {
         const { email, sifre } = req.body;
@@ -72,6 +238,15 @@ const loginUser = async (req, res) => {
         const user = await User.findOne({ email: email.toLowerCase() });
         if (!user) {
             return res.status(401).json({ mesaj: 'E-posta veya şifre hatalı.' });
+        }
+
+        // E-posta doğrulanmamış hesap kontrolü
+        if (!user.isVerified) {
+            return res.status(403).json({
+                mesaj: 'E-posta adresiniz henüz doğrulanmamış. Lütfen gelen kutunuzu kontrol edin.',
+                requiresVerification: true,
+                email: user.email
+            });
         }
 
         // Şifre kontrolü
@@ -97,9 +272,11 @@ const loginUser = async (req, res) => {
     }
 };
 
+// ────────────────────────────────────────────────────────────────────────────
 // @route  GET /api/auth/me
 // @desc   Giriş yapan kullanıcının bilgilerini getir
 // @access Private
+// ────────────────────────────────────────────────────────────────────────────
 const getMe = async (req, res) => {
     try {
         res.status(200).json({
@@ -116,9 +293,11 @@ const getMe = async (req, res) => {
     }
 };
 
+// ────────────────────────────────────────────────────────────────────────────
 // @route  PUT /api/auth/update-profile
 // @desc   Profil güncelle
 // @access Private
+// ────────────────────────────────────────────────────────────────────────────
 const updateProfile = async (req, res) => {
     try {
         const { kullaniciAdi, tercihler } = req.body;
@@ -138,9 +317,11 @@ const updateProfile = async (req, res) => {
     }
 };
 
+// ────────────────────────────────────────────────────────────────────────────
 // @route  POST /api/auth/forgot-password
-// @desc   Şifre sıfırlama (Simülasyon)
+// @desc   Şifre sıfırlama bağlantısı gönder
 // @access Public
+// ────────────────────────────────────────────────────────────────────────────
 const forgotPassword = async (req, res) => {
     try {
         const { email } = req.body;
@@ -150,21 +331,38 @@ const forgotPassword = async (req, res) => {
 
         const user = await User.findOne({ email: email.toLowerCase() });
         if (!user) {
-            return res.status(404).json({ mesaj: 'Bu e-posta adresine kayıtlı hesap bulunamadı.' });
+            // Güvenlik: e-posta bulunsun ya da bulunsun aynı yanıtı ver
+            return res.status(200).json({
+                mesaj: 'Eğer bu e-posta kayıtlıysa sıfırlama bağlantısı gönderildi.'
+            });
         }
 
-        // Token oluştur
+        // Token oluştur ve kaydet
         const resetToken = user.getResetPasswordToken();
         await user.save({ validateBeforeSave: false });
 
-        // Gerçek projede nodemailer ile e-posta gonderilir. Şimdilik konsola yazdırıyoruz.
-        const resetUrl = `${req.protocol}://${req.get('host')}/api/auth/reset-password/${resetToken}`;
-        console.log(`[E-POSTA SIMULASYONU] Şifre sıfırlama linki: ${resetUrl}`);
+        // E-posta gönder
+        // RESET_BASE_URL .env'de tanımlıysa onu kullan (tunnel/prod URL),
+        // tanımlı değilse isteğin geldiği host'u kullan.
+        const baseUrl = process.env.RESET_BASE_URL
+            || `${req.protocol}://${req.get('host')}`;
+        const resetUrl = `${baseUrl}/api/auth/reset-password/${resetToken}`;
+
+        try {
+            await sendPasswordResetEmail(user.email, user.kullaniciAdi, resetUrl);
+        } catch (emailErr) {
+            // E-posta gönderilemezse token'ı temizle
+            console.error('[RESET EMAIL HATASI]', emailErr.message);
+            user.resetPasswordToken = undefined;
+            user.resetPasswordExpire = undefined;
+            await user.save({ validateBeforeSave: false });
+            return res.status(503).json({
+                mesaj: 'Şifre sıfırlama e-postası gönderilemedi. Lütfen daha sonra tekrar deneyin.'
+            });
+        }
 
         res.status(200).json({
-            mesaj: 'Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.',
-            // Test kolaylığı için token dönüyoruz (canlıda silinmeli)
-            resetToken
+            mesaj: 'Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.'
         });
     } catch (error) {
         console.error('Şifre Sıfırlama Hatası:', error);
@@ -172,12 +370,13 @@ const forgotPassword = async (req, res) => {
     }
 };
 
+// ────────────────────────────────────────────────────────────────────────────
 // @route  PUT /api/auth/reset-password/:resettoken
 // @desc   Şifreyi sıfırla
 // @access Public
+// ────────────────────────────────────────────────────────────────────────────
 const resetPassword = async (req, res) => {
     try {
-        const crypto = require('crypto');
         const resetPasswordToken = crypto.createHash('sha256').update(req.params.resettoken).digest('hex');
 
         const user = await User.findOne({
@@ -209,9 +408,11 @@ const resetPassword = async (req, res) => {
     }
 };
 
+// ────────────────────────────────────────────────────────────────────────────
 // @route  PUT /api/auth/change-password
 // @desc   Mevcut şifre kontrol edilerek yeni şifre belirle
 // @access Private
+// ────────────────────────────────────────────────────────────────────────────
 const changePassword = async (req, res) => {
     try {
         const { mevcutSifre, yeniSifre } = req.body;
@@ -223,7 +424,6 @@ const changePassword = async (req, res) => {
             return res.status(400).json({ mesaj: 'Yeni şifre en az 6 karakter olmalıdır.' });
         }
 
-        // Kullanıcıyı şifresiyle birlikte çek
         const user = await User.findById(req.user._id);
         const isMatch = await bcrypt.compare(mevcutSifre, user.sifre);
         if (!isMatch) {
@@ -241,4 +441,113 @@ const changePassword = async (req, res) => {
     }
 };
 
-module.exports = { registerUser, loginUser, getMe, updateProfile, changePassword, forgotPassword, resetPassword };
+// ────────────────────────────────────────────────────────────────────────────
+// @route  DELETE /api/auth/me
+// @desc   Hesabı ve tüm ilgili verileri kalıcı olarak sil
+// @access Private
+// ────────────────────────────────────────────────────────────────────────────
+const deleteAccount = async (req, res) => {
+    try {
+        const userId = req.user._id;
+
+        // Kullanıcıya ait kıyafet öğelerini sil
+        const Item = require('../models/Item');
+        await Item.deleteMany({ kullanici: userId });
+
+        // Kullanıcıya ait kombinleri sil
+        const Outfit = require('../models/Outfit');
+        await Outfit.deleteMany({ kullanici: userId });
+
+        // Kullanıcıyı sil
+        await User.findByIdAndDelete(userId);
+
+        res.status(200).json({ mesaj: 'Hesabınız ve tüm verileriniz kalıcı olarak silindi.' });
+    } catch (error) {
+        console.error('Hesap Silme Hatası:', error);
+        res.status(500).json({ mesaj: 'Hesap silinirken bir hata oluştu.' });
+    }
+};
+
+
+// ────────────────────────────────────────────────────────────────────────────
+// @route  POST /api/auth/google
+// @desc   Google ID token ile giriş / kayıt
+// @access Public
+// ────────────────────────────────────────────────────────────────────────────
+const { OAuth2Client } = require('google-auth-library');
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+const googleAuth = async (req, res) => {
+    try {
+        const { idToken } = req.body;
+        if (!idToken) {
+            return res.status(400).json({ mesaj: 'Google ID token eksik.' });
+        }
+
+        // Token'ı Google ile doğrula
+        const ticket = await googleClient.verifyIdToken({
+            idToken,
+            audience: process.env.GOOGLE_CLIENT_ID,
+        });
+        const payload = ticket.getPayload();
+        const { sub: googleId, email, name, picture } = payload;
+
+        if (!email) {
+            return res.status(400).json({ mesaj: 'Google hesabından e-posta alınamadı.' });
+        }
+
+        // Kullanıcıyı googleId veya e-posta ile bul
+        let user = await User.findOne({ $or: [{ googleId }, { email }] });
+
+        if (user) {
+            // Mevcut kullanıcıya googleId bağla (daha önce normal kayıt yapmışsa)
+            if (!user.googleId) {
+                user.googleId = googleId;
+                if (picture && !user.profilFoto) user.profilFoto = picture;
+                await user.save({ validateBeforeSave: false });
+            }
+        } else {
+            // İlk kez Google ile giriş → yeni kullanıcı oluştur
+            const randomPass = crypto.randomBytes(32).toString('hex');
+            const salt = await bcrypt.genSalt(12);
+            const hashedPass = await bcrypt.hash(randomPass, salt);
+
+            user = await User.create({
+                kullaniciAdi: name || email.split('@')[0],
+                email,
+                sifre: hashedPass,
+                googleId,
+                profilFoto: picture || '',
+                isVerified: true, // Google hesabı zaten doğrulanmış
+            });
+        }
+
+        res.status(200).json({
+            mesaj: 'Google ile giriş başarılı.',
+            token: tokenUret(user._id),
+            kullanici: {
+                _id: user._id,
+                kullaniciAdi: user.kullaniciAdi,
+                email: user.email,
+                profilFoto: user.profilFoto,
+            },
+        });
+    } catch (error) {
+        console.error('Google Auth Hatası:', error.message);
+        res.status(401).json({ mesaj: 'Google doğrulaması başarısız.' });
+    }
+};
+
+module.exports = {
+    registerUser,
+    resendVerification,
+    verifyEmail,
+    loginUser,
+    getMe,
+    updateProfile,
+    changePassword,
+    forgotPassword,
+    resetPassword,
+    deleteAccount,
+    googleAuth,
+};
