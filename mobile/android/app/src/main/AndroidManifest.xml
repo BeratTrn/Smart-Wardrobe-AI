@@ -1,4 +1,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- İnternet erişimi -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <!-- Hava durumu için konum izinleri (Geolocator) -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+
     <application
         android:label="smart_wardrobe_ai"
         android:name="${applicationName}"

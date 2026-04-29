@@ -1,8 +1,20 @@
+import 'package:flutter/foundation.dart';
+
 class ApiConstants {
   ApiConstants._();
-  // Kendi bulduğun IPv4 adresini buraya yaz:
-  static const String baseUrl = 'http://192.168.192.1:3000/api';
-  // static const String baseUrl = 'http://10.0.2.2:3000/api';
-  // Fiziksel cihaz için: 'http://192.168.x.x:3000/api'
-  // iOS Simulator için: 'http://localhost:3000/api'
+
+  // Platform'a göre otomatik URL seçimi:
+  // - Web (tarayıcı): localhost
+  // - Android Emülatör: 10.0.2.2 (emülatörün host makinesi)
+  // - Fiziksel Cihaz: yerel ağ IP'si (aşağıdan değiştir)
+  static String get baseUrl {
+    if (kIsWeb) {
+      return 'http://localhost:3000/api';
+    }
+    // Mobil uygulamanın kesintisiz (uyarı sayfasına takılmadan) çalışması için Wi-Fi IP'niz:
+    return 'http://192.168.1.103:3000/api';
+  }
+
+  static const String GOOGLE_CLIENT_ID =
+      '743327952521-btdahvqrg64r8r3iin2sqqalck7bfdbk.apps.googleusercontent.com';
 }
