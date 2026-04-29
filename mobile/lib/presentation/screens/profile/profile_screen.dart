@@ -166,12 +166,14 @@ class _ProfileScreenState extends State<ProfileScreen>
 
       if (res.statusCode == 200) {
         await prefs.clear();
+        if (!mounted) return;
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (_) => const LoginScreen()),
           (_) => false,
         );
       } else {
+        if (!mounted) return;
         final body = jsonDecode(res.body);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
