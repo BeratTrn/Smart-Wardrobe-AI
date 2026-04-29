@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:smart_wardrobe_ai/core/constants/api_constants.dart';
 import 'package:smart_wardrobe_ai/core/constants/app_colors.dart';
 import 'package:smart_wardrobe_ai/data/models/clothing_item.dart';
@@ -32,9 +33,9 @@ class _HomeScreenState extends State<HomeScreen>
   List<ClothingItem> _recommendations = [];
   List<ClothingItem> _recentItems = [];
 
-  final String _weatherDesc = 'Güneşli';
-  final String _weatherTemp = '24°';
-  final IconData _weatherIcon = Icons.wb_sunny_rounded;
+  String _weatherDesc = 'Yükleniyor...';
+  String _weatherTemp = '--°';
+  IconData _weatherIcon = Icons.wb_cloudy_rounded;
 
   late final AnimationController _fadeCtrl;
   late final Animation<double> _fadeAnim;
@@ -64,7 +65,19 @@ class _HomeScreenState extends State<HomeScreen>
     if (!mounted) return;
     setState(() => _userName = name);
 
+    if (token.isEmpty) {
+      if (mounted) setState(() {
+        _weatherDesc = 'Oturum yok';
+        _loading = false;
+      });
+      return;
+    }
+
+    // Hava durumunu arka planda yükle (UI'yı bloklamasın)
+    _loadWeather(token);
+
     try {
+      // Doğru endpoint: /api/items
       final res = await http
           .get(
             Uri.parse('${ApiConstants.baseUrl}/items'),
@@ -73,13 +86,13 @@ class _HomeScreenState extends State<HomeScreen>
               'Authorization': 'Bearer $token',
             },
           )
-          .timeout(const Duration(seconds: 8));
+          .timeout(const Duration(seconds: 10));
 
       if (!mounted) return;
 
       if (res.statusCode == 200) {
         final raw = jsonDecode(res.body);
-        final list = (raw['kiyafetler'] ?? raw) as List;
+        final list = (raw['items'] ?? raw['kiyafetler'] ?? raw) as List;
         final all = list.map((e) => ClothingItem.fromJson(e)).toList();
         setState(() {
           _recentItems = all.take(6).toList();
@@ -89,8 +102,89 @@ class _HomeScreenState extends State<HomeScreen>
       } else {
         setState(() => _loading = false);
       }
-    } catch (_) {
+    } catch (e) {
       if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _loadWeather(String token) async {
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        if (mounted) setState(() => _weatherDesc = 'Konum kapalı');
+        return;
+      }
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          if (mounted) setState(() => _weatherDesc = 'İzin reddedildi');
+          return;
+        }
+      }
+      if (permission == LocationPermission.deniedForever) {
+        if (mounted) setState(() => _weatherDesc = 'İzin engellendi');
+        return;
+      }
+
+      Position? position;
+      try {
+        position = await Geolocator.getCurrentPosition(
+            desiredAccuracy: LocationAccuracy.low,
+            timeLimit: const Duration(seconds: 4));
+      } catch (e) {
+        position = await Geolocator.getLastKnownPosition();
+        if (position == null) {
+          if (mounted) setState(() => _weatherDesc = 'Konum bulunamadı');
+          return;
+        }
+      }
+      
+      final res = await http.get(
+        Uri.parse('${ApiConstants.baseUrl}/weather?enlem=${position.latitude}&boylam=${position.longitude}'),
+        headers: {'Authorization': 'Bearer $token'}
+      ).timeout(const Duration(seconds: 8));
+
+      if (res.statusCode == 200) {
+        _setWeather(res.body);
+      } else {
+        if (mounted) setState(() => _weatherDesc = 'Hava durumu kapalı');
+      }
+    } catch (e) {
+      if (mounted) setState(() {
+         _weatherDesc = 'Bağlantı hatası';
+      });
+    }
+  }
+
+  void _setWeather(String body) {
+    if (!mounted) return;
+    try {
+      final decoded = jsonDecode(body);
+      final data = decoded['havaDurumu'];
+      if (data == null) return;
+      
+      setState(() {
+        _weatherTemp = '${data['sicaklik']}°';
+        final desc = data['durum'] as String;
+        _weatherDesc = desc.isNotEmpty ? desc[0].toUpperCase() + desc.substring(1) : '';
+        
+        final mainState = data['ana_durum'] as String;
+        if (mainState.contains('Clear')) {
+          _weatherIcon = Icons.wb_sunny_rounded;
+        } else if (mainState.contains('Rain') || mainState.contains('Drizzle')) {
+          _weatherIcon = Icons.water_drop_rounded;
+        } else if (mainState.contains('Snow')) {
+          _weatherIcon = Icons.ac_unit_rounded;
+        } else if (mainState.contains('Thunderstorm')) {
+          _weatherIcon = Icons.flash_on_rounded;
+        } else {
+          _weatherIcon = Icons.wb_cloudy_rounded;
+        }
+      });
+    } catch (_) {
+      if (mounted) setState(() => _weatherDesc = 'Veri ayrıştırılamadı');
     }
   }
 

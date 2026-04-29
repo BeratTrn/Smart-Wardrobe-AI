@@ -11,9 +11,8 @@ class ApiConstants {
     if (kIsWeb) {
       return 'http://localhost:3000/api';
     }
-    // Android emülatör için 10.0.2.2, fiziksel cihaz için kendi IP'ni yaz:
+    // Mobil uygulamanın kesintisiz (uyarı sayfasına takılmadan) çalışması için Wi-Fi IP'niz:
     return 'http://192.168.1.103:3000/api';
-    // Fiziksel cihaz için şöyle değiştir: 'http://192.168.x.x:3000/api'
   }
 
   static const String GOOGLE_CLIENT_ID =

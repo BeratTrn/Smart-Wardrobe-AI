@@ -100,7 +100,7 @@ app.use('/api/stats', statsRoutes);
 // ========================
 // SWAGGER HANDLER
 // ========================
-app.use('/swagger', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // ========================
 // SAĞLIK KONTROLÜ (Health Check)
