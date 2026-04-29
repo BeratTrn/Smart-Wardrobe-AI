@@ -200,4 +200,40 @@ const deleteItem = async (req, res) => {
     }
 };
 
-module.exports = { analyzeAndAddItem, getItems, getItemById, updateItem, deleteItem };
+// @route  PATCH /api/items/:id/favorite
+// @desc   Kıyafeti favorilere ekle / çıkar (toggle)
+// @access Private
+const toggleFavori = async (req, res) => {
+    try {
+        const item = await Item.findById(req.params.id);
+        if (!item) return res.status(404).json({ mesaj: 'Kıyafet bulunamadı.' });
+        if (item.kullanici.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ mesaj: 'Bu kıyafete erişim yetkiniz yok.' });
+        }
+        item.favori = !item.favori;
+        await item.save();
+        res.status(200).json({
+            mesaj: item.favori ? 'Favorilere eklendi. ❤️' : 'Favorilerden çıkarıldı.',
+            favori: item.favori,
+            kiyafet: item
+        });
+    } catch (error) {
+        console.error('Favori Toggle Hatası:', error);
+        res.status(500).json({ mesaj: 'Favori durumu güncellenemedi.' });
+    }
+};
+
+// @route  GET /api/items/favorites
+// @desc   Kullanıcının favori kıyafetlerini getir
+// @access Private
+const getFavorites = async (req, res) => {
+    try {
+        const items = await Item.find({ kullanici: req.user._id, favori: true }).sort({ updatedAt: -1 });
+        res.status(200).json({ favoriler: items, toplam: items.length });
+    } catch (error) {
+        console.error('Favoriler Hatası:', error);
+        res.status(500).json({ mesaj: 'Favoriler getirilemedi.' });
+    }
+};
+
+module.exports = { analyzeAndAddItem, getItems, getItemById, updateItem, deleteItem, toggleFavori, getFavorites };

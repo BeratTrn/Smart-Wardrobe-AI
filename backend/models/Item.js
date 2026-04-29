@@ -48,6 +48,10 @@ const itemSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    favori: {
+        type: Boolean,
+        default: false
+    },
     kullanilmaSayisi: {
         type: Number,
         default: 0

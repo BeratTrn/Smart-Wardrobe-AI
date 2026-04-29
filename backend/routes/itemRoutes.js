@@ -1,5 +1,5 @@
 const express = require('express');
-const { analyzeAndAddItem, getItems, getItemById, updateItem, deleteItem } = require('../controllers/itemController');
+const { analyzeAndAddItem, getItems, getItemById, updateItem, deleteItem, toggleFavori, getFavorites } = require('../controllers/itemController');
 const { protect } = require('../middleware/authMiddleware');
 const { upload } = require('../config/cloudinary');
 
@@ -59,6 +59,40 @@ router.post('/add', protect, upload.single('resim'), analyzeAndAddItem);
  *         description: Kıyafet listesi
  */
 router.get('/', protect, getItems);
+
+/**
+ * @swagger
+ * /api/items/favorites:
+ *   get:
+ *     summary: Favori kıyafetleri listeler
+ *     tags: [Items]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Favori listesi
+ */
+router.get('/favorites', protect, getFavorites);
+
+/**
+ * @swagger
+ * /api/items/{id}/favorite:
+ *   patch:
+ *     summary: Kıyafeti favorilere ekler veya çıkarır (toggle)
+ *     tags: [Items]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Favori durumu güncellendi
+ */
+router.patch('/:id/favorite', protect, toggleFavori);
 
 /**
  * @swagger

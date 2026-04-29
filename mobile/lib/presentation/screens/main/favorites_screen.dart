@@ -12,6 +12,7 @@ import 'package:smart_wardrobe_ai/presentation/widgets/shared/app_bottom_nav.dar
 import 'package:smart_wardrobe_ai/presentation/widgets/shared/app_text_styles.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/wardrobe/clothing_card.dart';
 import 'package:smart_wardrobe_ai/core/utils/nav_transitions.dart';
+import 'package:smart_wardrobe_ai/presentation/screens/item/item_detail_screen.dart';
 
 import 'home_screen.dart';
 import 'wardrobe_screen.dart';
@@ -54,7 +55,7 @@ class _FavoritesScreenState extends State<FavoritesScreen>
     final token = prefs.getString('token') ?? '';
     try {
       final res = await http.get(
-        Uri.parse('${ApiConstants.baseUrl}/kiyafetler/favoriler'),
+        Uri.parse('${ApiConstants.baseUrl}/items/favorites'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -80,11 +81,13 @@ class _FavoritesScreenState extends State<FavoritesScreen>
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token') ?? '';
     try {
-      await http.patch(
-        Uri.parse('${ApiConstants.baseUrl}/kiyafetler/${item.id}/favori'),
+      final res = await http.patch(
+        Uri.parse('${ApiConstants.baseUrl}/items/${item.id}/favorite'),
         headers: {'Authorization': 'Bearer $token'},
       );
-      setState(() => _favorites.removeWhere((e) => e.id == item.id));
+      if (res.statusCode == 200) {
+        setState(() => _favorites.removeWhere((e) => e.id == item.id));
+      }
     } catch (_) {}
   }
 
@@ -216,11 +219,20 @@ class _GridFavorites extends StatelessWidget {
         itemBuilder: (_, i) {
           final item = items[i];
           return Stack(children: [
-            ClothingCard(
-              name: item.name,
-              category: item.category,
-              imageUrl: item.imageUrl,
-              accentColor: _catColor(item.category),
+            GestureDetector(
+              onTap: () async {
+                final changed = await Navigator.push<bool?>(
+                  context,
+                  MaterialPageRoute(builder: (_) => ItemDetailScreen(item: item)),
+                );
+                if (changed == false) onUnfavorite(item);
+              },
+              child: ClothingCard(
+                name: item.name,
+                category: item.category,
+                imageUrl: item.imageUrl,
+                accentColor: _catColor(item.category),
+              ),
             ),
             Positioned(
               top: 8, right: 8,

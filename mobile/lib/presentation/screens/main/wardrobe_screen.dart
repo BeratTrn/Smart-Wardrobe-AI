@@ -10,6 +10,7 @@ import 'package:smart_wardrobe_ai/data/models/clothing_item.dart';
 import 'package:smart_wardrobe_ai/presentation/screens/ai_features/outfit_generator_screen.dart';
 import 'package:smart_wardrobe_ai/presentation/screens/ai_features/try_on_screen.dart';
 import 'package:smart_wardrobe_ai/presentation/screens/item/add_item_screen.dart';
+import 'package:smart_wardrobe_ai/presentation/screens/item/item_detail_screen.dart';
 import 'package:smart_wardrobe_ai/presentation/screens/main/favorites_screen.dart';
 import 'package:smart_wardrobe_ai/presentation/screens/main/home_screen.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/shared/app_background.dart';
@@ -289,13 +290,25 @@ class _WardrobeScreenState extends State<WardrobeScreen>
                                 ),
                             itemBuilder: (_, i) {
                               final item = _filtered[i];
-                              return ClothingCard(
-                                name: item.name,
-                                category: item.category,
-                                imageUrl: item.imageUrl,
-                                accentColor: _catColor(item.category),
-                                showRemove: true,
-                                onRemove: () => _showDeleteDialog(item),
+                              return GestureDetector(
+                                onTap: () async {
+                                  final newFav = await Navigator.push<bool?>(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => ItemDetailScreen(item: item),
+                                    ),
+                                  );
+                                  // Favori durumu değiştiyse listeyi yenile
+                                  if (newFav != null) _fetch();
+                                },
+                                child: ClothingCard(
+                                  name: item.name,
+                                  category: item.category,
+                                  imageUrl: item.imageUrl,
+                                  accentColor: _catColor(item.category),
+                                  showRemove: true,
+                                  onRemove: () => _showDeleteDialog(item),
+                                ),
                               );
                             },
                           ),
