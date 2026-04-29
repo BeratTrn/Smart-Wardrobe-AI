@@ -17,7 +17,7 @@ class GeneratedOutfit {
     id: j['_id'] ?? DateTime.now().millisecondsSinceEpoch.toString(),
     occasion: j['durum'] ?? j['occasion'] ?? '',
     description: j['aciklama'] ?? j['description'] ?? '',
-    items: ((j['parcalar'] ?? j['items']) as List? ?? [])
+    items: ((j['parcalar'] ?? j['items'] ?? j['kiyafetler']) as List? ?? [])
         .map((e) => ClothingItem.fromJson(e as Map<String, dynamic>))
         .toList(),
   );

@@ -15,6 +15,7 @@ import 'package:smart_wardrobe_ai/presentation/widgets/shared/app_bottom_nav.dar
 import 'package:smart_wardrobe_ai/presentation/widgets/shared/app_text_styles.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/wardrobe/clothing_card.dart';
 import 'package:smart_wardrobe_ai/core/utils/nav_transitions.dart';
+import 'package:smart_wardrobe_ai/data/models/generated_outfit.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -29,12 +30,12 @@ class _HomeScreenState extends State<HomeScreen>
 
   String _userName = 'Kullanıcı';
   bool _loading = true;
-  List<ClothingItem> _recommendations = [];
+  List<GeneratedOutfit> _outfits = [];
   List<ClothingItem> _recentItems = [];
 
-  final String _weatherDesc = 'Güneşli';
-  final String _weatherTemp = '24°';
-  final IconData _weatherIcon = Icons.wb_sunny_rounded;
+  String _weatherDesc = 'Yükleniyor...';
+  String _weatherTemp = '--°';
+  IconData _weatherIcon = Icons.wb_cloudy_rounded;
 
   late final AnimationController _fadeCtrl;
   late final Animation<double> _fadeAnim;
@@ -62,36 +63,52 @@ class _HomeScreenState extends State<HomeScreen>
     final name = prefs.getString('userName') ?? 'Kullanıcı';
 
     if (!mounted) return;
-    setState(() => _userName = name);
+    setState(() {
+      _userName = name;
+      _loading = true;
+    });
 
     try {
-      final res = await http
-          .get(
-            Uri.parse('${ApiConstants.baseUrl}/kiyafetler'),
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer $token',
-            },
-          )
-          .timeout(const Duration(seconds: 8));
+      try {
+        final wRes = await http.get(
+            Uri.parse('${ApiConstants.baseUrl}/weather/city?sehir=Istanbul'),
+            headers: {'Authorization': 'Bearer $token'}).timeout(const Duration(seconds: 5));
+        if (wRes.statusCode == 200) {
+          final wData = jsonDecode(utf8.decode(wRes.bodyBytes))['havaDurumu'];
+          _weatherTemp = '${wData['sicaklik']}°';
+          final desc = wData['durum'] as String;
+          _weatherDesc = desc[0].toUpperCase() + desc.substring(1);
+          final mainState = wData['ana_durum'] as String;
+          if (mainState.contains('Clear')) _weatherIcon = Icons.wb_sunny_rounded;
+          else if (mainState.contains('Rain')) _weatherIcon = Icons.water_drop_rounded;
+          else if (mainState.contains('Snow')) _weatherIcon = Icons.ac_unit_rounded;
+          else _weatherIcon = Icons.wb_cloudy_rounded;
+        }
+      } catch (_) {}
 
-      if (!mounted) return;
-
-      if (res.statusCode == 200) {
-        final raw = jsonDecode(res.body);
-        final list = (raw['kiyafetler'] ?? raw) as List;
-        final all = list.map((e) => ClothingItem.fromJson(e)).toList();
-        setState(() {
+      try {
+        final iRes = await http.get(Uri.parse('${ApiConstants.baseUrl}/kiyafetler'),
+            headers: {'Authorization': 'Bearer $token'}).timeout(const Duration(seconds: 5));
+        if (iRes.statusCode == 200) {
+          final raw = jsonDecode(utf8.decode(iRes.bodyBytes));
+          final list = (raw['kiyafetler'] ?? raw) as List;
+          final all = list.map((e) => ClothingItem.fromJson(e)).toList();
           _recentItems = all.take(6).toList();
-          _recommendations = all.take(3).toList();
-          _loading = false;
-        });
-      } else {
-        setState(() => _loading = false);
-      }
-    } catch (_) {
-      if (mounted) setState(() => _loading = false);
-    }
+        }
+      } catch (_) {}
+
+      try {
+        final oRes = await http.get(Uri.parse('${ApiConstants.baseUrl}/outfits'),
+            headers: {'Authorization': 'Bearer $token'}).timeout(const Duration(seconds: 5));
+        if (oRes.statusCode == 200) {
+          final raw = jsonDecode(utf8.decode(oRes.bodyBytes));
+          final list = (raw['kombinler'] as List? ?? []);
+          _outfits = list.map((e) => GeneratedOutfit.fromJson(e)).toList();
+        }
+      } catch (_) {}
+    } catch (_) {}
+
+    if (mounted) setState(() => _loading = false);
   }
 
   void _onNavTap(int index) {
@@ -179,22 +196,21 @@ class _HomeScreenState extends State<HomeScreen>
                   ),
                   SliverToBoxAdapter(
                     child: SizedBox(
-                      height: 230,
+                      height: 320,
                       child: _loading
                           ? const _ShimmerRow()
-                          : _recommendations.isEmpty
+                          : _outfits.isEmpty
                           ? const _EmptyRecommendation()
                           : ListView.builder(
                               scrollDirection: Axis.horizontal,
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 22,
                               ),
-                              itemCount: _recommendations.length,
-                              itemBuilder: (_, i) => Padding(
-                                padding: const EdgeInsets.only(right: 14),
-                                child: _RecommendationCard(
-                                  item: _recommendations[i],
-                                ),
+                              itemCount: _outfits.length,
+                              itemBuilder: (_, i) => _OutfitCarouselCard(
+                                outfit: _outfits[i],
+                                onTryOn: () => Navigator.pushReplacement(
+                                    context, slide(const TryOnScreen())),
                               ),
                             ),
                     ),
@@ -451,58 +467,131 @@ class _SectionHeader extends StatelessWidget {
   );
 }
 
-class _RecommendationCard extends StatelessWidget {
-  final ClothingItem item;
-  const _RecommendationCard({required this.item});
+class _OutfitCarouselCard extends StatelessWidget {
+  final GeneratedOutfit outfit;
+  final VoidCallback onTryOn;
+  const _OutfitCarouselCard({required this.outfit, required this.onTryOn});
 
   @override
   Widget build(BuildContext context) {
-    final accent = _categoryColor(item.category);
     return Container(
-      width: 150,
+      margin: const EdgeInsets.only(right: 14),
+      width: MediaQuery.of(context).size.width * 0.82,
       decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(16),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(24),
         border: Border.all(color: AppColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Expanded(
             child: ClipRRect(
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(15),
-              ),
-              child: item.imageUrl != null
-                  ? Image.network(
-                      item.imageUrl!,
-                      fit: BoxFit.cover,
-                      width: double.infinity,
-                      errorBuilder: (_, __, ___) =>
-                          _ImgPlaceholder(color: accent),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  if (outfit.items.isNotEmpty)
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: outfit.items.take(3).map((item) {
+                        return Expanded(
+                          child: Container(
+                            decoration: const BoxDecoration(
+                              border: Border(right: BorderSide(color: AppColors.bg, width: 2)),
+                            ),
+                            child: item.imageUrl != null
+                                ? Image.network(item.imageUrl!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _ImgPlaceholder(color: AppColors.gold))
+                                : _ImgPlaceholder(color: AppColors.gold),
+                          ),
+                        );
+                      }).toList(),
                     )
-                  : _ImgPlaceholder(color: accent),
+                  else
+                    _ImgPlaceholder(color: AppColors.gold),
+                  
+                  // Gradient overlay
+                  Positioned.fill(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.transparent,
+                            Colors.black.withValues(alpha: 0.6)
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  
+                  // Try on Button
+                  Positioned(
+                    bottom: 12,
+                    right: 12,
+                    child: GestureDetector(
+                      onTap: onTryOn,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [AppColors.gold, AppColors.goldLight],
+                          ),
+                          borderRadius: BorderRadius.circular(30),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.gold.withValues(alpha: 0.4),
+                              blurRadius: 8,
+                            )
+                          ],
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.face_retouching_natural_rounded, color: Colors.black, size: 16),
+                            SizedBox(width: 6),
+                            Text('Üzerinde Dene', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 13)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  item.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  outfit.occasion.isNotEmpty ? outfit.occasion : 'Sana Özel Kombin',
                   style: const TextStyle(
                     color: AppColors.text,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.3,
                   ),
                 ),
-                const SizedBox(height: 3),
+                const SizedBox(height: 6),
                 Text(
-                  item.category,
-                  style: TextStyle(color: accent, fontSize: 11),
+                  outfit.description.isNotEmpty ? outfit.description : 'Yapay zeka tarafından sizin için özenle oluşturuldu.',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: AppColors.textSub,
+                    fontSize: 12,
+                    height: 1.4,
+                  ),
                 ),
               ],
             ),
@@ -648,13 +737,13 @@ class _ShimmerRow extends StatelessWidget {
   Widget build(BuildContext context) => ListView.builder(
     scrollDirection: Axis.horizontal,
     padding: const EdgeInsets.symmetric(horizontal: 22),
-    itemCount: 3,
+    itemCount: 2,
     itemBuilder: (_, __) => Container(
-      width: 150,
+      width: MediaQuery.of(context).size.width * 0.82,
       margin: const EdgeInsets.only(right: 14),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(24),
         border: Border.all(color: AppColors.border),
       ),
     ),
