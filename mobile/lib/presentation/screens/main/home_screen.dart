@@ -133,10 +133,11 @@ class _HomeScreenState extends State<HomeScreen>
       Position? position;
       try {
         position = await Geolocator.getCurrentPosition(
-            locationSettings: const LocationSettings(
-              accuracy: LocationAccuracy.low,
-              timeLimit: Duration(seconds: 4),
-            ));
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.low,
+            timeLimit: Duration(seconds: 4),
+          ),
+        );
       } catch (e) {
         position = await Geolocator.getLastKnownPosition();
         if (position == null) {
@@ -144,11 +145,15 @@ class _HomeScreenState extends State<HomeScreen>
           return;
         }
       }
-      
-      final res = await http.get(
-        Uri.parse('${ApiConstants.baseUrl}/weather?enlem=${position.latitude}&boylam=${position.longitude}'),
-        headers: {'Authorization': 'Bearer $token'}
-      ).timeout(const Duration(seconds: 8));
+
+      final res = await http
+          .get(
+            Uri.parse(
+              '${ApiConstants.baseUrl}/weather?enlem=${position.latitude}&boylam=${position.longitude}',
+            ),
+            headers: {'Authorization': 'Bearer $token'},
+          )
+          .timeout(const Duration(seconds: 8));
 
       if (res.statusCode == 200) {
         _setWeather(res.body);
@@ -168,16 +173,19 @@ class _HomeScreenState extends State<HomeScreen>
       final decoded = jsonDecode(body);
       final data = decoded['havaDurumu'];
       if (data == null) return;
-      
+
       setState(() {
         _weatherTemp = '${data['sicaklik']}°';
         final desc = data['durum'] as String;
-        _weatherDesc = desc.isNotEmpty ? desc[0].toUpperCase() + desc.substring(1) : '';
-        
+        _weatherDesc = desc.isNotEmpty
+            ? desc[0].toUpperCase() + desc.substring(1)
+            : '';
+
         final mainState = data['ana_durum'] as String;
         if (mainState.contains('Clear')) {
           _weatherIcon = Icons.wb_sunny_rounded;
-        } else if (mainState.contains('Rain') || mainState.contains('Drizzle')) {
+        } else if (mainState.contains('Rain') ||
+            mainState.contains('Drizzle')) {
           _weatherIcon = Icons.water_drop_rounded;
         } else if (mainState.contains('Snow')) {
           _weatherIcon = Icons.ac_unit_rounded;
@@ -299,13 +307,9 @@ class _HomeScreenState extends State<HomeScreen>
                   ),
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(22, 28, 22, 16),
-                      child: _SectionHeader(title: 'Kategoriler'),
+                      padding: const EdgeInsets.fromLTRB(22, 24, 22, 0),
+                      child: _StyleProfileCard(items: _recentItems),
                     ),
-                  ),
-                  SliverPadding(
-                    padding: const EdgeInsets.symmetric(horizontal: 22),
-                    sliver: SliverToBoxAdapter(child: _CategoryGrid()),
                   ),
                   SliverToBoxAdapter(
                     child: Padding(
@@ -627,61 +631,358 @@ class _ImgPlaceholder extends StatelessWidget {
   );
 }
 
-class _CategoryGrid extends StatelessWidget {
-  static const _cats = [
-    (Icons.dry_cleaning_outlined, 'Üstler', AppColors.catTops),
-    (Icons.straighten_rounded, 'Altlar', AppColors.catBottoms),
-    (Icons.hiking_rounded, 'Ayakkabı', AppColors.catShoes),
-    (Icons.watch_rounded, 'Aksesuar', AppColors.catAccessory),
-    (Icons.layers_rounded, 'Elbiseler', AppColors.catOnePiece),
-    (Icons.wind_power_rounded, 'Dış Giyim', AppColors.catOuterwear),
-  ];
+// ─────────────────────────── Stil Profil Kartı ──────────────────────────────
+
+class _StyleProfileCard extends StatelessWidget {
+  final List<ClothingItem> items;
+  const _StyleProfileCard({required this.items});
+
+  // Stil sayımlarını hesapla
+  Map<String, int> get _stilCounts {
+    final counts = <String, int>{};
+    for (final item in items) {
+      final s = (item.stil ?? 'Diğer').isNotEmpty
+          ? (item.stil ?? 'Diğer')
+          : 'Diğer';
+      counts[s] = (counts[s] ?? 0) + 1;
+    }
+    return counts;
+  }
+
+  // En baskın stil
+  String get _dominantStil {
+    if (_stilCounts.isEmpty) return 'Casual';
+    return _stilCounts.entries.reduce((a, b) => a.value >= b.value ? a : b).key;
+  }
+
+  // Renk tekrar sıklığı
+  List<Color> get _topColors {
+    final colorMap = <String, int>{};
+    for (final item in items) {
+      if (item.color != null && item.color!.isNotEmpty) {
+        final c = item.color!.toLowerCase().trim();
+        colorMap[c] = (colorMap[c] ?? 0) + 1;
+      }
+    }
+    final sorted = colorMap.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    return sorted.take(4).map((e) => _nameToColor(e.key)).toList();
+  }
 
   @override
-  Widget build(BuildContext context) => GridView.builder(
-    shrinkWrap: true,
-    physics: const NeverScrollableScrollPhysics(),
-    itemCount: _cats.length,
-    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-      crossAxisCount: 3,
-      mainAxisSpacing: 10,
-      crossAxisSpacing: 10,
-      childAspectRatio: 1.1,
-    ),
-    itemBuilder: (_, i) {
-      final c = _cats[i];
-      return Container(
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.border),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: c.$3.withValues(alpha: .12),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(c.$1, color: c.$3, size: 20),
-            ),
-            const SizedBox(height: 7),
-            Text(
-              c.$2,
-              style: const TextStyle(
-                color: AppColors.textSub,
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
+  Widget build(BuildContext context) {
+    final counts = _stilCounts;
+    final total = items.length;
+    final dominant = _dominantStil;
+    final topColors = _topColors;
+
+    // Grafik dilimleri
+    final stilColors = <String, Color>{
+      'Casual': AppColors.gold,
+      'Formal': const Color(0xFF8B8B8B),
+      'Spor': const Color(0xFF4FC3F7),
+      'Elegant': const Color(0xFFCE93D8),
+      'Bohemian': const Color(0xFFFFB74D),
+      'Streetwear': const Color(0xFF80CBC4),
+      'Diğer': const Color(0xFF455A64),
+    };
+
+    final slices = counts.entries.map((e) {
+      return _DonutSlice(
+        label: e.key,
+        count: e.value,
+        color: stilColors[e.key] ?? AppColors.gold,
       );
-    },
-  );
+    }).toList();
+
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF0E0E0E),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: AppColors.gold.withValues(alpha: .18)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.gold.withValues(alpha: .07),
+            blurRadius: 24,
+            spreadRadius: 2,
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(20),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // ── Sol: Doughnut Chart
+          SizedBox(
+            width: 110,
+            height: 110,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                CustomPaint(
+                  size: const Size(110, 110),
+                  painter: _DoughnutPainter(slices: slices, total: total),
+                ),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '$total',
+                      style: const TextStyle(
+                        color: AppColors.text,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                        fontFamily: 'Cormorant',
+                      ),
+                    ),
+                    const Text(
+                      'Parça',
+                      style: TextStyle(
+                        color: AppColors.muted,
+                        fontSize: 10,
+                        letterSpacing: .5,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(width: 20),
+
+          // ── Sağ: Metin + Renk
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Stil Profilin',
+                  style: TextStyle(
+                    fontFamily: 'Cormorant',
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.text,
+                    letterSpacing: -.3,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                RichText(
+                  text: TextSpan(
+                    style: const TextStyle(
+                      color: AppColors.textSub,
+                      fontSize: 12,
+                      height: 1.4,
+                    ),
+                    children: [
+                      const TextSpan(text: 'Dolabının önemli bir kısmı '),
+                      TextSpan(
+                        text: dominant,
+                        style: const TextStyle(
+                          color: AppColors.gold,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const TextSpan(text: ' parçalardan oluşuyor.'),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 14),
+
+                // Renk Paleti
+                if (topColors.isNotEmpty) ...[
+                  const Text(
+                    'RENK PALETİ',
+                    style: TextStyle(
+                      color: AppColors.muted,
+                      fontSize: 9,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: topColors
+                        .map(
+                          (c) => Container(
+                            width: 22,
+                            height: 22,
+                            margin: const EdgeInsets.only(right: 6),
+                            decoration: BoxDecoration(
+                              color: c,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: .15),
+                                width: 1.5,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: c.withValues(alpha: .4),
+                                  blurRadius: 6,
+                                  spreadRadius: 1,
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                        .toList(),
+                  ),
+                ],
+
+                // Stil legend (sadece ilk 3)
+                if (slices.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 4,
+                    children: slices.take(3).map((s) {
+                      final pct = total > 0
+                          ? (s.count / total * 100).round()
+                          : 0;
+                      return Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 7,
+                            height: 7,
+                            decoration: BoxDecoration(
+                              color: s.color,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${s.label} $pct%',
+                            style: const TextStyle(
+                              color: AppColors.muted,
+                              fontSize: 10,
+                            ),
+                          ),
+                        ],
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DonutSlice {
+  final String label;
+  final int count;
+  final Color color;
+  const _DonutSlice({
+    required this.label,
+    required this.count,
+    required this.color,
+  });
+}
+
+class _DoughnutPainter extends CustomPainter {
+  final List<_DonutSlice> slices;
+  final int total;
+  const _DoughnutPainter({required this.slices, required this.total});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (total == 0) {
+      // Boş halka
+      final paint = Paint()
+        ..color = AppColors.surface
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 12
+        ..strokeCap = StrokeCap.round;
+      canvas.drawCircle(size.center(Offset.zero), size.width / 2 - 8, paint);
+      return;
+    }
+
+    final center = size.center(Offset.zero);
+    final radius = size.width / 2 - 8;
+    const strokeWidth = 13.0;
+    const startAngle = -3.14159 / 2; // 12 o'clock
+    const gapAngle = 0.04;
+    var currentAngle = startAngle;
+
+    final bgPaint = Paint()
+      ..color = AppColors.surface
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth;
+    canvas.drawCircle(center, radius, bgPaint);
+
+    for (final slice in slices) {
+      if (slice.count <= 0) continue;
+      final sweepAngle = (slice.count / total) * 2 * 3.14159 - gapAngle;
+      if (sweepAngle <= 0) continue;
+
+      final paint = Paint()
+        ..color = slice.color
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = strokeWidth
+        ..strokeCap = StrokeCap.round;
+
+      canvas.drawArc(
+        Rect.fromCircle(center: center, radius: radius),
+        currentAngle,
+        sweepAngle,
+        false,
+        paint,
+      );
+      currentAngle += sweepAngle + gapAngle;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+}
+
+// Renk ismini Color'a dönüştür
+Color _nameToColor(String name) {
+  switch (name) {
+    case 'siyah':
+      return const Color(0xFF1A1A1A);
+    case 'beyaz':
+      return const Color(0xFFF5F5F5);
+    case 'kirmizi':
+      return const Color(0xFFE53935);
+    case 'kırmızı':
+      return const Color(0xFFE53935);
+    case 'mavi':
+      return const Color(0xFF1E88E5);
+    case 'lacivert':
+      return const Color(0xFF1A237E);
+    case 'yesil':
+      return const Color(0xFF43A047);
+    case 'yeşil':
+      return const Color(0xFF43A047);
+    case 'sarı':
+      return const Color(0xFFFDD835);
+    case 'sari':
+      return const Color(0xFFFDD835);
+    case 'turuncu':
+      return const Color(0xFFFB8C00);
+    case 'mor':
+      return const Color(0xFF8E24AA);
+    case 'pembe':
+      return const Color(0xFFE91E63);
+    case 'gri':
+      return const Color(0xFF757575);
+    case 'kahve':
+      return const Color(0xFF795548);
+    case 'kahverengi':
+      return const Color(0xFF795548);
+    case 'bej':
+      return const Color(0xFFD7CCC8);
+    case 'krem':
+      return const Color(0xFFFFF8E1);
+    case 'haki':
+      return const Color(0xFF8D9B39);
+    default:
+      return AppColors.gold;
+  }
 }
 
 class _EmptyWardrobe extends StatelessWidget {
