@@ -104,8 +104,54 @@ class _ProfileScreenState extends State<ProfileScreen>
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
         final kullanici = data['kullanici'] ?? data;
+
+        int itemCount = 0;
+        int favCount = 0;
+
+        try {
+          final itemsFuture = http
+              .get(
+                Uri.parse('${ApiConstants.baseUrl}/items'),
+                headers: {'Authorization': 'Bearer $token'},
+              )
+              .timeout(const Duration(seconds: 5));
+
+          final favsFuture = http
+              .get(
+                Uri.parse('${ApiConstants.baseUrl}/items/favorites'),
+                headers: {'Authorization': 'Bearer $token'},
+              )
+              .timeout(const Duration(seconds: 5));
+
+          final results = await Future.wait([itemsFuture, favsFuture]);
+
+          if (results[0].statusCode == 200) {
+            final rawItems = jsonDecode(results[0].body);
+            final list = (rawItems['kiyafetler'] ?? rawItems) as List;
+            itemCount = list.length;
+          }
+          if (results[1].statusCode == 200) {
+            final rawFavs = jsonDecode(results[1].body);
+            final favList = (rawFavs['favoriler'] ?? rawFavs) as List;
+            favCount = favList.length;
+          }
+        } catch (_) {
+          // Hata durumunda varsayılan 0 kalır
+        }
+
+        if (!mounted) return;
+
+        final p = UserProfile.fromJson(kullanici);
+
         setState(() {
-          _profile = UserProfile.fromJson(kullanici);
+          _profile = UserProfile(
+            id: p.id,
+            name: p.name,
+            email: p.email,
+            totalItems: itemCount,
+            totalOutfits: 0,
+            totalFavorites: favCount,
+          );
           _loading = false;
         });
       } else {
