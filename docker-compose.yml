@@ -19,11 +19,7 @@ services:
     env_file:
       - ./backend/.env
     environment:
-      - MONGO_URI=mongodb://mongodb:27017/smartwardrobe
       - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8080
-    depends_on:
-      mongodb:
-        condition: service_healthy
     networks:
       - wardrobe-network
     healthcheck:
