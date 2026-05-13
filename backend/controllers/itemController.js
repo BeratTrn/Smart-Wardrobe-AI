@@ -1,5 +1,5 @@
 const Item = require('../models/Item');
-const { kiyafetAnaliz } = require('../services/aiService');
+const { analyzeItem } = require('../services/aiService');
 const { cloudinary } = require('../config/cloudinary');
 
 // @route  POST /api/items/add
@@ -11,41 +11,25 @@ const analyzeAndAddItem = async (req, res) => {
             return res.status(400).json({ mesaj: 'Lütfen bir kıyafet fotoğrafı yükleyin.' });
         }
 
-        let aiData = {};
-        let resimUrl = '';
-        let cloudinaryId = '';
+        let resimUrl = req.file.path || '';
+        let cloudinaryId = req.file.filename || '';
 
-        // Cloudinary'ye yüklendiyse URL'i al
-        if (req.file.path) {
-            // Cloudinary storage kullanıldığında req.file.path = URL
-            resimUrl = req.file.path;
-            cloudinaryId = req.file.filename || '';
-        }
+        // ── AI Analysis via FastAPI engine ────────────────────
+        let aiData = {
+            kategori: req.body.kategori || 'Diğer',
+            renk: req.body.renk || 'Bilinmiyor',
+            aiDogrulandi: false,
+        };
 
-        // AI Analizi - buffer varsa (memory storage), yoksa URL üzerinden
         try {
+            // req.file.buffer is populated when multer uses memoryStorage;
+            // for cloudinary storage we fall back to manual input.
             if (req.file.buffer) {
-                aiData = await kiyafetAnaliz(req.file.buffer, req.file.mimetype);
-            } else {
-                // Geçici placeholder (gerçek proje için URL üzerinden analiz eklenebilir)
-                aiData = {
-                    kategori: req.body.kategori || 'Diğer',
-                    renk: req.body.renk || 'Bilinmiyor',
-                    mevsim: req.body.mevsim || 'Tüm Mevsimler',
-                    stil: req.body.stil || 'Casual',
-                    aiDogrulandi: false
-                };
+                aiData = await analyzeItem(req.file.buffer, req.file.originalname);
             }
         } catch (aiError) {
             console.error('AI Analiz Hatası:', aiError.message);
-            // AI başarısız olursa manuel bilgileri kullan
-            aiData = {
-                kategori: req.body.kategori || 'Diğer',
-                renk: req.body.renk || 'Bilinmiyor',
-                mevsim: req.body.mevsim || 'Tüm Mevsimler',
-                stil: req.body.stil || 'Casual',
-                aiDogrulandi: false
-            };
+            // Non-fatal: continue with manual/fallback values
         }
 
         const newItem = await Item.create({
@@ -54,16 +38,16 @@ const analyzeAndAddItem = async (req, res) => {
             cloudinaryId,
             kategori: aiData.kategori,
             renk: aiData.renk,
-            mevsim: aiData.mevsim,
-            stil: aiData.stil,
+            mevsim: req.body.mevsim || 'Tüm Mevsimler',
+            stil: req.body.stil || 'Casual',
             marka: req.body.marka || '',
             notlar: req.body.notlar || '',
-            aiDogrulandi: aiData.aiDogrulandi
+            aiDogrulandi: aiData.aiDogrulandi,
         });
 
         res.status(201).json({
             mesaj: 'Kıyafet yapay zeka ile analiz edildi ve dolabınıza eklendi! 🪄',
-            kiyafet: newItem
+            kiyafet: newItem,
         });
 
     } catch (error) {
@@ -79,7 +63,6 @@ const getItems = async (req, res) => {
     try {
         const { kategori, mevsim, renk, stil, sayfa = 1, limit = 20 } = req.query;
 
-        // Dinamik filtre oluştur
         const filtre = { kullanici: req.user._id };
         if (kategori) filtre.kategori = kategori;
         if (mevsim) filtre.mevsim = mevsim;
@@ -89,11 +72,8 @@ const getItems = async (req, res) => {
         const skip = (parseInt(sayfa) - 1) * parseInt(limit);
 
         const [items, toplam] = await Promise.all([
-            Item.find(filtre)
-                .sort({ createdAt: -1 })
-                .skip(skip)
-                .limit(parseInt(limit)),
-            Item.countDocuments(filtre)
+            Item.find(filtre).sort({ createdAt: -1 }).skip(skip).limit(parseInt(limit)),
+            Item.countDocuments(filtre),
         ]);
 
         res.status(200).json({
@@ -101,7 +81,7 @@ const getItems = async (req, res) => {
             toplam,
             sayfa: parseInt(sayfa),
             toplamSayfa: Math.ceil(toplam / parseInt(limit)),
-            kiyafetler: items
+            kiyafetler: items,
         });
 
     } catch (error) {
@@ -120,7 +100,6 @@ const getItemById = async (req, res) => {
         if (!item) {
             return res.status(404).json({ mesaj: 'Kıyafet bulunamadı.' });
         }
-
         if (item.kullanici.toString() !== req.user._id.toString()) {
             return res.status(403).json({ mesaj: 'Bu kıyafete erişim yetkiniz yok.' });
         }
@@ -133,7 +112,7 @@ const getItemById = async (req, res) => {
 };
 
 // @route  PUT /api/items/:id
-// @desc   Kıyafet bilgilerini güncelle (AI etiketlerini düzelt)
+// @desc   Kıyafet bilgilerini güncelle
 // @access Private
 const updateItem = async (req, res) => {
     try {
@@ -142,7 +121,6 @@ const updateItem = async (req, res) => {
         if (!item) {
             return res.status(404).json({ mesaj: 'Kıyafet bulunamadı.' });
         }
-
         if (item.kullanici.toString() !== req.user._id.toString()) {
             return res.status(403).json({ mesaj: 'Bu kıyafeti düzenleme yetkiniz yok.' });
         }
@@ -157,7 +135,7 @@ const updateItem = async (req, res) => {
 
         res.status(200).json({
             mesaj: 'Kıyafet bilgileri güncellendi. ✅',
-            kiyafet: updatedItem
+            kiyafet: updatedItem,
         });
 
     } catch (error) {
@@ -176,12 +154,10 @@ const deleteItem = async (req, res) => {
         if (!item) {
             return res.status(404).json({ mesaj: 'Kıyafet bulunamadı.' });
         }
-
         if (item.kullanici.toString() !== req.user._id.toString()) {
             return res.status(403).json({ mesaj: 'Başkasının dolabından kıyafet silemezsiniz.' });
         }
 
-        // Cloudinary'den de sil (varsa)
         if (item.cloudinaryId) {
             try {
                 await cloudinary.uploader.destroy(item.cloudinaryId);
@@ -191,7 +167,6 @@ const deleteItem = async (req, res) => {
         }
 
         await item.deleteOne();
-
         res.status(200).json({ mesaj: 'Kıyafet dolabınızdan silindi. 🗑️' });
 
     } catch (error) {
@@ -210,13 +185,16 @@ const toggleFavori = async (req, res) => {
         if (item.kullanici.toString() !== req.user._id.toString()) {
             return res.status(403).json({ mesaj: 'Bu kıyafete erişim yetkiniz yok.' });
         }
+
         item.favori = !item.favori;
         await item.save();
+
         res.status(200).json({
             mesaj: item.favori ? 'Favorilere eklendi. ❤️' : 'Favorilerden çıkarıldı.',
             favori: item.favori,
-            kiyafet: item
+            kiyafet: item,
         });
+
     } catch (error) {
         console.error('Favori Toggle Hatası:', error);
         res.status(500).json({ mesaj: 'Favori durumu güncellenemedi.' });
@@ -236,4 +214,12 @@ const getFavorites = async (req, res) => {
     }
 };
 
-module.exports = { analyzeAndAddItem, getItems, getItemById, updateItem, deleteItem, toggleFavori, getFavorites };
+module.exports = {
+    analyzeAndAddItem,
+    getItems,
+    getItemById,
+    updateItem,
+    deleteItem,
+    toggleFavori,
+    getFavorites,
+};

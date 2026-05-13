@@ -1,119 +1,97 @@
-const OpenAI = require('openai');
+const axios = require('axios');
+const FormData = require('form-data');
+const { GoogleGenAI } = require('@google/genai');
 
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY
-});
+const FASTAPI_URL = process.env.FASTAPI_URL || 'http://localhost:8000';
+
+const genai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+
+// FastAPI category slug → MongoDB Item.kategori enum value
+const CATEGORY_MAP = {
+    ust_giyim: 'Üst Giyim',
+    alt_giyim: 'Alt Giyim',
+    elbise: 'Elbise & Etek',
+    dis_giyim: 'Dış Giyim',
+    ayakkabi: 'Ayakkabı',
+    aksesuar: 'Aksesuar',
+};
 
 /**
- * Kıyafet fotoğrafını AI ile analiz eder
- * @param {Buffer} imageBuffer - Resim buffer'ı
- * @param {string} mimeType - Resim MIME tipi
- * @returns {Object} - { kategori, renk, mevsim, stil, guven }
+ * Sends an image buffer to the FastAPI AI engine and returns
+ * the dominant color (HEX) and mapped category.
+ * @param {Buffer} fileBuffer
+ * @param {string} originalname  - original filename with extension
+ * @returns {{ kategori: string, renk: string, aiDogrulandi: boolean }}
  */
-const kiyafetAnaliz = async (imageBuffer, mimeType) => {
-    const base64Image = imageBuffer.toString('base64');
-
-    const response = await openai.chat.completions.create({
-        model: 'gpt-4o',
-        messages: [
-            {
-                role: 'user',
-                content: [
-                    {
-                        type: 'text',
-                        text: `Bu kıyafeti analiz et ve SADECE aşağıdaki JSON formatında yanıt ver, başka hiçbir şey yazma:
-{
-  "kategori": "Üst Giyim|Alt Giyim|Elbise & Etek|Dış Giyim|Ayakkabı|Aksesuar|Spor Giyim|Diğer",
-  "renk": "Ana renk adı (Türkçe)",
-  "mevsim": "İlkbahar|Yaz|Sonbahar|Kış|Tüm Mevsimler",
-  "stil": "Casual|Formal|Spor|Elegant|Bohemian|Streetwear|Diğer",
-  "guven": 0.0-1.0 arası güven skoru
-}`
-                    },
-                    {
-                        type: 'image_url',
-                        image_url: { url: `data:${mimeType};base64,${base64Image}` }
-                    }
-                ]
-            }
-        ],
-        max_tokens: 300,
-        temperature: 0.1  // Tutarlı sonuçlar için düşük temperature
+const analyzeItem = async (fileBuffer, originalname) => {
+    const form = new FormData();
+    form.append('file', fileBuffer, {
+        filename: originalname || 'image.jpg',
+        contentType: 'image/jpeg',
     });
 
-    let aiMetin = response.choices[0].message.content;
-    // Markdown kod bloklarını temizle
-    aiMetin = aiMetin.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    const { data } = await axios.post(`${FASTAPI_URL}/analyze-item/`, form, {
+        headers: form.getHeaders(),
+        timeout: 30_000,
+    });
 
-    const aiData = JSON.parse(aiMetin);
-
-    // Güvenli enum değerleri kontrolü
-    const gecerliKategoriler = ['Üst Giyim', 'Alt Giyim', 'Elbise & Etek', 'Dış Giyim', 'Ayakkabı', 'Aksesuar', 'Spor Giyim', 'Diğer'];
-    const gecerliMevsimler = ['İlkbahar', 'Yaz', 'Sonbahar', 'Kış', 'Tüm Mevsimler'];
-    const gecerliStiller = ['Casual', 'Formal', 'Spor', 'Elegant', 'Bohemian', 'Streetwear', 'Diğer'];
+    const raw = data.analysis;
+    const kategori = CATEGORY_MAP[raw.category] || 'Diğer';
 
     return {
-        kategori: gecerliKategoriler.includes(aiData.kategori) ? aiData.kategori : 'Diğer',
-        renk: aiData.renk || 'Bilinmiyor',
-        mevsim: gecerliMevsimler.includes(aiData.mevsim) ? aiData.mevsim : 'Tüm Mevsimler',
-        stil: gecerliStiller.includes(aiData.stil) ? aiData.stil : 'Casual',
-        guven: parseFloat(aiData.guven) || 0.8,
-        aiDogrulandi: true
+        kategori,
+        renk: raw.dominant_color,   // e.g. "#2D405C"
+        aiDogrulandi: true,
     };
 };
 
 /**
- * Dolap içeriği + hava durumu bilgisine göre kombin önerisi üretir
- * @param {Array}  kiyafetler  - Kullanıcının dolabındaki kıyafetler
+ * Asks Gemini to act as a stylist and build a complete outfit
+ * from the user's wardrobe for the given weather conditions.
+ * @param {Array}  userItems   - Item documents from MongoDB
  * @param {Object} havaDurumu  - { sicaklik, durum, konum }
- * @param {string} etkinlik    - Gidilecek etkinlik türü
- * @returns {Object} - { aciklama, onerilen_ids, kategori_secimi }
+ * @param {string} etkinlik    - activity type
+ * @returns {{ aciklama: string, secilen_kiyafet_idleri: string[], ipucu: string }}
  */
-const kombinOner = async (kiyafetler, havaDurumu, etkinlik) => {
-    if (!kiyafetler || kiyafetler.length === 0) {
-        throw new Error('Kombin önerisi için önce dolabınıza kıyafet eklemelisiniz.');
-    }
-
-    // Kıyafet listesini prompt için formatla
-    const kiyafetListesi = kiyafetler.map(k =>
-        `ID:${k._id} | ${k.kategori} | ${k.renk} | ${k.mevsim} | Stil: ${k.stil || 'Casual'}`
-    ).join('\n');
+const generateOutfitSuggestion = async (userItems, havaDurumu, etkinlik = 'Günlük') => {
+    const kiyafetListesi = userItems
+        .map(k => `ID:${k._id} | ${k.kategori} | Renk:${k.renk} | ${k.mevsim} | Stil:${k.stil}`)
+        .join('\n');
 
     const prompt = `
-Sen bir profesyonel moda danışmanısın. Kullanıcının gardırobundaki kıyafetlere ve koşullarına göre en uygun kombini öner.
+Sen kişisel bir moda danışmanısın. Aşağıdaki dolap içeriğini ve koşulları dikkate alarak bir kombin öner.
 
-MEVCUT KOŞULLAR:
-- Hava Durumu: ${havaDurumu.durum || 'Bilinmiyor'}, ${havaDurumu.sicaklik}°C, Konum: ${havaDurumu.konum || 'Türkiye'}
+KOŞULLAR:
+- Hava: ${havaDurumu.durum || 'Bilinmiyor'}, ${havaDurumu.sicaklik ?? '?'}°C, Konum: ${havaDurumu.konum || 'Türkiye'}
 - Etkinlik: ${etkinlik}
 
-KULLANICININ DOLABINDAKİ KIYAFETLERİ (sadece bu listeden seç):
+DOLAP İÇERİĞİ (sadece bu listeden seç):
 ${kiyafetListesi}
 
-GÖREV: Hava durumuna ve etkinliğe uygun bir kombin oluştur. SADECE aşağıdaki JSON formatında yanıt ver:
+Yanıtını YALNIZCA aşağıdaki JSON formatında ver, başka hiçbir metin ekleme:
 {
-  "aciklama": "Kombinin neden uygun olduğunu açıklayan 2-3 cümle (Türkçe, samimi ve yardımsever bir dil)",
-  "secilen_kiyafet_idleri": ["id1", "id2", "id3"],
-  "ipucu": "Ek bir stil tavsiyesi"
+  "aciklama": "Kombinin neden bu koşullara uygun olduğunu anlatan 2-3 cümle (Türkçe, samimi)",
+  "secilen_kiyafet_idleri": ["id1", "id2"],
+  "ipucu": "Tek cümlelik ek stil tavsiyesi"
 }
 
-ÖNEMLİ KURALLAR:
-- Yağmurlu/soğuk havada (10°C altı) şort veya ince giysi önerme
-- Resmi etkinlikte spor kıyafet önerme
-- Sadece listede olan kıyafetlerden seç
-- En az 2, en fazla 4 parça seç
+KURALLAR:
+- Soğuk hava (10°C altı) için şort veya ince giysi önerme.
+- Resmi etkinlikte spor kıyafet önerme.
+- Listede olmayan kıyafeti ASLA seçme.
+- En az 2, en fazla 4 parça seç.
 `;
 
-    const response = await openai.chat.completions.create({
-        model: 'gpt-4o',
-        messages: [{ role: 'user', content: prompt }],
-        max_tokens: 600,
-        temperature: 0.7
+    const response = await genai.models.generateContent({
+        model: 'gemini-2.0-flash',
+        contents: prompt,
     });
 
-    let aiMetin = response.choices[0].message.content;
-    aiMetin = aiMetin.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    let text = response.text.trim();
+    // Strip optional markdown fences Gemini sometimes adds
+    text = text.replace(/^```json\s*/i, '').replace(/\s*```$/, '').trim();
 
-    return JSON.parse(aiMetin);
+    return JSON.parse(text);
 };
 
-module.exports = { kiyafetAnaliz, kombinOner };
+module.exports = { analyzeItem, generateOutfitSuggestion };

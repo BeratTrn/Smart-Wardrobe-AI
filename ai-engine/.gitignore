@@ -1,0 +1,15 @@
+# Python Sanal Ortamları
+venv/
+env/
+
+# Şifreler ve Gizli Ayarlar
+.env
+
+# Python Ön Bellek Dosyaları (Gereksiz ağırlık yapar)
+__pycache__/
+*.py[cod]
+*$py.class
+
+# İşletim Sistemi Dosyaları
+.DS_Store
+Thumbs.db
