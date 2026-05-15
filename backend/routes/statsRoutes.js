@@ -4,18 +4,42 @@ const { protect } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
-// GET /api/stats/wardrobe → Gardırop istatistikleri
 /**
  * @swagger
  * /api/stats/wardrobe:
  *   get:
- *     summary: Gardırop istatistiklerini getirir (renk, kategori vb. dağılımlar)
+ *     summary: Gardırop istatistiklerini getirir
+ *     description: |
+ *       Kullanıcının gardırobundaki kıyasetlerin kategori ve renk dağılımlarını,
+ *       toplam kıyafet sayısını ve diğer özet istatistikleri döner.
  *     tags: [Stats]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Gardırop istatistikleri başarıyla çekildi
+ *         description: Gardırop istatistikleri
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 mesaj:
+ *                   type: string
+ *                   example: Gardırop istatistikleri getirildi.
+ *                 istatistikler:
+ *                   $ref: '#/components/schemas/WardrobeStats'
+ *       401:
+ *         description: Yetkisiz erişim
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Sunucu hatası
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.get('/wardrobe', protect, getWardrobeStats);
 

@@ -5,23 +5,26 @@ const {
     verifyEmail,
     loginUser,
     getMe,
-    updateProfile,
     changePassword,
     forgotPassword,
     resetPassword,
     deleteAccount,
-    googleAuth
+    googleAuth,
 } = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
+// ── Açık (Public) Rotalar ─────────────────────────────────────────────────────
 
 /**
  * @swagger
  * /api/auth/register:
  *   post:
- *     summary: Yeni kullanÄ±cÄ± kaydÄ± oluÅŸturur (OTP gÃ¶nderilir)
+ *     summary: Yeni kullanıcı kaydı oluşturur
+ *     description: |
+ *       Geçici kayıt oluşturur ve e-posta adresine 6 haneli OTP gönderir.
+ *       JWT döndürmez — önce `/api/auth/verify-email` çağrılmalıdır.
  *     tags: [Auth]
  *     requestBody:
  *       required: true
@@ -29,23 +32,56 @@ const router = express.Router();
  *         application/json:
  *           schema:
  *             type: object
+ *             required: [kullaniciAdi, email, sifre]
  *             properties:
  *               kullaniciAdi:
  *                 type: string
+ *                 minLength: 3
+ *                 maxLength: 30
+ *                 example: johndoe
  *               email:
  *                 type: string
+ *                 format: email
+ *                 example: john@example.com
  *               sifre:
  *                 type: string
+ *                 minLength: 6
+ *                 example: gizlisifre123
  *     responses:
  *       201:
- *         description: BaÅŸarÄ±lÄ±
+ *         description: OTP e-posta ile gönderildi
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 mesaj:
+ *                   type: string
+ *                   example: Doğrulama kodu e-posta adresinize gönderildi.
+ *                 email:
+ *                   type: string
+ *                   example: john@example.com
+ *       400:
+ *         description: Eksik alan veya e-posta zaten kullanımda
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       503:
+ *         description: E-posta gönderilemedi
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post('/register', registerUser);          // AdÄ±m 1: KayÄ±t (OTP gÃ¶nderir, JWT yok)
+router.post('/register', registerUser);
+
 /**
  * @swagger
  * /api/auth/resend-verification:
  *   post:
- *     summary: DoÄŸrulama kodunu tekrar gÃ¶nderir
+ *     summary: Doğrulama kodunu yeniden gönderir
+ *     description: Süresi dolmuş veya alınamamış OTP için yeni kod üretip gönderir.
  *     tags: [Auth]
  *     requestBody:
  *       required: true
@@ -53,12 +89,43 @@ router.post('/register', registerUser);          // AdÄ±m 1: KayÄ±t (OTP gÃ
  *         application/json:
  *           schema:
  *             type: object
+ *             required: [email]
  *             properties:
  *               email:
  *                 type: string
+ *                 format: email
+ *                 example: john@example.com
  *     responses:
  *       200:
- *         description: DoÄŸrulama kodu gÃ¶nderildi
+ *         description: Yeni OTP gönderildi
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 mesaj:
+ *                   type: string
+ *                   example: Yeni doğrulama kodu e-posta adresinize gönderildi.
+ *                 email:
+ *                   type: string
+ *       400:
+ *         description: Hesap zaten doğrulanmış
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: Doğrulama bekleyen kayıt bulunamadı
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       503:
+ *         description: E-posta gönderilemedi
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.post('/resend-verification', resendVerification);
 
@@ -66,7 +133,10 @@ router.post('/resend-verification', resendVerification);
  * @swagger
  * /api/auth/verify-email:
  *   post:
- *     summary: E-posta adresini doÄŸrular ve JWT dÃ¶ner
+ *     summary: E-posta adresini doğrular ve JWT döner
+ *     description: |
+ *       Kullanıcının girdiği 6 haneli OTP doğrulanır; başarılı olursa
+ *       MongoDB'de kalıcı kullanıcı oluşturulur ve JWT token döner.
  *     tags: [Auth]
  *     requestBody:
  *       required: true
@@ -74,22 +144,48 @@ router.post('/resend-verification', resendVerification);
  *         application/json:
  *           schema:
  *             type: object
+ *             required: [email, otpCode]
  *             properties:
  *               email:
  *                 type: string
+ *                 format: email
+ *                 example: john@example.com
  *               otpCode:
  *                 type: string
+ *                 example: '482951'
  *     responses:
  *       200:
- *         description: E-posta doÄŸrulandÄ± (JWT token dÃ¶ner)
+ *         description: E-posta doğrulandı, JWT döner
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 mesaj:
+ *                   type: string
+ *                   example: E-posta adresiniz doğrulandı! Hoş geldiniz. 🎉
+ *                 token:
+ *                   type: string
+ *                   description: 30 gün geçerli JWT
+ *                 kullanici:
+ *                   $ref: '#/components/schemas/UserProfile'
+ *       400:
+ *         description: Hatalı veya süresi dolmuş OTP
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post('/verify-email', verifyEmail);       // AdÄ±m 2: OTP doÄŸrula â†’ JWT al
+router.post('/verify-email', verifyEmail);
 
 /**
  * @swagger
  * /api/auth/login:
  *   post:
- *     summary: KullanÄ±cÄ± giriÅŸi
+ *     summary: Kullanıcı girişi
+ *     description: |
+ *       E-posta ve şifre ile kimlik doğrulaması yapar.
+ *       Doğrulanmamış hesaplar için `requiresVerification: true` alanı döner.
  *     tags: [Auth]
  *     requestBody:
  *       required: true
@@ -97,14 +193,52 @@ router.post('/verify-email', verifyEmail);       // AdÄ±m 2: OTP doÄŸrula â
  *         application/json:
  *           schema:
  *             type: object
+ *             required: [email, sifre]
  *             properties:
  *               email:
  *                 type: string
+ *                 format: email
+ *                 example: john@example.com
  *               sifre:
  *                 type: string
+ *                 example: gizlisifre123
  *     responses:
  *       200:
- *         description: GiriÅŸ baÅŸarÄ±lÄ± (JWT token dÃ¶ner)
+ *         description: Giriş başarılı
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 mesaj:
+ *                   type: string
+ *                   example: Giriş başarılı! 🔑
+ *                 token:
+ *                   type: string
+ *                   description: 30 gün geçerli JWT
+ *                 kullanici:
+ *                   $ref: '#/components/schemas/UserProfile'
+ *       401:
+ *         description: E-posta veya şifre hatalı
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       403:
+ *         description: E-posta henüz doğrulanmamış
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 mesaj:
+ *                   type: string
+ *                   example: E-posta adresiniz henüz doğrulanmamış.
+ *                 requiresVerification:
+ *                   type: boolean
+ *                   example: true
+ *                 email:
+ *                   type: string
  */
 router.post('/login', loginUser);
 
@@ -113,6 +247,9 @@ router.post('/login', loginUser);
  * /api/auth/google:
  *   post:
  *     summary: Google hesabı ile giriş yap veya kayıt ol
+ *     description: |
+ *       Flutter `google_sign_in` paketinden alınan `idToken` ile kimlik doğrulaması yapar.
+ *       Hesap yoksa otomatik olarak oluşturulur (`isVerified: true`).
  *     tags: [Auth]
  *     requestBody:
  *       required: true
@@ -127,9 +264,31 @@ router.post('/login', loginUser);
  *                 description: Flutter google_sign_in'den alınan Google ID token
  *     responses:
  *       200:
- *         description: Giriş başarılı (JWT token döner)
+ *         description: Google girişi başarılı
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 mesaj:
+ *                   type: string
+ *                   example: Google ile giriş başarılı.
+ *                 token:
+ *                   type: string
+ *                 kullanici:
+ *                   $ref: '#/components/schemas/UserProfile'
+ *       400:
+ *         description: idToken eksik
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       401:
  *         description: Geçersiz Google token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.post('/google', googleAuth);
 
@@ -137,7 +296,10 @@ router.post('/google', googleAuth);
  * @swagger
  * /api/auth/forgot-password:
  *   post:
- *     summary: Åifre sÄ±fÄ±rlama e-postasÄ± gÃ¶nderir
+ *     summary: Şifre sıfırlama e-postası gönderir
+ *     description: |
+ *       Verilen e-posta kayıtlıysa 1 saatlik sıfırlama linki gönderilir.
+ *       Güvenlik açısından e-posta bulunsun ya da bulunsun aynı yanıt döner.
  *     tags: [Auth]
  *     requestBody:
  *       required: true
@@ -145,12 +307,29 @@ router.post('/google', googleAuth);
  *         application/json:
  *           schema:
  *             type: object
+ *             required: [email]
  *             properties:
  *               email:
  *                 type: string
+ *                 format: email
+ *                 example: john@example.com
  *     responses:
  *       200:
- *         description: E-posta gÃ¶nderildi
+ *         description: İstek alındı
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 mesaj:
+ *                   type: string
+ *                   example: Eğer bu e-posta kayıtlıysa sıfırlama bağlantısı gönderildi.
+ *       503:
+ *         description: E-posta gönderilemedi
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.post('/forgot-password', forgotPassword);
 
@@ -158,7 +337,10 @@ router.post('/forgot-password', forgotPassword);
  * @swagger
  * /api/auth/reset-password/{resettoken}:
  *   put:
- *     summary: Åifre sÄ±fÄ±rlama iÅŸlemini tamamlar
+ *     summary: Şifreyi token ile sıfırlar
+ *     description: |
+ *       E-postadaki linkten gelen ham token ile yeni şifre belirlenir. Token 1 saat geçerlidir.
+ *       Aynı path'e `GET` isteği atıldığında tarayıcıda HTML form açılır.
  *     tags: [Auth]
  *     parameters:
  *       - in: path
@@ -166,66 +348,78 @@ router.post('/forgot-password', forgotPassword);
  *         required: true
  *         schema:
  *           type: string
+ *         description: E-postadaki URL'den alınan ham (hash'lenmemiş) token
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
+ *             required: [yeniSifre]
  *             properties:
  *               yeniSifre:
  *                 type: string
+ *                 minLength: 6
+ *                 example: yeniGizliSifre456
  *     responses:
  *       200:
- *         description: Åifre baÅŸarÄ±yla gÃ¼ncellendi
+ *         description: Şifre güncellendi
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 mesaj:
+ *                   type: string
+ *                   example: Şifreniz başarıyla güncellendi.
+ *                 token:
+ *                   type: string
+ *                   description: Otomatik oturum açmak için kullanılabilecek JWT
+ *       400:
+ *         description: Geçersiz veya süresi dolmuş token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.put('/reset-password/:resettoken', resetPassword);
 
-// --- Private routes (JWT gerektirir) ---
+// ── Korumalı (Private) Rotalar — JWT gerektirir ───────────────────────────────
+
 /**
  * @swagger
  * /api/auth/me:
  *   get:
- *     summary: GiriÅŸ yapmÄ±ÅŸ kullanÄ±cÄ±nÄ±n profil bilgilerini getirir
+ *     summary: Giriş yapmış kullanıcının profil bilgilerini getirir
+ *     description: Kullanıcı adı, e-posta, tercihler ve vücut profili dahil tüm profil verilerini döner.
  *     tags: [Auth]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: KullanÄ±cÄ± bilgileri
+ *         description: Kullanıcı profili
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 kullanici:
+ *                   $ref: '#/components/schemas/UserProfile'
+ *       401:
+ *         description: Token eksik veya geçersiz
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.get('/me', protect, getMe);
 
 /**
  * @swagger
- * /api/auth/update:
- *   put:
- *     summary: KullanÄ±cÄ± profilini gÃ¼nceller
- *     tags: [Auth]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: false
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               kullaniciAdi:
- *                 type: string
- *               tercihler:
- *                 type: object
- *     responses:
- *       200:
- *         description: Profil baÅŸarÄ±yla gÃ¼ncellendi
- */
-router.put('/update', protect, updateProfile);
-
-/**
- * @swagger
  * /api/auth/change-password:
  *   put:
- *     summary: KullanÄ±cÄ±nÄ±n ÅŸifresini deÄŸiÅŸtirir
+ *     summary: Kullanıcının şifresini değiştirir
+ *     description: Mevcut şifre doğrulandıktan sonra yeni şifre belirlenir.
  *     tags: [Auth]
  *     security:
  *       - bearerAuth: []
@@ -235,14 +429,38 @@ router.put('/update', protect, updateProfile);
  *         application/json:
  *           schema:
  *             type: object
+ *             required: [mevcutSifre, yeniSifre]
  *             properties:
  *               mevcutSifre:
  *                 type: string
+ *                 example: eskiGizliSifre
  *               yeniSifre:
  *                 type: string
+ *                 minLength: 6
+ *                 example: yeniGizliSifre456
  *     responses:
  *       200:
- *         description: Åifre baÅŸarÄ±yla deÄŸiÅŸtirildi
+ *         description: Şifre başarıyla değiştirildi
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 mesaj:
+ *                   type: string
+ *                   example: Şifreniz başarıyla güncellendi. ✅
+ *       400:
+ *         description: Eksik alan veya şifre çok kısa
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       401:
+ *         description: Mevcut şifre hatalı veya token geçersiz
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.put('/change-password', protect, changePassword);
 
@@ -250,22 +468,40 @@ router.put('/change-password', protect, changePassword);
  * @swagger
  * /api/auth/me:
  *   delete:
- *     summary: HesabÄ± kalÄ±cÄ± olarak siler
- *     description: KullanÄ±cÄ±nÄ±n hesabÄ±nÄ±, tÃ¼m kÄ±yafetlerini ve kombinlerini kalÄ±cÄ± olarak siler.
+ *     summary: Hesabı ve tüm ilgili verileri kalıcı olarak siler
+ *     description: |
+ *       Kullanıcının hesabını, tüm kıyafet öğelerini ve kombinlerini kalıcı olarak siler.
+ *       **Bu işlem geri alınamaz.**
  *     tags: [Auth]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Hesap baÅŸarÄ±yla silindi
+ *         description: Hesap başarıyla silindi
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 mesaj:
+ *                   type: string
+ *                   example: Hesabınız ve tüm verileriniz kalıcı olarak silindi.
  *       401:
- *         description: Yetkisiz eriÅŸim
+ *         description: Yetkisiz erişim
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       500:
- *         description: Sunucu hatasÄ±
+ *         description: Sunucu hatası
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.delete('/me', protect, deleteAccount);
 
-// Åifre sÄ±fÄ±rlama formu (e-postadaki link bu sayfayÄ± aÃ§ar)
+// Şifre sıfırlama formu (e-postadaki link bu sayfayı açar)
 router.get('/reset-password/:resettoken', (req, res) => {
     const token = req.params.resettoken;
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
@@ -354,12 +590,11 @@ router.get('/reset-password/:resettoken', (req, res) => {
         '}',
         '</script>',
         '</body>',
-        '</html>'
+        '</html>',
     ].join('\n'));
 });
 
-// POST alias — formdan gelen istek (bazi tuneller PUT yerine POST ister)
+// POST alias — formdan gelen istek (bazı tüneller PUT yerine POST ister)
 router.post('/reset-password/:resettoken', resetPassword);
 
 module.exports = router;
-

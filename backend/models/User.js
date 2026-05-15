@@ -30,6 +30,10 @@ const userSchema = new mongoose.Schema({
         favoriRenkler: [{ type: String }],
         bildirimler: { type: Boolean, default: true }
     },
+    vucut: {
+        sekil: { type: String, default: '' },  // kum_saati | armut | ters_ucgen | dikdortgen
+        kalip: { type: String, default: '' },  // slim | regular | oversize
+    },
     googleId: {
         type: String,
         default: null

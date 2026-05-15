@@ -10,20 +10,13 @@ const uploadMemory = multer({ storage: multer.memoryStorage() });
 
 const router = express.Router();
 
-// POST   /api/items/analyze-only → Yalnızca AI analiz (Cloudinary/MongoDB'ye kayıt YOK)
-// POST   /api/items/add          → Fotoğraf yükle + AI analiz + ekle
-// GET    /api/items              → Tüm kıyafetleri listele (filtreli)
-// GET    /api/items/:id          → Tek kıyafet getir
-// PUT    /api/items/:id          → Kıyafet bilgilerini güncelle
-// DELETE /api/items/:id          → Kıyafet sil
-
 /**
  * @swagger
  * /api/items/analyze-only:
  *   post:
- *     summary: Kıyafeti yalnızca AI ile analiz eder (Cloudinary / MongoDB'ye kayıt yapılmaz)
+ *     summary: Kıyafeti yalnızca AI ile analiz eder
  *     description: |
- *       Flutter "önizleme → kullanıcı düzelt → kaydet" akışının 1. adımı.
+ *       Flutter "önizleme → kullanıcı düzelt → kaydet" akışının **1. adımı**.
  *       Fotoğraf FastAPI motoruna gönderilir; kategori + renk tahmini döner.
  *       Cloudinary veya MongoDB'ye hiçbir şey yazılmaz.
  *     tags: [Items]
@@ -51,6 +44,7 @@ const router = express.Router();
  *               properties:
  *                 mesaj:
  *                   type: string
+ *                   example: AI analizi tamamlandı.
  *                 analiz:
  *                   type: object
  *                   properties:
@@ -62,10 +56,19 @@ const router = express.Router();
  *                       example: '#2D405C'
  *                     aiDogrulandi:
  *                       type: boolean
+ *                       example: true
  *       400:
  *         description: Fotoğraf gönderilmedi
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       401:
  *         description: Yetkisiz erişim
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.post('/analyze-only', protect, uploadMemory.single('resim'), analyzeOnly);
 
@@ -73,7 +76,11 @@ router.post('/analyze-only', protect, uploadMemory.single('resim'), analyzeOnly)
  * @swagger
  * /api/items/add:
  *   post:
- *     summary: Yeni bir kıyafet ekler ve AI ile analiz eder
+ *     summary: Yeni bir kıyafet ekler (Cloudinary + AI analiz + MongoDB)
+ *     description: |
+ *       Flutter "önizleme → kullanıcı düzelt → kaydet" akışının **2. adımı**.
+ *       Fotoğraf Cloudinary'e yüklenir, FastAPI ile analiz edilir ve MongoDB'ye kaydedilir.
+ *       `kategori` / `renk` gönderilirse AI tahminini override eder.
  *     tags: [Items]
  *     security:
  *       - bearerAuth: []
@@ -83,23 +90,50 @@ router.post('/analyze-only', protect, uploadMemory.single('resim'), analyzeOnly)
  *         multipart/form-data:
  *           schema:
  *             type: object
+ *             required: [resim]
  *             properties:
  *               resim:
  *                 type: string
  *                 format: binary
+ *                 description: Kıyafet fotoğrafı (JPG / PNG)
  *               kategori:
  *                 type: string
- *                 description: Kullanıcının onayladığı kategori (AI tahminini override eder)
+ *                 enum: [Üst Giyim, Alt Giyim, Ayakkabı, Aksesuar, Tek Parça, Dış Giyim, Diğer]
+ *                 description: Kullanıcının onayladığı kategori (boş bırakılırsa AI tahmini kullanılır)
  *               renk:
  *                 type: string
- *                 description: Kullanıcının onayladığı HEX renk kodu
+ *                 description: Kullanıcının onayladığı HEX renk kodu (örn. #2D405C)
  *               mevsim:
  *                 type: string
+ *                 example: Tüm Mevsimler
  *               stil:
  *                 type: string
+ *                 example: Casual
  *     responses:
  *       201:
- *         description: Kıyafet eklendi
+ *         description: Kıyafet başarıyla eklendi
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 mesaj:
+ *                   type: string
+ *                   example: Kıyafet eklendi!
+ *                 kiyafet:
+ *                   $ref: '#/components/schemas/ClothingItem'
+ *       400:
+ *         description: Fotoğraf gönderilmedi veya geçersiz veri
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       401:
+ *         description: Yetkisiz erişim
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.post('/add', protect, upload.single('resim'), analyzeAndAddItem);
 
@@ -107,7 +141,8 @@ router.post('/add', protect, upload.single('resim'), analyzeAndAddItem);
  * @swagger
  * /api/items:
  *   get:
- *     summary: Tüm kıyafetleri listeler
+ *     summary: Kullanıcının tüm kıyafetlerini listeler
+ *     description: İsteğe bağlı `kategori` ve `renk` query parametreleriyle filtrelenebilir.
  *     tags: [Items]
  *     security:
  *       - bearerAuth: []
@@ -116,15 +151,36 @@ router.post('/add', protect, upload.single('resim'), analyzeAndAddItem);
  *         name: kategori
  *         schema:
  *           type: string
+ *           enum: [Üst Giyim, Alt Giyim, Ayakkabı, Aksesuar, Tek Parça, Dış Giyim, Diğer]
  *         description: Kategoriye göre filtrele
  *       - in: query
  *         name: renk
  *         schema:
  *           type: string
- *         description: Renge göre filtrele
+ *         description: Renge göre filtrele (HEX kodu, örn. %232D405C)
  *     responses:
  *       200:
  *         description: Kıyafet listesi
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 mesaj:
+ *                   type: string
+ *                 toplam:
+ *                   type: integer
+ *                   example: 12
+ *                 kiyafetler:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/ClothingItem'
+ *       401:
+ *         description: Yetkisiz erişim
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.get('/', protect, getItems);
 
@@ -132,13 +188,32 @@ router.get('/', protect, getItems);
  * @swagger
  * /api/items/favorites:
  *   get:
- *     summary: Favori kıyafetleri listeler
+ *     summary: Kullanıcının favori kıyafetlerini listeler
  *     tags: [Items]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Favori listesi
+ *         description: Favori kıyafet listesi
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 mesaj:
+ *                   type: string
+ *                 toplam:
+ *                   type: integer
+ *                 kiyafetler:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/ClothingItem'
+ *       401:
+ *         description: Yetkisiz erişim
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.get('/favorites', protect, getFavorites);
 
@@ -156,9 +231,33 @@ router.get('/favorites', protect, getFavorites);
  *         required: true
  *         schema:
  *           type: string
+ *         description: Kıyafetin MongoDB ObjectId değeri
  *     responses:
  *       200:
  *         description: Favori durumu güncellendi
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 mesaj:
+ *                   type: string
+ *                   example: Favorilere eklendi.
+ *                 favori:
+ *                   type: boolean
+ *                   example: true
+ *       401:
+ *         description: Yetkisiz erişim
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: Kıyafet bulunamadı
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.patch('/:id/favorite', protect, toggleFavori);
 
@@ -176,9 +275,29 @@ router.patch('/:id/favorite', protect, toggleFavori);
  *         required: true
  *         schema:
  *           type: string
+ *         description: Kıyafetin MongoDB ObjectId değeri
  *     responses:
  *       200:
  *         description: Kıyafet bilgileri
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 kiyafet:
+ *                   $ref: '#/components/schemas/ClothingItem'
+ *       401:
+ *         description: Yetkisiz erişim
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: Kıyafet bulunamadı veya bu kullanıcıya ait değil
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.get('/:id', protect, getItemById);
 
@@ -196,6 +315,7 @@ router.get('/:id', protect, getItemById);
  *         required: true
  *         schema:
  *           type: string
+ *         description: Kıyafetin MongoDB ObjectId değeri
  *     requestBody:
  *       required: false
  *       content:
@@ -205,15 +325,46 @@ router.get('/:id', protect, getItemById);
  *             properties:
  *               kategori:
  *                 type: string
+ *                 enum: [Üst Giyim, Alt Giyim, Ayakkabı, Aksesuar, Tek Parça, Dış Giyim, Diğer]
  *               renk:
  *                 type: string
+ *                 example: '#2D405C'
  *               mevsim:
  *                 type: array
  *                 items:
  *                   type: string
+ *                   enum: [İlkbahar, Yaz, Sonbahar, Kış, Tüm Mevsimler]
+ *               stil:
+ *                 type: string
+ *                 example: Casual
+ *               marka:
+ *                 type: string
+ *                 example: Zara
  *     responses:
  *       200:
  *         description: Kıyafet güncellendi
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 mesaj:
+ *                   type: string
+ *                   example: Kıyafet güncellendi. ✅
+ *                 kiyafet:
+ *                   $ref: '#/components/schemas/ClothingItem'
+ *       401:
+ *         description: Yetkisiz erişim
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: Kıyafet bulunamadı
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.put('/:id', protect, updateItem);
 
@@ -222,6 +373,7 @@ router.put('/:id', protect, updateItem);
  * /api/items/{id}:
  *   delete:
  *     summary: Bir kıyafeti siler
+ *     description: Kıyafet MongoDB'den silinir ve Cloudinary'deki fotoğrafı kaldırılır.
  *     tags: [Items]
  *     security:
  *       - bearerAuth: []
@@ -231,9 +383,36 @@ router.put('/:id', protect, updateItem);
  *         required: true
  *         schema:
  *           type: string
+ *         description: Kıyafetin MongoDB ObjectId değeri
  *     responses:
  *       200:
  *         description: Kıyafet silindi
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 mesaj:
+ *                   type: string
+ *                   example: Kıyafet silindi. 🗑️
+ *       401:
+ *         description: Yetkisiz erişim
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       403:
+ *         description: Bu kıyafeti silme yetkiniz yok
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: Kıyafet bulunamadı
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.delete('/:id', protect, deleteItem);
 

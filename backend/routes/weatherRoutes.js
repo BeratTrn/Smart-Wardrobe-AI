@@ -4,31 +4,58 @@ const { protect } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
-// GET /api/weather?enlem=41.01&boylam=28.97   → Koordinata göre
-// GET /api/weather/city?sehir=Istanbul         → Şehre göre
-
 /**
  * @swagger
  * /api/weather:
  *   get:
- *     summary: Koordinatlara göre hava durumunu getirir
+ *     summary: GPS koordinatlarına göre hava durumunu getirir
+ *     description: Flutter'dan gelen `enlem` ve `boylam` değerleriyle OpenWeatherMap API'ye istek atar.
  *     tags: [Weather]
  *     security:
  *       - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: enlem
+ *         required: true
  *         schema:
- *           type: string
- *         description: Enlem değeri (örn. 41.01)
+ *           type: number
+ *         example: 41.01
+ *         description: Enlem koordinatı
  *       - in: query
  *         name: boylam
+ *         required: true
  *         schema:
- *           type: string
- *         description: Boylam değeri (örn. 28.97)
+ *           type: number
+ *         example: 28.97
+ *         description: Boylam koordinatı
  *     responses:
  *       200:
  *         description: Hava durumu bilgisi
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 havaDurumu:
+ *                   $ref: '#/components/schemas/WeatherData'
+ *       400:
+ *         description: Enlem veya boylam eksik
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       401:
+ *         description: Yetkisiz erişim
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       502:
+ *         description: OpenWeatherMap API hatası
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.get('/', protect, getWeatherByCoords);
 
@@ -37,6 +64,7 @@ router.get('/', protect, getWeatherByCoords);
  * /api/weather/city:
  *   get:
  *     summary: Şehir ismine göre hava durumunu getirir
+ *     description: Verilen şehir adı için OpenWeatherMap API'den güncel hava durumunu çeker.
  *     tags: [Weather]
  *     security:
  *       - bearerAuth: []
@@ -46,10 +74,36 @@ router.get('/', protect, getWeatherByCoords);
  *         required: true
  *         schema:
  *           type: string
- *         description: Şehir ismi (örn. Istanbul)
+ *         example: Istanbul
+ *         description: Şehir adı (Türkçe veya İngilizce)
  *     responses:
  *       200:
  *         description: Hava durumu bilgisi
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 havaDurumu:
+ *                   $ref: '#/components/schemas/WeatherData'
+ *       400:
+ *         description: Şehir adı belirtilmedi
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       401:
+ *         description: Yetkisiz erişim
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       502:
+ *         description: OpenWeatherMap API hatası
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.get('/city', protect, getWeatherByCity);
 

@@ -244,7 +244,7 @@ describe('GET /api/auth/me', () => {
 // =============================================
 // PROFIL GUNCELLEME TESTLERI
 // =============================================
-describe('PUT /api/auth/update', () => {
+describe('PUT /api/users/profile', () => {
     let token;
 
     beforeEach(async () => {
@@ -257,7 +257,7 @@ describe('PUT /api/auth/update', () => {
 
     test('✅ Gecerli token ile kullanici profili guncellenebilmeli', async () => {
         const res = await request(app)
-            .put('/api/auth/update')
+            .put('/api/users/profile')
             .set('Authorization', `Bearer ${token}`)
             .send({
                 kullaniciAdi: 'UpdateUserV2',
@@ -276,7 +276,7 @@ describe('PUT /api/auth/update', () => {
 
     test('❌ Token olmadan profil guncelleme 401 donmeli', async () => {
         const res = await request(app)
-            .put('/api/auth/update')
+            .put('/api/users/profile')
             .send({ kullaniciAdi: 'NoTokenUpdate' });
 
         expect(res.statusCode).toBe(401);

@@ -284,36 +284,14 @@ const getMe = async (req, res) => {
                 id: req.user._id,
                 kullaniciAdi: req.user.kullaniciAdi,
                 email: req.user.email,
+                profilFoto: req.user.profilFoto ?? '',
                 tercihler: req.user.tercihler,
+                vucut: req.user.vucut,
                 createdAt: req.user.createdAt
             }
         });
     } catch (error) {
         res.status(500).json({ mesaj: 'Kullanıcı bilgileri alınamadı.' });
-    }
-};
-
-// ────────────────────────────────────────────────────────────────────────────
-// @route  PUT /api/auth/update-profile
-// @desc   Profil güncelle
-// @access Private
-// ────────────────────────────────────────────────────────────────────────────
-const updateProfile = async (req, res) => {
-    try {
-        const { kullaniciAdi, tercihler } = req.body;
-
-        const updatedUser = await User.findByIdAndUpdate(
-            req.user._id,
-            { kullaniciAdi, tercihler },
-            { new: true, runValidators: true }
-        ).select('-sifre');
-
-        res.status(200).json({
-            mesaj: 'Profil güncellendi. ✅',
-            kullanici: updatedUser
-        });
-    } catch (error) {
-        res.status(500).json({ mesaj: 'Profil güncellenemedi.' });
     }
 };
 
@@ -544,7 +522,6 @@ module.exports = {
     verifyEmail,
     loginUser,
     getMe,
-    updateProfile,
     changePassword,
     forgotPassword,
     resetPassword,
