@@ -1,14 +1,11 @@
-import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:smart_wardrobe_ai/core/constants/api_constants.dart';
 import 'package:smart_wardrobe_ai/core/constants/app_colors.dart';
+import 'package:smart_wardrobe_ai/data/services/api_service.dart';
 import 'package:smart_wardrobe_ai/presentation/screens/auth/login_screen.dart';
+import 'package:smart_wardrobe_ai/presentation/screens/main/home_screen.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/shared/app_background.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/shared/app_text_styles.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/wardrobe/app_filter_chip.dart';
@@ -22,25 +19,29 @@ class AddItemScreen extends StatefulWidget {
 
 class _AddItemScreenState extends State<AddItemScreen>
     with SingleTickerProviderStateMixin {
-  final _picker = ImagePicker();
-  final _nameCtrl = TextEditingController();
-  final _colorCtrl = TextEditingController();
+  final _picker     = ImagePicker();
+  final _nameCtrl   = TextEditingController();
+  final _colorCtrl  = TextEditingController();
 
-  File? _image;
-  String _step = 'pick'; // pick | analyzing | review | saving | done
+  Uint8List? _imageBytes;
+  String     _imageName = 'photo.jpg';
+
+  // ─── State machine ───────────────────────────────────────────────────────
+  // pick → analyzing → review → saving → done
+  String _step = 'pick';
+
+  // ─── Form değerleri ──────────────────────────────────────────────────────
   String _selectedCategory = '';
-  String _selectedSeason = '';
-
-  late final AnimationController _pulseCtrl;
-  late final Animation<double> _pulseAnim;
+  String _selectedSeason   = 'Tüm Mevsimler';
+  String _selectedStyle    = 'Günlük';
 
   static const _categories = [
     'Üst Giyim',
     'Alt Giyim',
     'Elbise & Etek',
+    'Dış Giyim',
     'Ayakkabı',
     'Aksesuar',
-    'Dış Giyim',
   ];
   static const _seasons = [
     'İlkbahar',
@@ -49,6 +50,18 @@ class _AddItemScreenState extends State<AddItemScreen>
     'Kış',
     'Tüm Mevsimler',
   ];
+  static const _styles = [
+    'Günlük',
+    'Klasik',
+    'Spor',
+    'Sokak',
+    'Minimal',
+    'Şık',
+    'Resmi',
+  ];
+
+  late final AnimationController _pulseCtrl;
+  late final Animation<double>   _pulseAnim;
 
   @override
   void initState() {
@@ -57,10 +70,9 @@ class _AddItemScreenState extends State<AddItemScreen>
       vsync: this,
       duration: const Duration(milliseconds: 1200),
     )..repeat(reverse: true);
-    _pulseAnim = Tween<double>(
-      begin: .6,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut));
+    _pulseAnim = Tween<double>(begin: .6, end: 1.0).animate(
+      CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut),
+    );
   }
 
   @override
@@ -71,49 +83,47 @@ class _AddItemScreenState extends State<AddItemScreen>
     super.dispose();
   }
 
+  // ─── 1. Fotoğraf seç ────────────────────────────────────────────────────
+
   Future<void> _pick(ImageSource source) async {
     final xf = await _picker.pickImage(source: source, imageQuality: 85);
     if (xf == null) return;
+
+    final bytes = await xf.readAsBytes();
     setState(() {
-      _image = File(xf.path);
-      _step = 'analyzing';
+      _imageBytes = bytes;
+      _imageName  = xf.name.isNotEmpty ? xf.name : 'photo.jpg';
+      _step       = 'analyzing';
     });
-    await _analyze();
+    await _getAiPreview(bytes, _imageName);
   }
 
-  Future<void> _analyze() async {
-    // Analiz API yoksa direkt review adımına geç,
-    // kullanıcı bilgileri manuel girebilir.
+  // ─── 2. AI Önizleme (kayıt YOK) ─────────────────────────────────────────
+
+  /// Görüntüyü yalnızca FastAPI motoruna gönderir.
+  /// Başarılı veya başarısız olsun, her zaman 'review' adımına geçer.
+  /// Başarısızlık durumunda form boş kalır ve kullanıcı manuel doldurur.
+  Future<void> _getAiPreview(Uint8List bytes, String filename) async {
     if (!mounted) return;
-    setState(() => _step = 'review');
-  }
+    try {
+      final result = await ApiService.instance.analyzeItemOnly(
+        imageBytes: bytes,
+        filename:   filename,
+      );
 
-  Future<void> _save() async {
-    if (_nameCtrl.text.trim().isEmpty) {
-      _snack('Kıyafet adı girin.', isError: true);
-      return;
-    }
-    if (_selectedCategory.isEmpty) {
-      _snack('Lütfen bir kategori seçin.', isError: true);
-      return;
-    }
-    if (_selectedSeason.isEmpty) {
-      _snack('Lütfen bir mevsim seçin.', isError: true);
-      return;
-    }
-    setState(() => _step = 'saving');
+      if (!mounted) return;
 
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token') ?? '';
-
-    // Token yoksa oturum sona ermiş — login'e yönlendir
-    if (token.isEmpty) {
-      if (mounted) {
-        setState(() => _step = 'review');
-        _snack(
-          'Oturumunuz sona erdi, lütfen tekrar giriş yapın.',
-          isError: true,
-        );
+      // AI tahminlerini forma aktar
+      setState(() {
+        if (result.kategori.isNotEmpty) _selectedCategory = result.kategori;
+        if (result.renk.isNotEmpty)     _colorCtrl.text   = result.renk;
+        _step = 'review';
+      });
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      if (e.statusCode == 401) {
+        setState(() => _step = 'pick');
+        _snack('Oturumunuz sona erdi, lütfen tekrar giriş yapın.');
         await Future.delayed(const Duration(seconds: 2));
         if (mounted) {
           Navigator.pushAndRemoveUntil(
@@ -122,70 +132,79 @@ class _AddItemScreenState extends State<AddItemScreen>
             (_) => false,
           );
         }
+      } else {
+        // AI hata verdi ama kullanıcı yine de manuel doldurup kaydedebilir
+        setState(() => _step = 'review');
+        _snack('AI analizi tamamlanamadı. Bilgileri manuel girebilirsiniz.', isError: false);
       }
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _step = 'review');
+      _snack('Sunucuya bağlanılamadı. Bilgileri manuel girebilirsiniz.', isError: false);
+    }
+  }
+
+  // ─── 3. Kullanıcı onayı sonrası kaydet ──────────────────────────────────
+
+  Future<void> _save() async {
+    if (_imageBytes == null) {
+      _snack('Lütfen önce bir fotoğraf seçin.');
+      return;
+    }
+    if (_selectedCategory.isEmpty) {
+      _snack('Lütfen bir kategori seçin.');
       return;
     }
 
+    setState(() => _step = 'saving');
+
     try {
-      // http.Client ile gönder — Authorization header güvenilir şekilde iletilir
-      final uri = Uri.parse('${ApiConstants.baseUrl}/items/add');
-      final req = http.MultipartRequest('POST', uri);
+      // Kullanıcının onayladığı kategori ve rengi body'de gönder.
+      // Backend bu değerleri AI tahminlerine göre önceliklendirir.
+      await ApiService.instance.uploadItem(
+        imageBytes: _imageBytes!,
+        filename:   _imageName,
+        kategori:   _selectedCategory,
+        renk:       _colorCtrl.text.trim(),
+        mevsim:     _selectedSeason,
+        stil:       _selectedStyle,
+      );
 
-      req.headers['Authorization'] = 'Bearer ${token.trim()}';
-      req.headers['Accept'] = 'application/json';
-
-      req.fields['ad'] = _nameCtrl.text.trim();
-      req.fields['kategori'] = _selectedCategory;
-      req.fields['renk'] = _colorCtrl.text.trim();
-      req.fields['mevsim'] = _selectedSeason;
-
-      if (_image != null) {
-        req.files.add(await http.MultipartFile.fromPath('resim', _image!.path));
-      }
-
-      final client = http.Client();
-      try {
-        final streamed = await client
-            .send(req)
-            .timeout(const Duration(seconds: 30));
-        final res = await http.Response.fromStream(streamed);
-
-        if (!mounted) return;
-
-        if (res.statusCode == 201) {
-          setState(() => _step = 'done');
-        } else {
-          Map<String, dynamic> body = {};
-          try {
-            body = jsonDecode(res.body) as Map<String, dynamic>;
-          } catch (_) {}
-          final mesaj = body['mesaj'] ?? 'Kaydedilemedi (${res.statusCode})';
-          setState(() => _step = 'review');
-          _snack(mesaj, isError: true);
+      if (!mounted) return;
+      setState(() => _step = 'done');
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      if (e.statusCode == 401) {
+        setState(() => _step = 'pick');
+        _snack('Oturumunuz sona erdi, lütfen tekrar giriş yapın.');
+        await Future.delayed(const Duration(seconds: 2));
+        if (mounted) {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (_) => const LoginScreen()),
+            (_) => false,
+          );
         }
-      } finally {
-        client.close();
-      }
-    } on TimeoutException catch (_) {
-      if (mounted) {
+      } else {
         setState(() => _step = 'review');
-        _snack('Sunucu yanıt vermedi, tekrar dene.', isError: true);
+        _snack(e.message);
       }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _step = 'review');
-        _snack('Sunucuya bağlanılamadı.', isError: true);
-      }
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _step = 'review');
+      _snack('Sunucuya bağlanılamadı. Lütfen tekrar deneyin.');
     }
   }
 
   void _reset() => setState(() {
-    _step = 'pick';
-    _image = null;
+    _step             = 'pick';
+    _imageBytes       = null;
+    _imageName        = 'photo.jpg';
+    _selectedCategory = '';
+    _selectedSeason   = 'Tüm Mevsimler';
+    _selectedStyle    = 'Günlük';
     _nameCtrl.clear();
     _colorCtrl.clear();
-    _selectedCategory = '';
-    _selectedSeason = '';
   });
 
   void _snack(String msg, {bool isError = true}) {
@@ -198,6 +217,8 @@ class _AddItemScreenState extends State<AddItemScreen>
       ),
     );
   }
+
+  // ─── Build ───────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
@@ -222,40 +243,47 @@ class _AddItemScreenState extends State<AddItemScreen>
     switch (_step) {
       case 'pick':
         return _PickStep(
-          key: const ValueKey('pick'),
-          onBack: () => Navigator.pop(context),
-          onCamera: () => _pick(ImageSource.camera),
+          key:       const ValueKey('pick'),
+          onBack:    () => Navigator.pop(context),
+          onCamera:  () => _pick(ImageSource.camera),
           onGallery: () => _pick(ImageSource.gallery),
         );
       case 'analyzing':
         return _AnalyzingStep(
-          key: const ValueKey('analyzing'),
-          image: _image,
-          pulseAnim: _pulseAnim,
+          key:        const ValueKey('analyzing'),
+          imageBytes: _imageBytes,
+          pulseAnim:  _pulseAnim,
         );
       case 'review':
         return _ReviewStep(
-          key: const ValueKey('review'),
-          image: _image,
-          nameCtrl: _nameCtrl,
-          colorCtrl: _colorCtrl,
+          key:              const ValueKey('review'),
+          imageBytes:       _imageBytes,
+          nameCtrl:         _nameCtrl,
+          colorCtrl:        _colorCtrl,
           selectedCategory: _selectedCategory,
-          selectedSeason: _selectedSeason,
-          categories: _categories,
-          seasons: _seasons,
+          selectedSeason:   _selectedSeason,
+          selectedStyle:    _selectedStyle,
+          categories:       _categories,
+          seasons:          _seasons,
+          styles:           _styles,
           onCategoryChange: (v) => setState(() => _selectedCategory = v),
-          onSeasonChange: (v) => setState(() => _selectedSeason = v),
-          onBack: _reset,
-          onSave: _save,
+          onSeasonChange:   (v) => setState(() => _selectedSeason   = v),
+          onStyleChange:    (v) => setState(() => _selectedStyle    = v),
+          onBack:           _reset,
+          onSave:           _save,
         );
       case 'saving':
         return const _SavingStep(key: ValueKey('saving'));
       case 'done':
         return _DoneStep(
-          key: const ValueKey('done'),
-          name: _nameCtrl.text,
+          key:          const ValueKey('done'),
+          name: _nameCtrl.text.trim().isNotEmpty ? _nameCtrl.text.trim() : 'Kıyafet',
           onAddAnother: _reset,
-          onGoWardrobe: () => Navigator.pop(context),
+          onGoWardrobe: () => Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (_) => const HomeScreen()),
+            (_) => false,
+          ),
         );
       default:
         return const SizedBox.shrink();
@@ -263,7 +291,10 @@ class _AddItemScreenState extends State<AddItemScreen>
   }
 }
 
-// ADIM 1 — Seç
+// ─────────────────────────────────────────────────────────────────────────────
+// ADIM 1 — Fotoğraf Seç
+// ─────────────────────────────────────────────────────────────────────────────
+
 class _PickStep extends StatelessWidget {
   final VoidCallback onBack, onCamera, onGallery;
   const _PickStep({
@@ -296,16 +327,10 @@ class _PickStep extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           const Text(
-            'AI fotoğrafı analiz edip dolabına otomatik ekleyecek ✨',
-            style: TextStyle(
-              color: AppColors.textSub,
-              fontSize: 14,
-              height: 1.5,
-            ),
+            'AI fotoğrafı analiz eder, sen onaylarsın — ardından dolabına eklenir ✨',
+            style: TextStyle(color: AppColors.textSub, fontSize: 14, height: 1.5),
           ),
           const SizedBox(height: 40),
-
-          // — büyük galeri alanı
           GestureDetector(
             onTap: onGallery,
             child: Container(
@@ -320,44 +345,27 @@ class _PickStep extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
-                    width: 60,
-                    height: 60,
+                    width: 60, height: 60,
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          AppColors.gold.withValues(alpha: .2),
-                          AppColors.goldLight.withValues(alpha: .08),
-                        ],
-                      ),
+                      gradient: LinearGradient(colors: [
+                        AppColors.gold.withValues(alpha: .2),
+                        AppColors.goldLight.withValues(alpha: .08),
+                      ]),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
-                      Icons.cloud_upload_outlined,
-                      color: AppColors.gold,
-                      size: 28,
-                    ),
+                    child: const Icon(Icons.cloud_upload_outlined, color: AppColors.gold, size: 28),
                   ),
                   const SizedBox(height: 12),
-                  const Text(
-                    'Galeriden seç',
-                    style: TextStyle(
-                      color: AppColors.text,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
+                  const Text('Galeriden seç',
+                      style: TextStyle(color: AppColors.text, fontSize: 15, fontWeight: FontWeight.w500)),
                   const SizedBox(height: 4),
-                  const Text(
-                    'JPG, PNG desteklenir',
-                    style: TextStyle(color: AppColors.muted, fontSize: 12),
-                  ),
+                  const Text('JPG, PNG desteklenir',
+                      style: TextStyle(color: AppColors.muted, fontSize: 12)),
                 ],
               ),
             ),
           ),
-
           const SizedBox(height: 12),
-
           GestureDetector(
             onTap: onCamera,
             child: Container(
@@ -370,28 +378,15 @@ class _PickStep extends StatelessWidget {
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.camera_alt_rounded,
-                    color: AppColors.gold,
-                    size: 21,
-                  ),
+                  Icon(Icons.camera_alt_rounded, color: AppColors.gold, size: 21),
                   SizedBox(width: 9),
-                  Text(
-                    'Kamerayı Aç',
-                    style: TextStyle(
-                      color: AppColors.text,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
+                  Text('Kamerayı Aç',
+                      style: TextStyle(color: AppColors.text, fontSize: 15, fontWeight: FontWeight.w500)),
                 ],
               ),
             ),
           ),
-
           const Spacer(),
-
-          // — AI not
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
@@ -401,20 +396,12 @@ class _PickStep extends StatelessWidget {
             ),
             child: const Row(
               children: [
-                Icon(
-                  Icons.auto_awesome_rounded,
-                  color: AppColors.goldLight,
-                  size: 17,
-                ),
+                Icon(Icons.auto_awesome_rounded, color: AppColors.goldLight, size: 17),
                 SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'GPT-4o Vision fotoğrafınızdaki kıyafeti saniyeler içinde analiz eder.',
-                    style: TextStyle(
-                      color: AppColors.textSub,
-                      fontSize: 12,
-                      height: 1.4,
-                    ),
+                    'CNN modeli kategori ve rengi tahmin eder. Sen onayladıktan sonra dolaba kaydedilir.',
+                    style: TextStyle(color: AppColors.textSub, fontSize: 12, height: 1.4),
                   ),
                 ),
               ],
@@ -427,11 +414,14 @@ class _PickStep extends StatelessWidget {
   }
 }
 
-// ADIM 2 — Analiz
+// ─────────────────────────────────────────────────────────────────────────────
+// ADIM 2 — AI Analiz Ediliyor
+// ─────────────────────────────────────────────────────────────────────────────
+
 class _AnalyzingStep extends StatelessWidget {
-  final File? image;
+  final Uint8List? imageBytes;
   final Animation<double> pulseAnim;
-  const _AnalyzingStep({super.key, this.image, required this.pulseAnim});
+  const _AnalyzingStep({super.key, this.imageBytes, required this.pulseAnim});
 
   @override
   Widget build(BuildContext context) {
@@ -449,14 +439,10 @@ class _AnalyzingStep extends StatelessWidget {
                   builder: (_, __) => Transform.scale(
                     scale: pulseAnim.value,
                     child: Container(
-                      width: 200,
-                      height: 200,
+                      width: 200, height: 200,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        border: Border.all(
-                          color: AppColors.gold.withValues(alpha: .3),
-                          width: 2,
-                        ),
+                        border: Border.all(color: AppColors.gold.withValues(alpha: .3), width: 2),
                       ),
                     ),
                   ),
@@ -466,69 +452,48 @@ class _AnalyzingStep extends StatelessWidget {
                   builder: (_, __) => Transform.scale(
                     scale: 1.4 - pulseAnim.value * .4,
                     child: Container(
-                      width: 160,
-                      height: 160,
+                      width: 160, height: 160,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        border: Border.all(
-                          color: AppColors.gold.withValues(alpha: .2),
-                          width: 1.5,
-                        ),
+                        border: Border.all(color: AppColors.gold.withValues(alpha: .2), width: 1.5),
                       ),
                     ),
                   ),
                 ),
                 ClipOval(
                   child: SizedBox(
-                    width: 130,
-                    height: 130,
-                    child: image != null
-                        ? Image.file(image!, fit: BoxFit.cover)
+                    width: 130, height: 130,
+                    child: imageBytes != null
+                        ? Image.memory(imageBytes!, fit: BoxFit.cover)
                         : Container(color: AppColors.surface),
                   ),
                 ),
                 Positioned(
-                  bottom: 20,
-                  right: 20,
+                  bottom: 20, right: 20,
                   child: Container(
-                    width: 34,
-                    height: 34,
+                    width: 34, height: 34,
                     decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [AppColors.gold, AppColors.goldLight],
-                      ),
+                      gradient: LinearGradient(colors: [AppColors.gold, AppColors.goldLight]),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
-                      Icons.auto_awesome_rounded,
-                      color: Colors.black,
-                      size: 17,
-                    ),
+                    child: const Icon(Icons.auto_awesome_rounded, color: Colors.black, size: 17),
                   ),
                 ),
               ],
             ),
-
             const SizedBox(height: 40),
-
             const Text(
               'Analiz ediliyor...',
               style: TextStyle(
-                fontFamily: 'Cormorant',
-                fontSize: 28,
-                fontWeight: FontWeight.w700,
-                color: AppColors.text,
+                fontFamily: 'Cormorant', fontSize: 28,
+                fontWeight: FontWeight.w700, color: AppColors.text,
               ),
             ),
             const SizedBox(height: 10),
             const Text(
-              'GPT-4o kıyafetin rengini, kategorisini\nve mevsimini belirliyor',
+              'CNN modeli kategori ve rengi tahmin ediyor.\nSonucu görecek ve onaylayacaksın ✨',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                color: AppColors.textSub,
-                fontSize: 14,
-                height: 1.5,
-              ),
+              style: TextStyle(color: AppColors.textSub, fontSize: 14, height: 1.5),
             ),
             const SizedBox(height: 36),
             SizedBox(
@@ -546,26 +511,32 @@ class _AnalyzingStep extends StatelessWidget {
   }
 }
 
-// ADIM 3 — İnceleme
+// ─────────────────────────────────────────────────────────────────────────────
+// ADIM 3 — AI Sonucunu Onayla / Düzelt
+// ─────────────────────────────────────────────────────────────────────────────
+
 class _ReviewStep extends StatelessWidget {
-  final File? image;
+  final Uint8List? imageBytes;
   final TextEditingController nameCtrl, colorCtrl;
-  final String selectedCategory, selectedSeason;
-  final List<String> categories, seasons;
-  final ValueChanged<String> onCategoryChange, onSeasonChange;
+  final String selectedCategory, selectedSeason, selectedStyle;
+  final List<String> categories, seasons, styles;
+  final ValueChanged<String> onCategoryChange, onSeasonChange, onStyleChange;
   final VoidCallback onBack, onSave;
 
   const _ReviewStep({
     super.key,
-    required this.image,
+    required this.imageBytes,
     required this.nameCtrl,
     required this.colorCtrl,
     required this.selectedCategory,
     required this.selectedSeason,
+    required this.selectedStyle,
     required this.categories,
     required this.seasons,
+    required this.styles,
     required this.onCategoryChange,
     required this.onSeasonChange,
+    required this.onStyleChange,
     required this.onBack,
     required this.onSave,
   });
@@ -582,52 +553,64 @@ class _ReviewStep extends StatelessWidget {
             children: [
               _BackBtn(onTap: onBack),
               const Spacer(),
+              // AI Önizleme rozeti
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 5,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
                   color: AppColors.gold.withValues(alpha: .12),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: AppColors.gold.withValues(alpha: .3),
-                  ),
+                  border: Border.all(color: AppColors.gold.withValues(alpha: .3)),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(
-                      Icons.auto_awesome_rounded,
-                      color: AppColors.goldLight,
-                      size: 12,
-                    ),
+                    const Icon(Icons.auto_awesome_rounded, color: AppColors.goldLight, size: 12),
                     const SizedBox(width: 5),
                     Text(
-                      'AI Tamamladı',
-                      style: AppTextStyles.label.copyWith(
-                        color: AppColors.goldLight,
-                        fontSize: 10,
-                      ),
+                      'AI Önerisi — Düzenle & Onayla',
+                      style: AppTextStyles.label.copyWith(color: AppColors.goldLight, fontSize: 10),
                     ),
                   ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 22),
+          const SizedBox(height: 16),
 
-          // — görsel + ad/renk
+          // ── Uyarı notu
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.gold.withValues(alpha: .07),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.gold.withValues(alpha: .2)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.info_outline_rounded, color: AppColors.gold, size: 16),
+                const SizedBox(width: 10),
+                const Expanded(
+                  child: Text(
+                    'AI tahmini yanlışsa aşağıdan düzelt. '
+                    '"Dolaba Ekle" butonuna bastığında seçtiğin bilgiler kaydedilir.',
+                    style: TextStyle(color: AppColors.textSub, fontSize: 12, height: 1.4),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 18),
+
+          // ── Görsel + Ad / Renk
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(14),
                 child: SizedBox(
-                  width: 115,
-                  height: 145,
-                  child: image != null
-                      ? Image.file(image!, fit: BoxFit.cover)
+                  width: 115, height: 145,
+                  child: imageBytes != null
+                      ? Image.memory(imageBytes!, fit: BoxFit.cover)
                       : Container(color: AppColors.surface),
                 ),
               ),
@@ -636,13 +619,13 @@ class _ReviewStep extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('AD', style: AppTextStyles.label),
+                    Text('AD (opsiyonel)', style: AppTextStyles.label),
                     const SizedBox(height: 6),
                     _DarkField(controller: nameCtrl, hint: 'Kıyafet adı'),
                     const SizedBox(height: 12),
                     Text('RENK', style: AppTextStyles.label),
-                    const SizedBox(height: 6),
-                    _DarkField(controller: colorCtrl, hint: 'Örn: Siyah'),
+                    const SizedBox(height: 10),
+                    _ColorCircleSwatch(hexValue: colorCtrl),
                   ],
                 ),
               ),
@@ -651,48 +634,51 @@ class _ReviewStep extends StatelessWidget {
 
           const SizedBox(height: 22),
 
+          // ── KATEGORİ (AI'ın yanlış tahmin ettiği yer burası — dropdown)
+          Text('KATEGORİ', style: AppTextStyles.label.copyWith(letterSpacing: 1.2)),
+          const SizedBox(height: 4),
           Text(
-            'KATEGORİ',
-            style: AppTextStyles.label.copyWith(letterSpacing: 1.2),
+            'AI tahmini yanlışsa doğrusunu seç.',
+            style: AppTextStyles.caption.copyWith(color: AppColors.muted),
           ),
           const SizedBox(height: 10),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: categories
-                .map(
-                  (c) => AppFilterChip(
-                    label: c,
-                    selected: selectedCategory == c,
-                    onTap: () => onCategoryChange(c),
-                  ),
-                )
-                .toList(),
+          _CategoryDropdown(
+            selected:  selectedCategory,
+            options:   categories,
+            onChanged: onCategoryChange,
           ),
 
           const SizedBox(height: 18),
 
-          Text(
-            'MEVSİM',
-            style: AppTextStyles.label.copyWith(letterSpacing: 1.2),
-          ),
+          // ── MEVSİM
+          Text('MEVSİM', style: AppTextStyles.label.copyWith(letterSpacing: 1.2)),
           const SizedBox(height: 10),
           Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: seasons
-                .map(
-                  (s) => AppFilterChip(
-                    label: s,
-                    selected: selectedSeason == s,
-                    onTap: () => onSeasonChange(s),
-                  ),
-                )
-                .toList(),
+            spacing: 8, runSpacing: 8,
+            children: seasons.map((s) => AppFilterChip(
+              label:    s,
+              selected: selectedSeason == s,
+              onTap:    () => onSeasonChange(s),
+            )).toList(),
+          ),
+
+          const SizedBox(height: 18),
+
+          // ── STİL
+          Text('STİL', style: AppTextStyles.label.copyWith(letterSpacing: 1.2)),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8, runSpacing: 8,
+            children: styles.map((s) => AppFilterChip(
+              label:    s,
+              selected: selectedStyle == s,
+              onTap:    () => onStyleChange(s),
+            )).toList(),
           ),
 
           const SizedBox(height: 30),
 
+          // ── Kaydet butonu
           GestureDetector(
             onTap: onSave,
             child: Container(
@@ -707,8 +693,7 @@ class _ReviewStep extends StatelessWidget {
                 boxShadow: [
                   BoxShadow(
                     color: AppColors.gold.withValues(alpha: .35),
-                    blurRadius: 18,
-                    offset: const Offset(0, 6),
+                    blurRadius: 18, offset: const Offset(0, 6),
                   ),
                 ],
               ),
@@ -716,10 +701,8 @@ class _ReviewStep extends StatelessWidget {
                 child: Text(
                   'Dolaba Ekle',
                   style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: .6,
+                    color: Colors.black, fontSize: 16,
+                    fontWeight: FontWeight.w700, letterSpacing: .6,
                   ),
                 ),
               ),
@@ -732,7 +715,10 @@ class _ReviewStep extends StatelessWidget {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
 // ADIM 4 — Kaydediliyor
+// ─────────────────────────────────────────────────────────────────────────────
+
 class _SavingStep extends StatelessWidget {
   const _SavingStep({super.key});
   @override
@@ -742,16 +728,16 @@ class _SavingStep extends StatelessWidget {
       children: [
         CircularProgressIndicator(color: AppColors.gold, strokeWidth: 2),
         SizedBox(height: 18),
-        Text(
-          'Dolaba ekleniyor...',
-          style: TextStyle(color: AppColors.textSub, fontSize: 15),
-        ),
+        Text('Dolaba ekleniyor...', style: TextStyle(color: AppColors.textSub, fontSize: 15)),
       ],
     ),
   );
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
 // ADIM 5 — Tamamlandı
+// ─────────────────────────────────────────────────────────────────────────────
+
 class _DoneStep extends StatelessWidget {
   final String name;
   final VoidCallback onAddAnother, onGoWardrobe;
@@ -776,77 +762,56 @@ class _DoneStep extends StatelessWidget {
               curve: Curves.elasticOut,
               builder: (_, v, child) => Transform.scale(scale: v, child: child),
               child: Container(
-                width: 88,
-                height: 88,
+                width: 88, height: 88,
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     colors: [AppColors.gold, AppColors.goldLight],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+                    begin: Alignment.topLeft, end: Alignment.bottomRight,
                   ),
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
                       color: AppColors.gold.withValues(alpha: .4),
-                      blurRadius: 28,
-                      offset: const Offset(0, 8),
+                      blurRadius: 28, offset: const Offset(0, 8),
                     ),
                   ],
                 ),
-                child: const Icon(
-                  Icons.check_rounded,
-                  color: Colors.black,
-                  size: 42,
-                ),
+                child: const Icon(Icons.check_rounded, color: Colors.black, size: 42),
               ),
             ),
             const SizedBox(height: 26),
             const Text(
               'Eklendi!',
               style: TextStyle(
-                fontFamily: 'Cormorant',
-                fontSize: 40,
-                fontWeight: FontWeight.w700,
-                color: AppColors.text,
+                fontFamily: 'Cormorant', fontSize: 40,
+                fontWeight: FontWeight.w700, color: AppColors.text,
               ),
             ),
             const SizedBox(height: 8),
             Text(
               '"$name" dolabına başarıyla eklendi.',
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: AppColors.textSub,
-                fontSize: 15,
-                height: 1.4,
-              ),
+              style: const TextStyle(color: AppColors.textSub, fontSize: 15, height: 1.4),
             ),
             const SizedBox(height: 36),
             GestureDetector(
               onTap: onGoWardrobe,
               child: Container(
-                height: 54,
-                width: double.infinity,
+                height: 54, width: double.infinity,
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [AppColors.gold, AppColors.goldLight],
-                  ),
+                  gradient: const LinearGradient(colors: [AppColors.gold, AppColors.goldLight]),
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
                       color: AppColors.gold.withValues(alpha: .35),
-                      blurRadius: 18,
-                      offset: const Offset(0, 5),
+                      blurRadius: 18, offset: const Offset(0, 5),
                     ),
                   ],
                 ),
                 child: const Center(
                   child: Text(
                     'Dolabıma Git',
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                    ),
+                    style: TextStyle(color: Colors.black, fontSize: 15, fontWeight: FontWeight.w700),
                   ),
                 ),
               ),
@@ -855,8 +820,7 @@ class _DoneStep extends StatelessWidget {
             GestureDetector(
               onTap: onAddAnother,
               child: Container(
-                height: 50,
-                width: double.infinity,
+                height: 50, width: double.infinity,
                 decoration: BoxDecoration(
                   color: AppColors.surface,
                   borderRadius: BorderRadius.circular(14),
@@ -865,11 +829,7 @@ class _DoneStep extends StatelessWidget {
                 child: const Center(
                   child: Text(
                     'Bir Tane Daha Ekle',
-                    style: TextStyle(
-                      color: AppColors.textSub,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
+                    style: TextStyle(color: AppColors.textSub, fontSize: 14, fontWeight: FontWeight.w500),
                   ),
                 ),
               ),
@@ -881,7 +841,142 @@ class _DoneStep extends StatelessWidget {
   }
 }
 
-// Yardımcılar
+// ─────────────────────────────────────────────────────────────────────────────
+// Kategori Dropdown — Chips yerine dropdown (7 seçenek için daha temiz UX)
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _CategoryDropdown extends StatelessWidget {
+  final String selected;
+  final List<String> options;
+  final ValueChanged<String> onChanged;
+
+  const _CategoryDropdown({
+    required this.selected,
+    required this.options,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: selected.isEmpty ? AppColors.error.withValues(alpha: .5) : AppColors.gold,
+          width: 1.5,
+        ),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value:     selected.isEmpty ? null : selected,
+          isExpanded: true,
+          dropdownColor: AppColors.card,
+          iconEnabledColor:  AppColors.gold,
+          iconDisabledColor: AppColors.muted,
+          hint: const Text(
+            'Kategori seç...',
+            style: TextStyle(color: AppColors.muted, fontSize: 14),
+          ),
+          style: const TextStyle(color: AppColors.text, fontSize: 14),
+          items: options.map((o) => DropdownMenuItem(
+            value: o,
+            child: Row(
+              children: [
+                Icon(
+                  _categoryIcon(o),
+                  color: selected == o ? AppColors.gold : AppColors.textSub,
+                  size: 18,
+                ),
+                const SizedBox(width: 10),
+                Text(o),
+              ],
+            ),
+          )).toList(),
+          onChanged: (v) { if (v != null) onChanged(v); },
+        ),
+      ),
+    );
+  }
+
+  IconData _categoryIcon(String cat) {
+    switch (cat) {
+      case 'Üst Giyim':    return Icons.dry_cleaning_outlined;
+      case 'Alt Giyim':    return Icons.checkroom_outlined;
+      case 'Elbise & Etek': return Icons.woman_outlined;
+      case 'Ayakkabı':     return Icons.run_circle_outlined;
+      case 'Aksesuar':     return Icons.watch_outlined;
+      case 'Dış Giyim':    return Icons.layers_outlined;
+      default:             return Icons.category_outlined;
+    }
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Renk dairesel swatch (HEX kodunu parse eder, geçersizse göstermez)
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _ColorCircleSwatch extends StatefulWidget {
+  final TextEditingController hexValue;
+  const _ColorCircleSwatch({required this.hexValue});
+
+  @override
+  State<_ColorCircleSwatch> createState() => _ColorCircleSwatchState();
+}
+
+class _ColorCircleSwatchState extends State<_ColorCircleSwatch> {
+  @override
+  void initState() {
+    super.initState();
+    widget.hexValue.addListener(_rebuild);
+  }
+
+  @override
+  void dispose() {
+    widget.hexValue.removeListener(_rebuild);
+    super.dispose();
+  }
+
+  void _rebuild() => setState(() {});
+
+  Color? _parse(String raw) {
+    final s = raw.trim().replaceAll('#', '');
+    if (s.length != 6) return null;
+    final val = int.tryParse(s, radix: 16);
+    if (val == null) return null;
+    return Color(0xFF000000 | val);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final color = _parse(widget.hexValue.text);
+    if (color == null) return const SizedBox.shrink();
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      width: 48,
+      height: 48,
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.white24, width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: .5),
+            blurRadius: 14,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Yardımcı widget'lar
+// ─────────────────────────────────────────────────────────────────────────────
+
 class _DarkField extends StatelessWidget {
   final TextEditingController controller;
   final String hint;
@@ -918,8 +1013,7 @@ class _BackBtn extends StatelessWidget {
   Widget build(BuildContext context) => GestureDetector(
     onTap: onTap,
     child: Container(
-      width: 44,
-      height: 44,
+      width: 44, height: 44,
       decoration: BoxDecoration(
         color: AppColors.surface,
         shape: BoxShape.circle,
@@ -927,8 +1021,7 @@ class _BackBtn extends StatelessWidget {
       ),
       child: const Icon(
         Icons.arrow_back_ios_new_rounded,
-        color: AppColors.text,
-        size: 16,
+        color: AppColors.text, size: 16,
       ),
     ),
   );

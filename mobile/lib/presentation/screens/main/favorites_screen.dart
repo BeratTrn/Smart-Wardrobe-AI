@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_wardrobe_ai/core/constants/api_constants.dart';
 import 'package:smart_wardrobe_ai/core/constants/app_colors.dart';
 import 'package:smart_wardrobe_ai/data/models/clothing_item.dart';
-import 'package:smart_wardrobe_ai/presentation/screens/ai_features/try_on_screen.dart';
+import 'package:smart_wardrobe_ai/presentation/screens/main/saved_outfits_screen.dart';
 import 'package:smart_wardrobe_ai/presentation/screens/item/add_item_screen.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/shared/app_background.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/shared/app_bottom_nav.dart';
@@ -96,7 +96,7 @@ class _FavoritesScreenState extends State<FavoritesScreen>
     switch (index) {
       case 0: Navigator.pushReplacement(context, slide(const HomeScreen())); break;
       case 2: Navigator.push(context, slideUp(const AddItemScreen())).then((_) => _fetch()); break;
-      case 3: Navigator.pushReplacement(context, slide(const TryOnScreen())); break;
+      case 3: Navigator.pushReplacement(context, slide(const SavedOutfitsScreen())); break;
       case 4: Navigator.pushReplacement(context, slide(const WardrobeScreen())); break;
     }
   }

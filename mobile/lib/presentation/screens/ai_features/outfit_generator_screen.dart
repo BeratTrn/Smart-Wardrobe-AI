@@ -7,11 +7,11 @@ import 'package:smart_wardrobe_ai/core/constants/api_constants.dart';
 import 'package:smart_wardrobe_ai/core/constants/app_colors.dart';
 import 'package:smart_wardrobe_ai/data/models/clothing_item.dart';
 import 'package:smart_wardrobe_ai/data/models/generated_outfit.dart';
+import 'package:smart_wardrobe_ai/data/services/api_service.dart';
+import 'package:smart_wardrobe_ai/presentation/screens/ai_features/try_on_screen.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/shared/app_background.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/shared/app_text_styles.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/wardrobe/app_filter_chip.dart';
-
-
 
 class OutfitGeneratorScreen extends StatefulWidget {
   const OutfitGeneratorScreen({super.key});
@@ -22,10 +22,10 @@ class OutfitGeneratorScreen extends StatefulWidget {
 
 class _OutfitGeneratorScreenState extends State<OutfitGeneratorScreen>
     with TickerProviderStateMixin {
-  // Filtre seçimleri
+  // ─── Filtre seçimleri ──────────────────────────────────────────────────────
   String _occasion = 'Günlük';
   String _weather = 'Ilık';
-  String _style = 'Casual';
+  String _style = 'Günlük';
 
   static const _occasions = [
     'Günlük',
@@ -36,12 +36,14 @@ class _OutfitGeneratorScreenState extends State<OutfitGeneratorScreen>
     'Seyahat',
   ];
   static const _weathers = ['Sıcak', 'Ilık', 'Serin', 'Soğuk'];
-  static const _styles = ['Casual', 'Minimal', 'Klasik', 'Sokak', 'Spor'];
+  static const _styles = ['Günlük', 'Klasik', 'Spor', 'Sokak', 'Minimal', 'Şık', 'Resmi'];
 
+  // ─── State ─────────────────────────────────────────────────────────────────
   bool _generating = false;
   bool _hasGenerated = false;
   List<GeneratedOutfit> _outfits = [];
 
+  // ─── Animasyonlar ──────────────────────────────────────────────────────────
   late final AnimationController _shimmerCtrl;
   late final AnimationController _resultCtrl;
   late final Animation<double> _shimmerAnim;
@@ -71,7 +73,8 @@ class _OutfitGeneratorScreenState extends State<OutfitGeneratorScreen>
     super.dispose();
   }
 
-  // API
+  // ─── API: Kombin Oluştur ───────────────────────────────────────────────────
+
   Future<void> _generate() async {
     setState(() {
       _generating = true;
@@ -80,48 +83,31 @@ class _OutfitGeneratorScreenState extends State<OutfitGeneratorScreen>
     });
     _resultCtrl.reset();
 
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token') ?? '';
-
     try {
-      final res = await http
-          .post(
-            Uri.parse('${ApiConstants.baseUrl}/kombinler/olustur'),
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer $token',
-            },
-            body: jsonEncode({
-              'durum': _occasion,
-              'hava': _weather,
-              'stil': _style,
-            }),
-          )
-          .timeout(const Duration(seconds: 30));
+      final outfit = await ApiService.instance.generateOutfit(
+        etkinlik: _occasion,
+        // sehir varsayılan olarak 'Istanbul'; gelecekte konum izni eklenebilir
+      );
 
       if (!mounted) return;
 
-      if (res.statusCode == 200) {
-        final data = jsonDecode(res.body);
-        final raw = data['kombinler'] ?? data['outfits'] ?? [data];
-        setState(() {
-          _outfits = (raw as List)
-              .map((e) => GeneratedOutfit.fromJson(e))
-              .toList();
-          _generating = false;
-        });
-        _resultCtrl.forward();
-      } else {
-        setState(() => _generating = false);
-        _snack('Kombin oluşturulamadı.');
-      }
+      setState(() {
+        _outfits = [outfit];
+        _generating = false;
+      });
+      _resultCtrl.forward();
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() => _generating = false);
+      _snack(e.message);
     } catch (_) {
-      if (mounted) {
-        setState(() => _generating = false);
-        _snack('Sunucuya bağlanılamadı.');
-      }
+      if (!mounted) return;
+      setState(() => _generating = false);
+      _snack('Sunucuya bağlanılamadı.');
     }
   }
+
+  // ─── API: Kombin Kaydet ────────────────────────────────────────────────────
 
   Future<void> _save(GeneratedOutfit outfit) async {
     final prefs = await SharedPreferences.getInstance();
@@ -145,6 +131,32 @@ class _OutfitGeneratorScreenState extends State<OutfitGeneratorScreen>
     }
   }
 
+  // ─── Navigasyon: Smart Lookbook ───────────────────────────────────────────
+
+  void _onTryOn(GeneratedOutfit outfit) {
+    Navigator.push(
+      context,
+      PageRouteBuilder(
+        // outfit geçiriliyor → Lookbook kıyafetleri + stilist notunu gösterir
+        pageBuilder: (_, animation, __) => TryOnScreen(outfit: outfit),
+        transitionsBuilder: (_, animation, __, child) {
+          // Aşağıdan yukarıya kayma geçişi
+          final tween = Tween<Offset>(
+            begin: const Offset(0, 1),
+            end: Offset.zero,
+          ).chain(CurveTween(curve: Curves.easeOutCubic));
+          return SlideTransition(
+            position: animation.drive(tween),
+            child: child,
+          );
+        },
+        transitionDuration: const Duration(milliseconds: 380),
+      ),
+    );
+  }
+
+  // ─── Snackbar ──────────────────────────────────────────────────────────────
+
   void _snack(String msg, {bool isError = true}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -156,7 +168,8 @@ class _OutfitGeneratorScreenState extends State<OutfitGeneratorScreen>
     );
   }
 
-  // build
+  // ─── Build ─────────────────────────────────────────────────────────────────
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -173,7 +186,7 @@ class _OutfitGeneratorScreenState extends State<OutfitGeneratorScreen>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Filtreler
+                      // ── Filtreler
                       _FilterSection(
                         title: 'DURUM',
                         options: _occasions,
@@ -196,14 +209,14 @@ class _OutfitGeneratorScreenState extends State<OutfitGeneratorScreen>
                       ),
                       const SizedBox(height: 26),
 
-                      // Generate butonu
+                      // ── Generate butonu
                       _GenerateButton(
                         loading: _generating,
                         onTap: _generating ? null : _generate,
                       ),
                       const SizedBox(height: 26),
 
-                      // Sonuçlar
+                      // ── Sonuçlar
                       if (_generating)
                         _ShimmerResults(anim: _shimmerAnim)
                       else if (_outfits.isNotEmpty)
@@ -211,6 +224,7 @@ class _OutfitGeneratorScreenState extends State<OutfitGeneratorScreen>
                           outfits: _outfits,
                           anim: _resultAnim,
                           onSave: _save,
+                          onTryOn: _onTryOn,
                         )
                       else if (!_hasGenerated)
                         const _InitialHint(),
@@ -226,7 +240,10 @@ class _OutfitGeneratorScreenState extends State<OutfitGeneratorScreen>
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
 // HEADER
+// ─────────────────────────────────────────────────────────────────────────────
+
 class _Header extends StatelessWidget {
   final VoidCallback onBack;
   const _Header({required this.onBack});
@@ -306,7 +323,7 @@ class _AiBadge extends StatelessWidget {
         ),
         const SizedBox(width: 5),
         Text(
-          'GPT-4o',
+          'AI Engine',
           style: AppTextStyles.label.copyWith(
             color: AppColors.goldLight,
             fontSize: 11,
@@ -317,7 +334,9 @@ class _AiBadge extends StatelessWidget {
   );
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
 // FILTER SECTION
+// ─────────────────────────────────────────────────────────────────────────────
 
 class _FilterSection extends StatelessWidget {
   final String title;
@@ -357,7 +376,9 @@ class _FilterSection extends StatelessWidget {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
 // GENERATE BUTTON
+// ─────────────────────────────────────────────────────────────────────────────
 
 class _GenerateButton extends StatelessWidget {
   final bool loading;
@@ -422,17 +443,21 @@ class _GenerateButton extends StatelessWidget {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
 // RESULT LIST
+// ─────────────────────────────────────────────────────────────────────────────
 
 class _ResultList extends StatelessWidget {
   final List<GeneratedOutfit> outfits;
   final Animation<double> anim;
   final ValueChanged<GeneratedOutfit> onSave;
+  final ValueChanged<GeneratedOutfit> onTryOn; // ← YENİ
 
   const _ResultList({
     required this.outfits,
     required this.anim,
     required this.onSave,
+    required this.onTryOn,
   });
 
   @override
@@ -445,7 +470,7 @@ class _ResultList extends StatelessWidget {
           Row(
             children: [
               const Text(
-                'Önerilen Kombinler',
+                'Önerilen Kombin',
                 style: TextStyle(
                   color: AppColors.text,
                   fontSize: 17,
@@ -460,7 +485,11 @@ class _ResultList extends StatelessWidget {
           ...outfits.map(
             (o) => Padding(
               padding: const EdgeInsets.only(bottom: 14),
-              child: _OutfitCard(outfit: o, onSave: () => onSave(o)),
+              child: _OutfitCard(
+                outfit: o,
+                onSave: () => onSave(o),
+                onTryOn: () => onTryOn(o), // ← YENİ
+              ),
             ),
           ),
         ],
@@ -469,13 +498,20 @@ class _ResultList extends StatelessWidget {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
 // OUTFIT CARD
+// ─────────────────────────────────────────────────────────────────────────────
 
 class _OutfitCard extends StatelessWidget {
   final GeneratedOutfit outfit;
   final VoidCallback onSave;
+  final VoidCallback onTryOn; // ← YENİ
 
-  const _OutfitCard({required this.outfit, required this.onSave});
+  const _OutfitCard({
+    required this.outfit,
+    required this.onSave,
+    required this.onTryOn,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -488,7 +524,7 @@ class _OutfitCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Görsel satırı
+          // ── Görsel satırı
           if (outfit.items.isNotEmpty)
             Padding(
               padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
@@ -507,9 +543,9 @@ class _OutfitCard extends StatelessWidget {
               ),
             ),
 
-          // Bilgi satırı
+          // ── Bilgi satırı
           Padding(
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 4),
             child: Row(
               children: [
                 Expanded(
@@ -528,7 +564,7 @@ class _OutfitCard extends StatelessWidget {
                         const SizedBox(height: 4),
                         Text(
                           outfit.description,
-                          maxLines: 2,
+                          maxLines: 3,
                           overflow: TextOverflow.ellipsis,
                           style: AppTextStyles.caption.copyWith(height: 1.4),
                         ),
@@ -537,6 +573,7 @@ class _OutfitCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 12),
+                // Kaydet butonu
                 GestureDetector(
                   onTap: onSave,
                   child: Container(
@@ -545,7 +582,8 @@ class _OutfitCard extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: AppColors.gold.withValues(alpha: .12),
                       shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.gold.withValues(alpha: .3)),
+                      border: Border.all(
+                          color: AppColors.gold.withValues(alpha: .3)),
                     ),
                     child: const Icon(
                       Icons.bookmark_border_rounded,
@@ -555,6 +593,78 @@ class _OutfitCard extends StatelessWidget {
                   ),
                 ),
               ],
+            ),
+          ),
+
+          // ── Stil ipucu (varsa)
+          if (outfit.ipucu.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 0, 14, 10),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(
+                    Icons.lightbulb_outline_rounded,
+                    color: AppColors.gold,
+                    size: 14,
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      outfit.ipucu,
+                      style: AppTextStyles.caption.copyWith(
+                        color: AppColors.gold,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+          // ── "Üzerinde Dene" butonu ─────────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
+            child: GestureDetector(
+              onTap: onTryOn,
+              child: Container(
+                height: 48,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [AppColors.gold, AppColors.goldLight],
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                  ),
+                  borderRadius: BorderRadius.circular(13),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.gold.withValues(alpha: .35),
+                      blurRadius: 14,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.person_search_rounded,
+                      color: Colors.black,
+                      size: 18,
+                    ),
+                    SizedBox(width: 8),
+                    Text(
+                      'Üzerinde Dene',
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: .3,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         ],
@@ -595,7 +705,9 @@ class _ThumbPlaceholder extends StatelessWidget {
   );
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
 // SHIMMER İSKELET
+// ─────────────────────────────────────────────────────────────────────────────
 
 class _ShimmerResults extends StatelessWidget {
   final Animation<double> anim;
@@ -633,7 +745,9 @@ class _ShimmerCard extends StatelessWidget {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
 // İLK AÇILIŞ İPUCU
+// ─────────────────────────────────────────────────────────────────────────────
 
 class _InitialHint extends StatelessWidget {
   const _InitialHint();

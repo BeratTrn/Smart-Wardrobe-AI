@@ -31,9 +31,9 @@ class AppBottomNav extends StatelessWidget {
       label: 'Ekle',
     ),
     _NavItem(
-      activeIcon: Icons.style_rounded,
-      icon: Icons.style_outlined,
-      label: 'Dene',
+      activeIcon: Icons.collections_bookmark_rounded,
+      icon: Icons.collections_bookmark_outlined,
+      label: 'Kombinlerim',
     ),
     _NavItem(
       activeIcon: Icons.checkroom_rounded,
@@ -130,8 +130,10 @@ class _TabLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Text(
     label,
+    maxLines: 1,
+    overflow: TextOverflow.ellipsis,
     style: TextStyle(
-      fontSize: 10,
+      fontSize: label.length > 7 ? 8.5 : 10,
       fontWeight: active ? FontWeight.w600 : FontWeight.w400,
       color: active ? AppColors.gold : AppColors.muted,
     ),

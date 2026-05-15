@@ -392,7 +392,10 @@ class _DetailGrid extends StatelessWidget {
     final tiles = <_DetailTile>[];
     if (item.color != null && item.color!.isNotEmpty) {
       tiles.add(_DetailTile(
-          icon: Icons.palette_outlined, label: 'Renk', value: item.color!));
+          icon: Icons.palette_outlined,
+          label: 'Renk',
+          value: item.color!,
+          swatchColor: _hexToColor(item.color!)));
     }
     if (item.season != null && item.season!.isNotEmpty) {
       tiles.add(_DetailTile(
@@ -422,8 +425,9 @@ class _DetailTile {
   final IconData icon;
   final String label;
   final String value;
+  final Color? swatchColor;
   const _DetailTile(
-      {required this.icon, required this.label, required this.value});
+      {required this.icon, required this.label, required this.value, this.swatchColor});
 }
 
 class _DetailCard extends StatelessWidget {
@@ -461,14 +465,32 @@ class _DetailCard extends StatelessWidget {
                           color: AppColors.muted,
                           fontSize: 10,
                           letterSpacing: .5)),
-                  const SizedBox(height: 2),
-                  Text(tile.value,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                          color: AppColors.text,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 4),
+                  if (tile.swatchColor != null)
+                    Container(
+                      width: 26,
+                      height: 26,
+                      decoration: BoxDecoration(
+                        color: tile.swatchColor,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.border, width: 1.5),
+                        boxShadow: [
+                          BoxShadow(
+                            color: tile.swatchColor!.withValues(alpha: .4),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                    )
+                  else
+                    Text(tile.value,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                            color: AppColors.text,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600)),
                 ],
               ),
             ),
@@ -514,7 +536,16 @@ class _NotlarCard extends StatelessWidget {
       );
 }
 
-// ── Renk Helper ──────────────────────────────────────────────────────────────
+// ── HEX → Flutter Color ───────────────────────────────────────────────────────
+Color? _hexToColor(String raw) {
+  final s = raw.trim().replaceAll('#', '');
+  if (s.length != 6) return null;
+  final val = int.tryParse(s, radix: 16);
+  if (val == null) return null;
+  return Color(0xFF000000 | val);
+}
+
+// ── Kategori rengi ────────────────────────────────────────────────────────────
 Color _catColor(String cat) {
   switch (cat.toLowerCase()) {
     case 'üstler':

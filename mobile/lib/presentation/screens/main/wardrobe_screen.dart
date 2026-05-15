@@ -8,7 +8,7 @@ import 'package:smart_wardrobe_ai/core/constants/app_colors.dart';
 import 'package:smart_wardrobe_ai/core/utils/nav_transitions.dart';
 import 'package:smart_wardrobe_ai/data/models/clothing_item.dart';
 import 'package:smart_wardrobe_ai/presentation/screens/ai_features/outfit_generator_screen.dart';
-import 'package:smart_wardrobe_ai/presentation/screens/ai_features/try_on_screen.dart';
+import 'package:smart_wardrobe_ai/presentation/screens/main/saved_outfits_screen.dart';
 import 'package:smart_wardrobe_ai/presentation/screens/item/add_item_screen.dart';
 import 'package:smart_wardrobe_ai/presentation/screens/item/item_detail_screen.dart';
 import 'package:smart_wardrobe_ai/presentation/screens/main/favorites_screen.dart';
@@ -35,12 +35,12 @@ class _WardrobeScreenState extends State<WardrobeScreen>
 
   static const _filters = [
     'Tümü',
-    'Üstler',
-    'Altlar',
-    'Elbiseler',
+    'Üst Giyim',
+    'Alt Giyim',
+    'Elbise & Etek',
+    'Dış Giyim',
     'Ayakkabı',
     'Aksesuar',
-    'Dış Giyim',
   ];
 
   late final AnimationController _fadeCtrl;
@@ -100,13 +100,7 @@ class _WardrobeScreenState extends State<WardrobeScreen>
       _activeFilter = filter;
       _filtered = filter == 'Tümü'
           ? List.from(_all)
-          : _all
-                .where(
-                  (item) => item.category.toLowerCase().contains(
-                    filter.toLowerCase(),
-                  ),
-                )
-                .toList();
+          : _all.where((item) => item.category == filter).toList();
     });
   }
 
@@ -154,7 +148,7 @@ class _WardrobeScreenState extends State<WardrobeScreen>
         ).then((_) => _fetch());
         break;
       case 3:
-        Navigator.pushReplacement(context, slide(const TryOnScreen()));
+        Navigator.pushReplacement(context, slide(const SavedOutfitsScreen()));
         break;
     }
   }
@@ -295,7 +289,8 @@ class _WardrobeScreenState extends State<WardrobeScreen>
                                   final newFav = await Navigator.push<bool?>(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (_) => ItemDetailScreen(item: item),
+                                      builder: (_) =>
+                                          ItemDetailScreen(item: item),
                                     ),
                                   );
                                   // Favori durumu değiştiyse listeyi yenile
@@ -324,22 +319,21 @@ class _WardrobeScreenState extends State<WardrobeScreen>
 }
 
 Color _catColor(String cat) {
-  switch (cat.toLowerCase()) {
-    case 'üstler':
-    case 'üst':
+  switch (cat) {
+    case 'Üst Giyim':
       return AppColors.catTops;
-    case 'altlar':
-    case 'alt':
+    case 'Alt Giyim':
       return AppColors.catBottoms;
-    case 'ayakkabı':
+    case 'Ayakkabı':
       return AppColors.catShoes;
-    case 'aksesuar':
+    case 'Aksesuar':
       return AppColors.catAccessory;
-    case 'elbiseler':
-    case 'elbise':
+    case 'Elbise & Etek':
       return AppColors.catOnePiece;
-    case 'dış giyim':
+    case 'Dış Giyim':
       return AppColors.catOuterwear;
+    case 'Spor Giyim':
+      return AppColors.catTops;
     default:
       return AppColors.gold;
   }

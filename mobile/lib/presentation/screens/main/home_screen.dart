@@ -6,7 +6,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:smart_wardrobe_ai/core/constants/api_constants.dart';
 import 'package:smart_wardrobe_ai/core/constants/app_colors.dart';
 import 'package:smart_wardrobe_ai/data/models/clothing_item.dart';
-import 'package:smart_wardrobe_ai/presentation/screens/ai_features/try_on_screen.dart';
+import 'package:smart_wardrobe_ai/presentation/screens/main/saved_outfits_screen.dart';
 import 'package:smart_wardrobe_ai/presentation/screens/item/add_item_screen.dart';
 import 'package:smart_wardrobe_ai/presentation/screens/main/favorites_screen.dart';
 import 'package:smart_wardrobe_ai/presentation/screens/main/wardrobe_screen.dart';
@@ -215,7 +215,7 @@ class _HomeScreenState extends State<HomeScreen>
         ).then((_) => _loadData());
         break;
       case 3:
-        Navigator.pushReplacement(context, slide(const TryOnScreen()));
+        Navigator.pushReplacement(context, slide(const SavedOutfitsScreen()));
         break;
       case 4:
         Navigator.pushReplacement(context, slide(const WardrobeScreen()));
