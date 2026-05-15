@@ -113,7 +113,7 @@ describe('PUT /api/outfits/:id/feedback', () => {
             kategori: 'Üst Giyim',
             renk: 'Siyah',
             mevsim: 'Yaz',
-            stil: 'Casual'
+            stil: 'Günlük'
         });
 
         const outfit = await Outfit.create({

@@ -84,7 +84,7 @@ describe('Kısmi Entegrasyon Testi (Uçtan Uca İş Akışı)', () => {
             .field('kategori', 'Üst Giyim')
             .field('renk', 'Siyah')
             .field('mevsim', 'Yaz')
-            .field('stil', 'Casual')
+            .field('stil', 'Günlük')
             .attach('resim', Buffer.from('mock image payload'), 'test.jpg');
 
         expect(itemRes.status).toBe(201);

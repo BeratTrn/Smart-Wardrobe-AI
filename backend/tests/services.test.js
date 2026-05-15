@@ -1,4 +1,6 @@
-const { kiyafetAnaliz, kombinOner } = require('../services/aiService');
+process.env.GROQ_API_KEY = 'test_key';
+
+const { analyzeItem, generateOutfitSuggestion } = require('../services/aiService');
 const { havaDurumuGetir, sehirHavaDurumu } = require('../services/weatherService');
 const { errorHandler, notFound } = require('../middleware/errorMiddleware');
 
@@ -6,8 +8,8 @@ const { errorHandler, notFound } = require('../middleware/errorMiddleware');
 jest.mock('axios');
 const axios = require('axios');
 
-// Mock openai
-jest.mock('openai', () => {
+// Mock groq-sdk
+jest.mock('groq-sdk', () => {
     return jest.fn().mockImplementation(() => {
         return {
             chat: {
@@ -16,13 +18,8 @@ jest.mock('openai', () => {
                         choices: [{
                             message: {
                                 content: JSON.stringify({
-                                    kategori: 'Üst Giyim',
-                                    renk: 'Siyah',
-                                    mevsim: 'Yaz',
-                                    stil: 'Casual',
-                                    guven: 0.9,
                                     aciklama: 'Harika bir kombin',
-                                    secilen_kiyafet_idleri: ['1', '2'],
+                                    secilen_kiyafet_idleri: ['1'],
                                     ipucu: 'Güneş gözlüğü takın'
                                 })
                             }
@@ -77,16 +74,29 @@ describe('Services & Middleware Testleri', () => {
     });
 
     describe('AI Service', () => {
-        it('kiyafetAnaliz calismali', async () => {
-            const data = await kiyafetAnaliz(Buffer.from('test'), 'image/jpeg');
+        it('analyzeItem calismali', async () => {
+            axios.post.mockResolvedValue({
+                data: {
+                    analysis: {
+                        category: 'ust_giyim',
+                        dominant_color: 'Siyah'
+                    }
+                }
+            });
+
+            const data = await analyzeItem(Buffer.from('test'), 'image.jpg');
             expect(data.kategori).toBe('Üst Giyim');
             expect(data.renk).toBe('Siyah');
         });
 
-        it('kombinOner calismali', async () => {
-            const kiyafetler = [{ _id: '1', kategori: 'Üst Giyim', renk: 'Siyah', mevsim: 'Yaz' }];
+        it('generateOutfitSuggestion calismali', async () => {
+            const kiyafetler = [
+                { _id: '1', kategori: 'Üst Giyim', renk: 'Siyah', mevsim: 'Yaz' },
+                { _id: '2', kategori: 'Alt Giyim', renk: 'Mavi', mevsim: 'Yaz' },
+                { _id: '3', kategori: 'Ayakkabı', renk: 'Beyaz', mevsim: 'Yaz' }
+            ];
             const havaDurumu = { durum: 'Güneşli', sicaklik: 30, konum: 'Istanbul' };
-            const data = await kombinOner(kiyafetler, havaDurumu, 'Piknik');
+            const data = await generateOutfitSuggestion(kiyafetler, havaDurumu, 'Piknik');
 
             expect(data.aciklama).toBe('Harika bir kombin');
             expect(data.secilen_kiyafet_idleri).toContain('1');

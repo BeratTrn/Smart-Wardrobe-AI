@@ -97,7 +97,7 @@ describe('GET /api/items/:id', () => {
             .field('kategori', 'Üst Giyim')
             .field('renk', 'Siyah')
             .field('mevsim', 'Yaz')
-            .field('stil', 'Casual')
+            .field('stil', 'Günlük')
             .attach('resim', Buffer.from('mock image payload'), 'test.jpg');
 
         const itemId = createRes.body.kiyafet._id;
@@ -139,18 +139,18 @@ describe('PUT /api/items/:id', () => {
             .field('kategori', 'Üst Giyim')
             .field('renk', 'Siyah')
             .field('mevsim', 'Yaz')
-            .field('stil', 'Casual')
+            .field('stil', 'Günlük')
             .attach('resim', Buffer.from('mock image payload'), 'test.jpg');
 
         const itemId = createRes.body.kiyafet._id;
         const updateRes = await request(app)
             .put(`/api/items/${itemId}`)
             .set('Authorization', `Bearer ${authToken}`)
-            .send({ renk: 'Mavi', stil: 'Formal' });
+            .send({ renk: 'Mavi', stil: 'Resmi' });
 
         expect(updateRes.statusCode).toBe(200);
         expect(updateRes.body.kiyafet.renk).toBe('Mavi');
-        expect(updateRes.body.kiyafet.stil).toBe('Formal');
+        expect(updateRes.body.kiyafet.stil).toBe('Resmi');
     });
 
     test('❌ Başka kullanıcının kıyafetini güncelleyemez (403)', async () => {
@@ -189,7 +189,7 @@ describe('DELETE /api/items/:id', () => {
             .field('kategori', 'Üst Giyim')
             .field('renk', 'Siyah')
             .field('mevsim', 'Yaz')
-            .field('stil', 'Casual')
+            .field('stil', 'Günlük')
             .attach('resim', Buffer.from('mock image payload'), 'test.jpg');
 
         const itemId = createRes.body.kiyafet._id;
