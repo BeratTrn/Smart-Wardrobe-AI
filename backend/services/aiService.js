@@ -5,7 +5,7 @@ const Groq = require('groq-sdk'); // Google'ı sildik, Groq'u ekledik!
 const FASTAPI_URL = process.env.FASTAPI_URL || 'http://localhost:8000';
 
 // Yeni Yapay Zeka Motorumuz: Groq
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY || 'dummy_key_for_build' });
 
 // FastAPI category slug → MongoDB Item.kategori enum value (strict 6-category system)
 const CATEGORY_MAP = {
