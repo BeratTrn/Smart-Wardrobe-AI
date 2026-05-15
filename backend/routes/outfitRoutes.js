@@ -24,9 +24,13 @@ const router = express.Router();
  *           schema:
  *             type: object
  *             properties:
- *               stil:
+ *               enlem:
+ *                 type: number
+ *               boylam:
+ *                 type: number
+ *               sehir:
  *                 type: string
- *               mevsim:
+ *               etkinlik:
  *                 type: string
  *     responses:
  *       200:
@@ -69,7 +73,7 @@ router.get('/', protect, getOutfits);
  *           schema:
  *             type: object
  *             properties:
- *               liked:
+ *               begeniyor:
  *                 type: boolean
  *     responses:
  *       200:

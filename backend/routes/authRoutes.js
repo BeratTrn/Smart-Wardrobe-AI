@@ -30,11 +30,11 @@ const router = express.Router();
  *           schema:
  *             type: object
  *             properties:
- *               name:
+ *               kullaniciAdi:
  *                 type: string
  *               email:
  *                 type: string
- *               password:
+ *               sifre:
  *                 type: string
  *     responses:
  *       201:
@@ -77,7 +77,7 @@ router.post('/resend-verification', resendVerification);
  *             properties:
  *               email:
  *                 type: string
- *               code:
+ *               otpCode:
  *                 type: string
  *     responses:
  *       200:
@@ -100,7 +100,7 @@ router.post('/verify-email', verifyEmail);       // AdÄ±m 2: OTP doÄŸrula â
  *             properties:
  *               email:
  *                 type: string
- *               password:
+ *               sifre:
  *                 type: string
  *     responses:
  *       200:
@@ -173,7 +173,7 @@ router.post('/forgot-password', forgotPassword);
  *           schema:
  *             type: object
  *             properties:
- *               password:
+ *               yeniSifre:
  *                 type: string
  *     responses:
  *       200:
@@ -211,10 +211,10 @@ router.get('/me', protect, getMe);
  *           schema:
  *             type: object
  *             properties:
- *               name:
+ *               kullaniciAdi:
  *                 type: string
- *               email:
- *                 type: string
+ *               tercihler:
+ *                 type: object
  *     responses:
  *       200:
  *         description: Profil baÅŸarÄ±yla gÃ¼ncellendi
@@ -236,9 +236,9 @@ router.put('/update', protect, updateProfile);
  *           schema:
  *             type: object
  *             properties:
- *               currentPassword:
+ *               mevcutSifre:
  *                 type: string
- *               newPassword:
+ *               yeniSifre:
  *                 type: string
  *     responses:
  *       200:

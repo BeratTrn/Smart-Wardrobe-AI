@@ -88,12 +88,14 @@ app.use(morgan('dev'));
 const authRoutes = require('./routes/authRoutes');
 const itemRoutes = require('./routes/itemRoutes');
 const outfitRoutes = require('./routes/outfitRoutes');
+const savedOutfitRoutes = require('./routes/savedOutfitRoutes');
 const weatherRoutes = require('./routes/weatherRoutes');
 const statsRoutes = require('./routes/statsRoutes');
 
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/items', itemRoutes);
 app.use('/api/outfits', outfitRoutes);
+app.use('/api/saved-outfits', savedOutfitRoutes);
 app.use('/api/weather', weatherRoutes);
 app.use('/api/stats', statsRoutes);
 

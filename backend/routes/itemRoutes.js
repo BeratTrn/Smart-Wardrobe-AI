@@ -1,15 +1,73 @@
 const express = require('express');
-const { analyzeAndAddItem, getItems, getItemById, updateItem, deleteItem, toggleFavori, getFavorites } = require('../controllers/itemController');
+const multer  = require('multer');
+const { analyzeOnly, analyzeAndAddItem, getItems, getItemById, updateItem, deleteItem, toggleFavori, getFavorites } = require('../controllers/itemController');
 const { protect } = require('../middleware/authMiddleware');
 const { upload } = require('../config/cloudinary');
 
+// In-memory storage — file bytes stay in req.file.buffer, nothing hits Cloudinary.
+// Used only for the analyze-only preview step.
+const uploadMemory = multer({ storage: multer.memoryStorage() });
+
 const router = express.Router();
 
-// POST   /api/items/add       → Fotoğraf yükle + AI analiz + ekle
-// GET    /api/items            → Tüm kıyafetleri listele (filtreli)
-// GET    /api/items/:id        → Tek kıyafet getir
-// PUT    /api/items/:id        → Kıyafet bilgilerini güncelle
-// DELETE /api/items/:id        → Kıyafet sil
+// POST   /api/items/analyze-only → Yalnızca AI analiz (Cloudinary/MongoDB'ye kayıt YOK)
+// POST   /api/items/add          → Fotoğraf yükle + AI analiz + ekle
+// GET    /api/items              → Tüm kıyafetleri listele (filtreli)
+// GET    /api/items/:id          → Tek kıyafet getir
+// PUT    /api/items/:id          → Kıyafet bilgilerini güncelle
+// DELETE /api/items/:id          → Kıyafet sil
+
+/**
+ * @swagger
+ * /api/items/analyze-only:
+ *   post:
+ *     summary: Kıyafeti yalnızca AI ile analiz eder (Cloudinary / MongoDB'ye kayıt yapılmaz)
+ *     description: |
+ *       Flutter "önizleme → kullanıcı düzelt → kaydet" akışının 1. adımı.
+ *       Fotoğraf FastAPI motoruna gönderilir; kategori + renk tahmini döner.
+ *       Cloudinary veya MongoDB'ye hiçbir şey yazılmaz.
+ *     tags: [Items]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required: [resim]
+ *             properties:
+ *               resim:
+ *                 type: string
+ *                 format: binary
+ *                 description: Kıyafet fotoğrafı (JPG / PNG)
+ *     responses:
+ *       200:
+ *         description: AI analizi tamamlandı
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 mesaj:
+ *                   type: string
+ *                 analiz:
+ *                   type: object
+ *                   properties:
+ *                     kategori:
+ *                       type: string
+ *                       example: Üst Giyim
+ *                     renk:
+ *                       type: string
+ *                       example: '#2D405C'
+ *                     aiDogrulandi:
+ *                       type: boolean
+ *       400:
+ *         description: Fotoğraf gönderilmedi
+ *       401:
+ *         description: Yetkisiz erişim
+ */
+router.post('/analyze-only', protect, uploadMemory.single('resim'), analyzeOnly);
 
 /**
  * @swagger
@@ -29,6 +87,16 @@ const router = express.Router();
  *               resim:
  *                 type: string
  *                 format: binary
+ *               kategori:
+ *                 type: string
+ *                 description: Kullanıcının onayladığı kategori (AI tahminini override eder)
+ *               renk:
+ *                 type: string
+ *                 description: Kullanıcının onayladığı HEX renk kodu
+ *               mevsim:
+ *                 type: string
+ *               stil:
+ *                 type: string
  *     responses:
  *       201:
  *         description: Kıyafet eklendi

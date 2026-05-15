@@ -17,7 +17,7 @@ const itemSchema = new mongoose.Schema({
     kategori: {
         type: String,
         required: [true, 'Kategori zorunludur'],
-        enum: ['Üst Giyim', 'Alt Giyim', 'Elbise & Etek', 'Dış Giyim', 'Ayakkabı', 'Aksesuar', 'Spor Giyim', 'Diğer']
+        enum: ['Üst Giyim', 'Alt Giyim', 'Elbise & Etek', 'Dış Giyim', 'Ayakkabı', 'Aksesuar']
     },
     renk: {
         type: String,
@@ -31,8 +31,8 @@ const itemSchema = new mongoose.Schema({
     },
     stil: {
         type: String,
-        enum: ['Casual', 'Formal', 'Spor', 'Elegant', 'Bohemian', 'Streetwear', 'Diğer'],
-        default: 'Casual'
+        enum: ['Günlük', 'Klasik', 'Spor', 'Sokak', 'Minimal', 'Şık', 'Resmi'],
+        default: 'Günlük'
     },
     marka: {
         type: String,

@@ -26,7 +26,7 @@ const userSchema = new mongoose.Schema({
         default: ''
     },
     tercihler: {
-        favoriStil: { type: String, default: 'Casual' },
+        favoriStil: { type: String, default: 'Günlük' },
         favoriRenkler: [{ type: String }],
         bildirimler: { type: Boolean, default: true }
     },

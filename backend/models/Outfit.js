@@ -24,8 +24,6 @@ const outfitSchema = new mongoose.Schema({
     baglam: {
         etkinlik: {
             type: String,
-            enum: ['Günlük', 'İş', 'Spor', 'Özel Davet', 'Randevu', 'Alışveriş', 'Diğer'],
-            default: 'Günlük'
         },
         havaDurumu: {
             sicaklik: Number,      // Celsius

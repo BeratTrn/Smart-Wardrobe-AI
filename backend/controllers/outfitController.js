@@ -70,7 +70,12 @@ const kombinOnerisi = async (req, res) => {
 
     } catch (error) {
         console.error('Kombin Önerisi Hatası:', error);
-        res.status(500).json({ mesaj: 'Kombin önerisi oluşturulamadı. Lütfen tekrar deneyin.' });
+        // wardrobeOnKontrol 400 fırlatırsa anlamlı mesajı kullanıcıya ilet
+        const status = error.statusCode === 400 ? 400 : 500;
+        const mesaj  = status === 400
+            ? error.message
+            : 'Kombin önerisi oluşturulamadı. Lütfen tekrar deneyin.';
+        res.status(status).json({ mesaj });
     }
 };
 
@@ -137,7 +142,11 @@ const generateDailyOutfit = async (req, res) => {
 
     } catch (error) {
         console.error('Günlük Kombin Hatası:', error);
-        res.status(500).json({ mesaj: 'Günlük kombin oluşturulamadı. Lütfen tekrar deneyin.' });
+        const status = error.statusCode === 400 ? 400 : 500;
+        const mesaj  = status === 400
+            ? error.message
+            : 'Günlük kombin oluşturulamadı. Lütfen tekrar deneyin.';
+        res.status(status).json({ mesaj });
     }
 };
 
