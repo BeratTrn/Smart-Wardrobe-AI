@@ -8,7 +8,7 @@ import 'package:smart_wardrobe_ai/core/constants/app_colors.dart';
 import 'package:smart_wardrobe_ai/data/models/user_profile.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/profile/profile_shared_widgets.dart';
 
-/// Bottom sheet — PUT /api/auth/update { kullaniciAdi }
+/// Bottom sheet — PUT /api/users/profile { kullaniciAdi }
 /// [returns] true eğer profil güncellendiyse (caller'ın veriyi yenilemesi için)
 class EditProfileSheet extends StatefulWidget {
   final UserProfile? profile;
@@ -61,7 +61,7 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
 
       final res = await http
           .put(
-            Uri.parse('${ApiConstants.baseUrl}/auth/update'),
+            Uri.parse('${ApiConstants.baseUrl}/users/profile'),
             headers: {
               'Content-Type': 'application/json',
               'Authorization': 'Bearer $token',

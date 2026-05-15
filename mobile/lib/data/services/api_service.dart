@@ -430,6 +430,190 @@ class ApiService {
     }
   }
 
+  // ─── PUT /api/users/profile/photo (avatar) ───────────────────────────────
+
+  /// Avatar yolunu (asset string) backend'e kaydeder.
+  Future<String> updateProfilePhotoAvatar(String avatarPath) async {
+    final token = await _getToken();
+    if (token.isEmpty) {
+      throw const ApiException(
+        message: 'Oturumunuz sona erdi, lütfen tekrar giriş yapın.',
+        statusCode: 401,
+      );
+    }
+
+    final uri = Uri.parse('${ApiConstants.baseUrl}/users/profile/photo');
+    final client = http.Client();
+
+    try {
+      final res = await client
+          .put(
+            uri,
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ${token.trim()}',
+              'Accept': 'application/json',
+            },
+            body: jsonEncode({'profilFoto': avatarPath}),
+          )
+          .timeout(const Duration(seconds: 15));
+
+      if (kDebugMode) {
+        debugPrint('[ApiService] PUT /users/profile/photo → ${res.statusCode}');
+      }
+
+      if (res.statusCode == 200) {
+        final json = jsonDecode(res.body) as Map<String, dynamic>;
+        return json['profilFoto'] as String? ?? avatarPath;
+      }
+
+      Map<String, dynamic> errBody = {};
+      try {
+        errBody = jsonDecode(res.body) as Map<String, dynamic>;
+      } catch (_) {}
+
+      throw ApiException(
+        message: errBody['mesaj'] as String? ?? 'Sunucu hatası (${res.statusCode})',
+        statusCode: res.statusCode,
+      );
+    } on TimeoutException {
+      throw const ApiException(
+        message: 'Sunucu yanıt vermedi. Bağlantınızı kontrol edin.',
+        statusCode: 0,
+      );
+    } catch (e) {
+      if (e is ApiException) rethrow;
+      throw ApiException(message: 'Sunucuya bağlanılamadı: $e', statusCode: 0);
+    } finally {
+      client.close();
+    }
+  }
+
+  // ─── PUT /api/users/profile/photo/upload (gerçek fotoğraf) ──────────────
+
+  /// Kullanıcının seçtiği fotoğrafı Cloudinary'e yükler, URL döner.
+  Future<String> uploadProfilePhoto({
+    required Uint8List imageBytes,
+    required String filename,
+  }) async {
+    final token = await _getToken();
+    if (token.isEmpty) {
+      throw const ApiException(
+        message: 'Oturumunuz sona erdi, lütfen tekrar giriş yapın.',
+        statusCode: 401,
+      );
+    }
+
+    final uri = Uri.parse('${ApiConstants.baseUrl}/users/profile/photo/upload');
+    final req = http.MultipartRequest('PUT', uri)
+      ..headers['Authorization'] = 'Bearer ${token.trim()}'
+      ..headers['Accept'] = 'application/json';
+
+    req.files.add(
+      http.MultipartFile.fromBytes('resim', imageBytes, filename: filename),
+    );
+
+    final client = http.Client();
+    try {
+      final streamed = await client
+          .send(req)
+          .timeout(const Duration(seconds: 30));
+
+      final res = await http.Response.fromStream(streamed);
+
+      if (kDebugMode) {
+        debugPrint('[ApiService] PUT /users/profile/photo/upload → ${res.statusCode}');
+      }
+
+      if (res.statusCode == 200) {
+        final json = jsonDecode(res.body) as Map<String, dynamic>;
+        return json['profilFoto'] as String? ?? '';
+      }
+
+      Map<String, dynamic> errBody = {};
+      try {
+        errBody = jsonDecode(res.body) as Map<String, dynamic>;
+      } catch (_) {}
+
+      throw ApiException(
+        message: errBody['mesaj'] as String? ?? 'Sunucu hatası (${res.statusCode})',
+        statusCode: res.statusCode,
+      );
+    } on TimeoutException {
+      throw const ApiException(
+        message: 'Sunucu yanıt vermedi. Bağlantınızı kontrol edin.',
+        statusCode: 0,
+      );
+    } catch (e) {
+      if (e is ApiException) rethrow;
+      throw ApiException(message: 'Sunucuya bağlanılamadı: $e', statusCode: 0);
+    } finally {
+      client.close();
+    }
+  }
+
+  // ─── PUT /api/users/profile/body ─────────────────────────────────────────
+
+  /// Kullanıcının vücut şekli ve kalıp tercihini MongoDB'ye kaydeder.
+  Future<void> updateBodyProfile({
+    required String bodyShape,
+    required String fitPreference,
+  }) async {
+    final token = await _getToken();
+    if (token.isEmpty) {
+      throw const ApiException(
+        message: 'Oturumunuz sona erdi, lütfen tekrar giriş yapın.',
+        statusCode: 401,
+      );
+    }
+
+    final uri = Uri.parse('${ApiConstants.baseUrl}/users/profile/body');
+    final client = http.Client();
+
+    try {
+      final res = await client
+          .put(
+            uri,
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ${token.trim()}',
+              'Accept': 'application/json',
+            },
+            body: jsonEncode({
+              'bodyShape': bodyShape,
+              'fitPreference': fitPreference,
+            }),
+          )
+          .timeout(const Duration(seconds: 15));
+
+      if (kDebugMode) {
+        debugPrint('[ApiService] PUT /users/profile/body → ${res.statusCode}');
+      }
+
+      if (res.statusCode == 200) return;
+
+      Map<String, dynamic> errBody = {};
+      try {
+        errBody = jsonDecode(res.body) as Map<String, dynamic>;
+      } catch (_) {}
+
+      throw ApiException(
+        message: errBody['mesaj'] as String? ?? 'Sunucu hatası (${res.statusCode})',
+        statusCode: res.statusCode,
+      );
+    } on TimeoutException {
+      throw const ApiException(
+        message: 'Sunucu yanıt vermedi. Bağlantınızı kontrol edin.',
+        statusCode: 0,
+      );
+    } catch (e) {
+      if (e is ApiException) rethrow;
+      throw ApiException(message: 'Sunucuya bağlanılamadı: $e', statusCode: 0);
+    } finally {
+      client.close();
+    }
+  }
+
   // ─── DELETE /api/saved-outfits/:id ───────────────────────────────────────
 
   /// Verilen [id]'li kaydedilmiş kombini sunucudan siler.
