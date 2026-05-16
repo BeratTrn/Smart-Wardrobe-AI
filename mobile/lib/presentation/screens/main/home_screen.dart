@@ -67,6 +67,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   String _weatherDesc = 'Yükleniyor...';
   String _weatherTemp = '--°';
   IconData _weatherIcon = Icons.wb_cloudy_rounded;
+  String _weatherFeelsLike = '--°';
+  String _weatherHumidity = '--%';
+  String _weatherWind = '-- km/h';
+  String _weatherCity = '';
 
   // ── Animations ────────────────────────────────────────────────────────────
   late final AnimationController _fadeCtrl;
@@ -283,18 +287,26 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       if (data == null) return;
       setState(() {
         _weatherTemp = '${data['sicaklik']}°';
+        _weatherFeelsLike = '${data['hissedilen']}°';
+        _weatherHumidity = '%${data['nem']}';
+        _weatherWind = '${data['ruzgar']} km/h';
+        _weatherCity = (data['konum'] as String?) ?? '';
         final desc = (data['durum'] as String?) ?? '';
         _weatherDesc = desc.isNotEmpty
             ? desc[0].toUpperCase() + desc.substring(1)
             : '';
+        final ikon = (data['ikon'] as String?) ?? '';
         final main = (data['ana_durum'] as String?) ?? '';
-        if (main.contains('Clear'))
+        if (ikon.startsWith('01') || main.contains('Clear'))
           _weatherIcon = Icons.wb_sunny_rounded;
-        else if (main.contains('Rain') || main.contains('Drizzle'))
+        else if (ikon.startsWith('09') ||
+            ikon.startsWith('10') ||
+            main.contains('Rain') ||
+            main.contains('Drizzle'))
           _weatherIcon = Icons.water_drop_rounded;
-        else if (main.contains('Snow'))
+        else if (ikon.startsWith('13') || main.contains('Snow'))
           _weatherIcon = Icons.ac_unit_rounded;
-        else if (main.contains('Thunderstorm'))
+        else if (ikon.startsWith('11') || main.contains('Thunderstorm'))
           _weatherIcon = Icons.flash_on_rounded;
         else
           _weatherIcon = Icons.wb_cloudy_rounded;
@@ -302,6 +314,43 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     } catch (_) {
       if (mounted) setState(() => _weatherDesc = 'Veri ayrıştırılamadı');
     }
+  }
+
+  // ── Weather Detail ────────────────────────────────────────────────────────
+
+  void _showWeatherDetail() {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Kapat',
+      barrierColor: Colors.black.withValues(alpha: .4),
+      transitionDuration: const Duration(milliseconds: 300),
+      pageBuilder: (ctx, _, __) => _WeatherDetailDialog(
+        temp: _weatherTemp,
+        feelsLike: _weatherFeelsLike,
+        humidity: _weatherHumidity,
+        wind: _weatherWind,
+        city: _weatherCity,
+        desc: _weatherDesc,
+        mainIcon: _weatherIcon,
+      ),
+      transitionBuilder: (ctx, anim, _, child) {
+        final curve = CurvedAnimation(
+          parent: anim,
+          curve: Curves.easeOutCubic,
+        );
+        return FadeTransition(
+          opacity: CurvedAnimation(parent: anim, curve: Curves.easeOut),
+          child: SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0, -0.06),
+              end: Offset.zero,
+            ).animate(curve),
+            child: child,
+          ),
+        );
+      },
+    );
   }
 
   // ── Navigation ────────────────────────────────────────────────────────────
@@ -370,6 +419,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             builder: (_) => const ProfileScreen(),
                           ),
                         ).then((_) => _loadData()),
+                        onWeatherTap: _showWeatherDetail,
                       ),
                     ),
                   ),
@@ -1637,6 +1687,7 @@ class _TopBar extends StatelessWidget {
   final String userName, profilFoto, weatherTemp, weatherDesc;
   final IconData weatherIcon;
   final VoidCallback onProfileTap;
+  final VoidCallback onWeatherTap;
 
   const _TopBar({
     required this.userName,
@@ -1645,6 +1696,7 @@ class _TopBar extends StatelessWidget {
     required this.weatherDesc,
     required this.weatherIcon,
     required this.onProfileTap,
+    required this.onWeatherTap,
   });
 
   @override
@@ -1672,27 +1724,36 @@ class _TopBar extends StatelessWidget {
           ],
         ),
       ),
-      Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(30),
-          border: Border.all(color: AppColors.border),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(weatherIcon, color: AppColors.goldLight, size: 14),
-            const SizedBox(width: 5),
-            Text(
-              '$weatherTemp $weatherDesc',
-              style: const TextStyle(
-                color: AppColors.textSub,
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
+      GestureDetector(
+        onTap: onWeatherTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(30),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(weatherIcon, color: AppColors.goldLight, size: 14),
+              const SizedBox(width: 5),
+              Text(
+                '$weatherTemp $weatherDesc',
+                style: const TextStyle(
+                  color: AppColors.textSub,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-            ),
-          ],
+              const SizedBox(width: 3),
+              const Icon(
+                Icons.keyboard_arrow_down_rounded,
+                color: AppColors.muted,
+                size: 14,
+              ),
+            ],
+          ),
         ),
       ),
       const SizedBox(width: 10),
@@ -1942,6 +2003,276 @@ class _DoughnutPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter _) => true;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  Color name → Color
+// ═══════════════════════════════════════════════════════════════════════════
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  Weather Detail Dialog
+// ═══════════════════════════════════════════════════════════════════════════
+
+class _WeatherDetailDialog extends StatelessWidget {
+  final String temp, feelsLike, humidity, wind, city, desc;
+  final IconData mainIcon;
+
+  const _WeatherDetailDialog({
+    required this.temp,
+    required this.feelsLike,
+    required this.humidity,
+    required this.wind,
+    required this.city,
+    required this.desc,
+    required this.mainIcon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: const Alignment(0, -0.5),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 22),
+        child: Material(
+          color: Colors.transparent,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0C0C0C).withValues(alpha: .93),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: AppColors.gold.withValues(alpha: .28),
+                    width: 1,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.gold.withValues(alpha: .07),
+                      blurRadius: 48,
+                      spreadRadius: 6,
+                    ),
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: .55),
+                      blurRadius: 32,
+                      offset: const Offset(0, 12),
+                    ),
+                  ],
+                ),
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // ── Handle ──────────────────────────────────────────────
+                    Container(
+                      width: 32,
+                      height: 3,
+                      decoration: BoxDecoration(
+                        color: AppColors.border,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // ── Header: icon + city + desc + temp ───────────────────
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(colors: [
+                              AppColors.gold.withValues(alpha: .22),
+                              AppColors.goldLight.withValues(alpha: .08),
+                            ]),
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: AppColors.gold.withValues(alpha: .35),
+                              width: .8,
+                            ),
+                          ),
+                          child: Icon(
+                            mainIcon,
+                            color: AppColors.goldLight,
+                            size: 22,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (city.isNotEmpty)
+                                Text(
+                                  city,
+                                  style: const TextStyle(
+                                    color: AppColors.muted,
+                                    fontSize: 10,
+                                    letterSpacing: .6,
+                                  ),
+                                ),
+                              Text(
+                                desc.isNotEmpty ? desc : 'Hava Durumu',
+                                style: const TextStyle(
+                                  fontFamily: 'Cormorant',
+                                  color: AppColors.text,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: -.2,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Text(
+                          temp,
+                          style: const TextStyle(
+                            fontFamily: 'Cormorant',
+                            color: AppColors.text,
+                            fontSize: 42,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -1.5,
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 18),
+                    Divider(
+                      color: AppColors.gold.withValues(alpha: .15),
+                      height: 1,
+                    ),
+                    const SizedBox(height: 16),
+
+                    // ── Metrics 2×2 grid ────────────────────────────────────
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _WeatherMetric(
+                            icon: Icons.thermostat_outlined,
+                            label: 'Hissedilen',
+                            value: feelsLike,
+                          ),
+                        ),
+                        Container(
+                          width: 1,
+                          height: 48,
+                          color: AppColors.border,
+                        ),
+                        Expanded(
+                          child: _WeatherMetric(
+                            icon: Icons.water_drop_outlined,
+                            label: 'Nem',
+                            value: humidity,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Divider(color: AppColors.border, height: 1),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _WeatherMetric(
+                            icon: Icons.air_rounded,
+                            label: 'Rüzgar',
+                            value: wind,
+                          ),
+                        ),
+                        Container(
+                          width: 1,
+                          height: 48,
+                          color: AppColors.border,
+                        ),
+                        Expanded(
+                          child: _WeatherMetric(
+                            icon: Icons.location_on_outlined,
+                            label: 'Konum',
+                            value: city.isNotEmpty
+                                ? city.split(',').first.trim()
+                                : '--',
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 14),
+
+                    // ── Dismiss hint ─────────────────────────────────────────
+                    Text(
+                      'Kapatmak için dışarıya dokun',
+                      style: TextStyle(
+                        color: AppColors.muted.withValues(alpha: .5),
+                        fontSize: 9,
+                        letterSpacing: .4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _WeatherMetric extends StatelessWidget {
+  final IconData icon;
+  final String label, value;
+
+  const _WeatherMetric({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+    child: Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: AppColors.gold.withValues(alpha: .1),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: AppColors.gold.withValues(alpha: .2),
+              width: .8,
+            ),
+          ),
+          child: Icon(icon, color: AppColors.goldLight, size: 14),
+        ),
+        const SizedBox(width: 10),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: const TextStyle(
+                color: AppColors.muted,
+                fontSize: 9,
+                letterSpacing: .5,
+              ),
+            ),
+            Text(
+              value,
+              style: const TextStyle(
+                color: AppColors.text,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                letterSpacing: -.2,
+              ),
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

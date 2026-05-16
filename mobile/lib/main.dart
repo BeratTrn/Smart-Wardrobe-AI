@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_wardrobe_ai/core/constants/api_constants.dart';
 import 'package:smart_wardrobe_ai/presentation/screens/auth/login_screen.dart';
@@ -9,6 +10,8 @@ import 'package:smart_wardrobe_ai/presentation/screens/startup/onboarding_screen
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await initializeDateFormatting('tr_TR', null);
 
   // Portrait lock
   await SystemChrome.setPreferredOrientations([

@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_wardrobe_ai/core/constants/api_constants.dart';
 import 'package:smart_wardrobe_ai/data/models/generated_outfit.dart';
 import 'package:smart_wardrobe_ai/data/models/saved_outfit.dart';
+import 'package:smart_wardrobe_ai/data/models/travel_suitcase.dart';
 
 /// Sunucudan gelen AI analiz sonucu (önizleme veya kayıt sonrası)
 class AiAnalysisResult {
@@ -473,7 +474,8 @@ class ApiService {
       } catch (_) {}
 
       throw ApiException(
-        message: errBody['mesaj'] as String? ?? 'Sunucu hatası (${res.statusCode})',
+        message:
+            errBody['mesaj'] as String? ?? 'Sunucu hatası (${res.statusCode})',
         statusCode: res.statusCode,
       );
     } on TimeoutException {
@@ -522,7 +524,9 @@ class ApiService {
       final res = await http.Response.fromStream(streamed);
 
       if (kDebugMode) {
-        debugPrint('[ApiService] PUT /users/profile/photo/upload → ${res.statusCode}');
+        debugPrint(
+          '[ApiService] PUT /users/profile/photo/upload → ${res.statusCode}',
+        );
       }
 
       if (res.statusCode == 200) {
@@ -536,7 +540,8 @@ class ApiService {
       } catch (_) {}
 
       throw ApiException(
-        message: errBody['mesaj'] as String? ?? 'Sunucu hatası (${res.statusCode})',
+        message:
+            errBody['mesaj'] as String? ?? 'Sunucu hatası (${res.statusCode})',
         statusCode: res.statusCode,
       );
     } on TimeoutException {
@@ -598,7 +603,8 @@ class ApiService {
       } catch (_) {}
 
       throw ApiException(
-        message: errBody['mesaj'] as String? ?? 'Sunucu hatası (${res.statusCode})',
+        message:
+            errBody['mesaj'] as String? ?? 'Sunucu hatası (${res.statusCode})',
         statusCode: res.statusCode,
       );
     } on TimeoutException {
@@ -641,7 +647,190 @@ class ApiService {
           .timeout(const Duration(seconds: 15));
 
       if (kDebugMode) {
-        debugPrint('[ApiService] DELETE /saved-outfits/$id → ${res.statusCode}');
+        debugPrint(
+          '[ApiService] DELETE /saved-outfits/$id → ${res.statusCode}',
+        );
+      }
+
+      return res.statusCode == 200;
+    } on TimeoutException {
+      throw const ApiException(
+        message: 'Sunucu yanıt vermedi. Bağlantınızı kontrol edin.',
+        statusCode: 0,
+      );
+    } catch (e) {
+      if (e is ApiException) rethrow;
+      throw ApiException(message: 'Sunucuya bağlanılamadı: $e', statusCode: 0);
+    } finally {
+      client.close();
+    }
+  }
+
+  // ─── POST /api/travel/pack ────────────────────────────────────────────────
+
+  /// Şehir + tarih aralığını backend'e gönderir, AI ile bavul oluşturur ve
+  /// [TravelSuitcase] olarak döner. AI işlemi 15-45 sn sürebileceğinden
+  /// timeout 90 saniyeye ayarlanmıştır.
+  Future<TravelSuitcase> generateSuitcase({
+    required String sehir,
+    required String baslangicTarihi,
+    required String bitisTarihi,
+  }) async {
+    final token = await _getToken();
+    if (token.isEmpty) {
+      throw const ApiException(
+        message: 'Oturumunuz sona erdi, lütfen tekrar giriş yapın.',
+        statusCode: 401,
+      );
+    }
+
+    final uri = Uri.parse('${ApiConstants.baseUrl}/travel/pack');
+    final client = http.Client();
+
+    try {
+      final res = await client
+          .post(
+            uri,
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ${token.trim()}',
+              'Accept': 'application/json',
+            },
+            body: jsonEncode({
+              'sehir': sehir,
+              'baslangicTarihi': baslangicTarihi,
+              'bitisTarihi': bitisTarihi,
+            }),
+          )
+          .timeout(const Duration(seconds: 90));
+
+      if (kDebugMode) {
+        debugPrint('[ApiService] POST /travel/pack → ${res.statusCode}');
+        final preview = res.body.length > 400
+            ? res.body.substring(0, 400)
+            : res.body;
+        debugPrint('[ApiService] Body: $preview');
+      }
+
+      if (res.statusCode == 201) {
+        final json = jsonDecode(res.body) as Map<String, dynamic>;
+        return TravelSuitcase.fromJson(
+            json['bavul'] as Map<String, dynamic>);
+      }
+
+      Map<String, dynamic> errBody = {};
+      try {
+        errBody = jsonDecode(res.body) as Map<String, dynamic>;
+      } catch (_) {}
+
+      throw ApiException(
+        message:
+            errBody['mesaj'] as String? ?? 'Sunucu hatası (${res.statusCode})',
+        statusCode: res.statusCode,
+      );
+    } on TimeoutException {
+      throw const ApiException(
+        message:
+            'AI çok uzun sürdü. Bağlantınızı kontrol edip tekrar deneyin.',
+        statusCode: 0,
+      );
+    } catch (e) {
+      if (e is ApiException) rethrow;
+      throw ApiException(message: 'Sunucuya bağlanılamadı: $e', statusCode: 0);
+    } finally {
+      client.close();
+    }
+  }
+
+  // ─── GET /api/travel ─────────────────────────────────────────────────────
+
+  /// Giriş yapan kullanıcının kayıtlı tüm seyahat bavullarını döner.
+  Future<List<TravelSuitcase>> getSuitcases() async {
+    final token = await _getToken();
+    if (token.isEmpty) {
+      throw const ApiException(
+        message: 'Oturumunuz sona erdi, lütfen tekrar giriş yapın.',
+        statusCode: 401,
+      );
+    }
+
+    final uri = Uri.parse('${ApiConstants.baseUrl}/travel');
+    final client = http.Client();
+
+    try {
+      final res = await client
+          .get(
+            uri,
+            headers: {
+              'Authorization': 'Bearer ${token.trim()}',
+              'Accept': 'application/json',
+            },
+          )
+          .timeout(const Duration(seconds: 15));
+
+      if (kDebugMode) {
+        debugPrint('[ApiService] GET /travel → ${res.statusCode}');
+      }
+
+      if (res.statusCode == 200) {
+        final json = jsonDecode(res.body) as Map<String, dynamic>;
+        final list = json['bavullar'] as List? ?? [];
+        return list
+            .map((e) => TravelSuitcase.fromJson(e as Map<String, dynamic>))
+            .toList();
+      }
+
+      Map<String, dynamic> errBody = {};
+      try {
+        errBody = jsonDecode(res.body) as Map<String, dynamic>;
+      } catch (_) {}
+
+      throw ApiException(
+        message:
+            errBody['mesaj'] as String? ?? 'Sunucu hatası (${res.statusCode})',
+        statusCode: res.statusCode,
+      );
+    } on TimeoutException {
+      throw const ApiException(
+        message: 'Sunucu yanıt vermedi. Bağlantınızı kontrol edin.',
+        statusCode: 0,
+      );
+    } catch (e) {
+      if (e is ApiException) rethrow;
+      throw ApiException(message: 'Sunucuya bağlanılamadı: $e', statusCode: 0);
+    } finally {
+      client.close();
+    }
+  }
+
+  // ─── DELETE /api/travel/:id ───────────────────────────────────────────────
+
+  /// Verilen [id]'li seyahat bavulunu sunucudan siler.
+  Future<bool> deleteSuitcase(String id) async {
+    final token = await _getToken();
+    if (token.isEmpty) {
+      throw const ApiException(
+        message: 'Oturumunuz sona erdi, lütfen tekrar giriş yapın.',
+        statusCode: 401,
+      );
+    }
+
+    final uri = Uri.parse('${ApiConstants.baseUrl}/travel/$id');
+    final client = http.Client();
+
+    try {
+      final res = await client
+          .delete(
+            uri,
+            headers: {
+              'Authorization': 'Bearer ${token.trim()}',
+              'Accept': 'application/json',
+            },
+          )
+          .timeout(const Duration(seconds: 15));
+
+      if (kDebugMode) {
+        debugPrint('[ApiService] DELETE /travel/$id → ${res.statusCode}');
       }
 
       return res.statusCode == 200;

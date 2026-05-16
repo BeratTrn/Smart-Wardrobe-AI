@@ -123,6 +123,7 @@ class _ProfileScreenState extends State<ProfileScreen>
 
         int itemCount = 0;
         int favCount = 0;
+        int outfitCount = 0;
 
         try {
           final itemsFuture = http
@@ -139,7 +140,14 @@ class _ProfileScreenState extends State<ProfileScreen>
               )
               .timeout(const Duration(seconds: 5));
 
-          final results = await Future.wait([itemsFuture, favsFuture]);
+          final savedOutfitsFuture = http
+              .get(
+                Uri.parse('${ApiConstants.baseUrl}/saved-outfits'),
+                headers: {'Authorization': 'Bearer $token'},
+              )
+              .timeout(const Duration(seconds: 5));
+
+          final results = await Future.wait([itemsFuture, favsFuture, savedOutfitsFuture]);
 
           if (results[0].statusCode == 200) {
             final rawItems = jsonDecode(results[0].body);
@@ -150,6 +158,11 @@ class _ProfileScreenState extends State<ProfileScreen>
             final rawFavs = jsonDecode(results[1].body);
             final favList = (rawFavs['favoriler'] ?? rawFavs) as List;
             favCount = favList.length;
+          }
+          if (results[2].statusCode == 200) {
+            final rawOutfits = jsonDecode(results[2].body);
+            final outfitList = (rawOutfits['kombinler'] ?? rawOutfits) as List;
+            outfitCount = outfitList.length;
           }
         } catch (_) {
           // Hata durumunda varsayılan 0 kalır
@@ -171,7 +184,7 @@ class _ProfileScreenState extends State<ProfileScreen>
             email: p.email,
             profilePhoto: p.profilePhoto,
             totalItems: itemCount,
-            totalOutfits: 0,
+            totalOutfits: outfitCount,
             totalFavorites: favCount,
           );
           if (p.profilePhoto.isNotEmpty) _profilePhoto = p.profilePhoto;

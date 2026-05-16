@@ -18,27 +18,27 @@ class AppBottomNav extends StatelessWidget {
     _NavItem(
       activeIcon: Icons.home_rounded,
       icon: Icons.home_outlined,
-      label: 'Home',
+      label: 'Ana Sayfa',
     ),
     _NavItem(
       activeIcon: Icons.favorite_rounded,
       icon: Icons.favorite_border_rounded,
-      label: 'Favori',
+      label: 'Favoriler',
     ),
     _NavItem(
       activeIcon: Icons.add_circle_rounded,
       icon: Icons.add_circle_rounded,
-      label: 'Ekle',
+      label: 'Kıyafet Ekle',
     ),
     _NavItem(
       activeIcon: Icons.collections_bookmark_rounded,
       icon: Icons.collections_bookmark_outlined,
-      label: 'Kombinlerim',
+      label: 'Stil Arşivim',
     ),
     _NavItem(
       activeIcon: Icons.checkroom_rounded,
       icon: Icons.checkroom_outlined,
-      label: 'Dolap',
+      label: 'Dolabım',
     ),
   ];
 
