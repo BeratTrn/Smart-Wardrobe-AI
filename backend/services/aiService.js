@@ -219,4 +219,114 @@ Yanıtını YALNIZCA geçerli bir JSON nesnesi olarak ver. Markdown, açıklama,
     return parsed;
 };
 
-module.exports = { analyzeItem, generateOutfitSuggestion };
+/**
+ * Groq / Llama 3.3 ile seyahat kapsül gardırobu önerir.
+ *
+ * @param {Array}  userItems  - Item documents from MongoDB
+ * @param {Object} havaDurumu - { sicaklik, durum, nem, konum }
+ * @param {string} sehir      - Hedef şehir adı
+ * @param {number} gunSayisi  - Seyahat süresi (gün)
+ * @returns {{ aciklama: string, secilen_kiyafet_idleri: string[], ipucu: string }}
+ */
+const generateSuitcaseSuggestion = async (userItems, havaDurumu, sehir, gunSayisi) => {
+
+    // ── 1. DOLAP LİSTESİNİ HAZIRLA ───────────────────────────────────────────
+    const kiyafetListesi = userItems
+        .map(k =>
+            `ID:${k._id} | KATEGORİ:${k.kategori} | Renk:${k.renk} | Mevsim:${k.mevsim} | Stil:${k.stil}${k.marka ? ' | Marka:' + k.marka : ''}`
+        )
+        .join('\n');
+
+    const sicaklik  = havaDurumu.sicaklik ?? 18;
+    const sogukHava = sicaklik < 10;
+    const sicakHava = sicaklik > 25;
+
+    // ── 2. GÜN SAYISINA GÖRE PAKETLEME KILAVUZU ─────────────────────────────
+    let paketlemeKuralı;
+    if (gunSayisi <= 3) {
+        paketlemeKuralı = `${gunSayisi} günlük kısa seyahat: 2-${gunSayisi + 1} üst/elbise, 1-2 alt giyim, 1 ayakkabı öner. Valiz yerine kabin bagajına sığacak kadar az parça seç.`;
+    } else if (gunSayisi <= 7) {
+        paketlemeKuralı = `${gunSayisi} günlük seyahat: 4-5 üst/elbise, 2-3 alt giyim, 1-2 ayakkabı öner. Parçaları birbiriyle kombinleyerek fazla yer kaplamamasına dikkat et.`;
+    } else {
+        paketlemeKuralı = `${gunSayisi} günlük uzun seyahat: kapsül gardırop mantığıyla 5-6 üst/elbise, 3 alt giyim, 2 ayakkabı öner. Mix-and-match yaratabilecek nötr tonları tercih et.`;
+    }
+
+    // ── 3. PROMPT ─────────────────────────────────────────────────────────────
+    const prompt = `
+Sen bir profesyonel seyahat stili danışmanısın. Kullanıcı ${sehir}'e ${gunSayisi} günlük bir seyahat yapıyor.
+
+════════════════════════════════
+SEYAHAT BİLGİLERİ
+════════════════════════════════
+- Hedef Şehir   : ${sehir}
+- Seyahat Süresi : ${gunSayisi} gün
+- Tahmini Sıcaklık: ${sicaklik}°C
+- Hava Durumu   : ${havaDurumu.durum || 'Bilinmiyor'}
+- Nem            : ${havaDurumu.nem ?? '—'}%
+${sogukHava ? '- ⚠️  SOĞUK HAVA: Kat kat giyim öner. Dış giyim zorunlu.' : ''}
+${sicakHava ? '- ☀️  SICAK HAVA: Hafif ve nefes alan parçalar tercih et. Dış giyim muhtemelen gereksiz.' : ''}
+
+════════════════════════════════
+DOLAP İÇERİĞİ (YALNIZCA BURADAN SEÇ)
+════════════════════════════════
+${kiyafetListesi}
+
+════════════════════════════════
+PAKETLEME STRATEJİSİ
+════════════════════════════════
+${paketlemeKuralı}
+
+MIX-AND-MATCH KURALI: Seçilen her alt giyim en az 2 farklı üst giyimle uyumlu olmalı.
+RENK UYUMU: Nötr baz renkler (siyah, beyaz, gri, lacivert, bej) + en fazla 1-2 vurgu rengi.
+
+HAVA KURALLARI:
+${sogukHava ? '- Şort, kolsuz üst, ince yazlık YASAK.' : sicakHava ? '- Kaban ve kalın mont gereksiz.' : '- Mevsim geçiş hava: katman eklenebilir hafif parçaları tercih et.'}
+
+ZORUNLU MİNİMUM (en az biri sağlanmalı):
+  YAPI A: 1 Üst Giyim + 1 Alt Giyim + 1 Ayakkabı
+  YAPI B: 1 Elbise & Etek + 1 Ayakkabı
+
+════════════════════════════════
+MUTLAK YASAKLAR
+════════════════════════════════
+1. Listede ID'si OLMAYAN herhangi bir parça seçilemez.
+2. Aynı ID iki kez seçilemez.
+
+════════════════════════════════
+ÇIKTI FORMATI
+════════════════════════════════
+YALNIZCA geçerli bir JSON nesnesi döndür. Markdown ve ek metin yasak.
+{
+  "aciklama": "Bu şehir, bu hava ve bu süre için neden bu parçaları seçtiğini açıklayan 2-3 cümle. (Türkçe, samimi)",
+  "secilen_kiyafet_idleri": ["<ID_1>", "<ID_2>", "..."],
+  "ipucu": "Seyahat paketleme veya stil için tek cümlelik akıllı tavsiye. (Türkçe)"
+}
+`.trim();
+
+    // ── 4. AI ÇAĞRISI ─────────────────────────────────────────────────────────
+    const response = await groq.chat.completions.create({
+        messages: [{ role: 'user', content: prompt }],
+        model: 'llama-3.3-70b-versatile',
+        temperature: 0.5,  // Outfit'ten biraz daha yaratıcı ama kural odaklı
+        response_format: { type: 'json_object' },
+    });
+
+    const text = response.choices[0].message.content.trim();
+
+    // ── 5. PARSE & ID DOĞRULAMA ───────────────────────────────────────────────
+    let parsed;
+    try {
+        parsed = JSON.parse(text);
+    } catch {
+        const clean = text.replace(/^```json\s*/i, '').replace(/\s*```$/, '').trim();
+        parsed = JSON.parse(clean);
+    }
+
+    const gecerliIdler = new Set(userItems.map(k => k._id.toString()));
+    parsed.secilen_kiyafet_idleri = (parsed.secilen_kiyafet_idleri || [])
+        .filter(id => gecerliIdler.has(id.toString()));
+
+    return parsed;
+};
+
+module.exports = { analyzeItem, wardrobeOnKontrol, generateOutfitSuggestion, generateSuitcaseSuggestion };
