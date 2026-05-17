@@ -18,11 +18,15 @@ if (currentEnv === 'test') {
 }
 
 const { verifySmtpConnection } = require('./services/emailService');
+const { initFirebase } = require('./config/firebase');
+const { startCronJobs } = require('./services/cronService');
 
 // Veritabanına bağlan
 if (process.env.NODE_ENV !== 'test') {
     connectDB();
     verifySmtpConnection();
+    initFirebase();
+    startCronJobs();
 }
 
 const app = express();
