@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -714,8 +713,7 @@ class ApiService {
 
       if (res.statusCode == 201) {
         final json = jsonDecode(res.body) as Map<String, dynamic>;
-        return TravelSuitcase.fromJson(
-            json['bavul'] as Map<String, dynamic>);
+        return TravelSuitcase.fromJson(json['bavul'] as Map<String, dynamic>);
       }
 
       Map<String, dynamic> errBody = {};
@@ -730,8 +728,7 @@ class ApiService {
       );
     } on TimeoutException {
       throw const ApiException(
-        message:
-            'AI çok uzun sürdü. Bağlantınızı kontrol edip tekrar deneyin.',
+        message: 'AI çok uzun sürdü. Bağlantınızı kontrol edip tekrar deneyin.',
         statusCode: 0,
       );
     } catch (e) {
@@ -798,6 +795,115 @@ class ApiService {
     } catch (e) {
       if (e is ApiException) rethrow;
       throw ApiException(message: 'Sunucuya bağlanılamadı: $e', statusCode: 0);
+    } finally {
+      client.close();
+    }
+  }
+
+  // ─── PUT /api/users/notification-preferences ───────────────────────────────
+
+  /// Kullanıcının bildirim tercihlerini günceller.
+  Future<void> updateNotificationPreferences({
+    bool? dailyWeatherAI,
+    bool? travelReminders,
+    bool? weeklyStyle,
+    String? defaultCity,
+  }) async {
+    final token = await _getToken();
+    if (token.isEmpty) {
+      throw const ApiException(
+        message: 'Oturumunuz sona erdi, lütfen tekrar giriş yapın.',
+        statusCode: 401,
+      );
+    }
+
+    final uri = Uri.parse(
+      '${ApiConstants.baseUrl}/users/notification-preferences',
+    );
+    final client = http.Client();
+
+    final body = <String, dynamic>{};
+    if (dailyWeatherAI != null) body['dailyWeatherAI'] = dailyWeatherAI;
+    if (travelReminders != null) body['travelReminders'] = travelReminders;
+    if (weeklyStyle != null) body['weeklyStyle'] = weeklyStyle;
+    if (defaultCity != null) body['defaultCity'] = defaultCity;
+
+    try {
+      final res = await client
+          .put(
+            uri,
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ${token.trim()}',
+              'Accept': 'application/json',
+            },
+            body: jsonEncode(body),
+          )
+          .timeout(const Duration(seconds: 15));
+
+      if (kDebugMode) {
+        debugPrint(
+          '[ApiService] PUT /users/notification-preferences → ${res.statusCode}',
+        );
+      }
+
+      if (res.statusCode == 200) return;
+
+      Map<String, dynamic> errBody = {};
+      try {
+        errBody = jsonDecode(res.body) as Map<String, dynamic>;
+      } catch (_) {}
+
+      throw ApiException(
+        message:
+            errBody['mesaj'] as String? ?? 'Sunucu hatası (${res.statusCode})',
+        statusCode: res.statusCode,
+      );
+    } on TimeoutException {
+      throw const ApiException(
+        message: 'Sunucu yanıt vermedi. Bağlantınızı kontrol edin.',
+        statusCode: 0,
+      );
+    } catch (e) {
+      if (e is ApiException) rethrow;
+      throw ApiException(message: 'Sunucuya bağlanılamadı: $e', statusCode: 0);
+    } finally {
+      client.close();
+    }
+  }
+
+  // ─── POST /api/users/fcm-token ─────────────────────────────────────────────
+
+  /// Kullanıcının FCM token'ını backend'e kaydeder.
+  Future<void> saveFcmToken(String token) async {
+    final authToken = await _getToken();
+    if (authToken.isEmpty) {
+      return; // Token yoksa sessizce geç
+    }
+
+    final uri = Uri.parse('${ApiConstants.baseUrl}/users/fcm-token');
+    final client = http.Client();
+
+    try {
+      final res = await client
+          .post(
+            uri,
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ${authToken.trim()}',
+              'Accept': 'application/json',
+            },
+            body: jsonEncode({'fcmToken': token}),
+          )
+          .timeout(const Duration(seconds: 10));
+
+      if (kDebugMode) {
+        debugPrint('[ApiService] POST /users/fcm-token → ${res.statusCode}');
+      }
+
+      // Başarısız olsa bile kritik değil, sessizce geç
+    } catch (_) {
+      // Token kaydı kritik değil; sessizce geç
     } finally {
       client.close();
     }

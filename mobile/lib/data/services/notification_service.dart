@@ -26,6 +26,7 @@ class NotificationService {
     'Smart Wardrobe Bildirimleri',
     description: 'Hava durumu ve kombin önerileri için bildirimler',
     importance: Importance.high,
+    showBadge: true,
   );
 
   /// main() içinde Firebase.initializeApp() çağrısından sonra çağrılmalıdır.
@@ -34,27 +35,22 @@ class NotificationService {
     FirebaseMessaging.onBackgroundMessage(_firebaseBackgroundHandler);
 
     // İzin iste (iOS zorunlu, Android 13+ için gerekli)
-    await _messaging.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
+    await _messaging.requestPermission(alert: true, badge: true, sound: true);
 
     // Android bildirim kanalını oluştur
     await _localNotifications
         .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
+          AndroidFlutterLocalNotificationsPlugin
+        >()
         ?.createNotificationChannel(_androidChannel);
 
     // flutter_local_notifications başlat
-    const androidSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidSettings = AndroidInitializationSettings(
+      '@mipmap/ic_launcher',
+    );
     const iosSettings = DarwinInitializationSettings();
     await _localNotifications.initialize(
-      const InitializationSettings(
-        android: androidSettings,
-        iOS: iosSettings,
-      ),
+      const InitializationSettings(android: androidSettings, iOS: iosSettings),
     );
 
     // Uygulama ön plandayken gelen mesajları yakala → yerel bildirim göster
@@ -64,7 +60,9 @@ class NotificationService {
     await _registerToken();
 
     // Token yenilenirse tekrar kaydet
-    _messaging.onTokenRefresh.listen((newToken) => _sendTokenToBackend(newToken));
+    _messaging.onTokenRefresh.listen(
+      (newToken) => _sendTokenToBackend(newToken),
+    );
   }
 
   Future<void> _registerToken() async {
