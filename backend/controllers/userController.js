@@ -114,9 +114,68 @@ const uploadProfilePhoto = async (req, res) => {
     }
 };
 
+// @route  PUT /api/users/preferences
+// @access Private
+const updatePreferences = async (req, res) => {
+    try {
+        const { dailyWeatherAI, travelReminders, weeklyStyle, defaultCity } = req.body;
+
+        const update = {};
+        if (dailyWeatherAI  !== undefined) update['notificationPreferences.dailyWeatherAI']  = Boolean(dailyWeatherAI);
+        if (travelReminders !== undefined) update['notificationPreferences.travelReminders'] = Boolean(travelReminders);
+        if (weeklyStyle     !== undefined) update['notificationPreferences.weeklyStyle']     = Boolean(weeklyStyle);
+        if (defaultCity && typeof defaultCity === 'string' && defaultCity.trim()) {
+            update.defaultCity = defaultCity.trim();
+        }
+
+        if (Object.keys(update).length === 0) {
+            return res.status(400).json({ mesaj: 'En az bir tercih gönderilmelidir.' });
+        }
+
+        const updatedUser = await User.findByIdAndUpdate(
+            req.user._id,
+            { $set: update },
+            { new: true }
+        ).select('-sifre');
+
+        res.status(200).json({
+            mesaj: 'Tercihler güncellendi. ✅',
+            notificationPreferences: updatedUser.notificationPreferences,
+            defaultCity: updatedUser.defaultCity,
+        });
+    } catch (error) {
+        console.error('Tercih Güncelleme Hatası:', error);
+        res.status(500).json({ mesaj: 'Tercihler güncellenemedi.' });
+    }
+};
+
+// @route  POST /api/users/fcm-token
+// @access Private
+const saveFcmToken = async (req, res) => {
+    try {
+        const { fcmToken } = req.body;
+
+        if (!fcmToken || typeof fcmToken !== 'string' || fcmToken.trim() === '') {
+            return res.status(400).json({ mesaj: 'Geçerli bir FCM token gönderilmelidir.' });
+        }
+
+        await User.findByIdAndUpdate(
+            req.user._id,
+            { $addToSet: { fcmTokens: fcmToken.trim() } }
+        );
+
+        res.status(200).json({ mesaj: 'FCM token kaydedildi. ✅' });
+    } catch (error) {
+        console.error('FCM Token Kayıt Hatası:', error);
+        res.status(500).json({ mesaj: 'FCM token kaydedilemedi.' });
+    }
+};
+
 module.exports = {
     updateProfile,
     updateBodyProfile,
     updateProfilePhoto,
     uploadProfilePhoto,
+    updatePreferences,
+    saveFcmToken,
 };

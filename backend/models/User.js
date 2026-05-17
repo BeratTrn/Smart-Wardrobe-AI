@@ -38,6 +38,19 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: null
     },
+    fcmTokens: [{ type: String }],
+
+    defaultCity: {
+        type: String,
+        default: 'Istanbul',
+        trim: true,
+    },
+    notificationPreferences: {
+        dailyWeatherAI:  { type: Boolean, default: true },
+        travelReminders: { type: Boolean, default: true },
+        weeklyStyle:     { type: Boolean, default: true },
+    },
+
     resetPasswordToken: String,
     resetPasswordExpire: Date,
 

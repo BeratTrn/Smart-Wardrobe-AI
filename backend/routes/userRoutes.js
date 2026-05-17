@@ -4,6 +4,8 @@ const {
     updateBodyProfile,
     updateProfilePhoto,
     uploadProfilePhoto,
+    updatePreferences,
+    saveFcmToken,
 } = require('../controllers/userController');
 const { protect } = require('../middleware/authMiddleware');
 const { upload } = require('../config/cloudinary');
@@ -248,5 +250,74 @@ router.put('/profile/photo', protect, updateProfilePhoto);
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.put('/profile/photo/upload', protect, upload.single('resim'), uploadProfilePhoto);
+
+/**
+ * @swagger
+ * /api/users/fcm-token:
+ *   post:
+ *     summary: FCM cihaz token'ını kaydeder
+ *     description: |
+ *       Flutter uygulaması açıldığında FCM'den alınan cihaz token'ını
+ *       kullanıcının `fcmTokens` dizisine ekler. `$addToSet` kullandığından
+ *       aynı token birden fazla kez kaydedilmez.
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [fcmToken]
+ *             properties:
+ *               fcmToken:
+ *                 type: string
+ *                 example: "dGhpcyBpcyBhIHNhbXBsZSB0b2tlbg=="
+ *     responses:
+ *       200:
+ *         description: Token başarıyla kaydedildi
+ *       400:
+ *         description: Geçersiz veya boş token
+ *       401:
+ *         description: Token eksik veya geçersiz
+ *       500:
+ *         description: Sunucu hatası
+ */
+/**
+ * @swagger
+ * /api/users/preferences:
+ *   put:
+ *     summary: Bildirim tercihlerini ve varsayılan şehri günceller
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               dailyWeatherAI:
+ *                 type: boolean
+ *               travelReminders:
+ *                 type: boolean
+ *               weeklyStyle:
+ *                 type: boolean
+ *               defaultCity:
+ *                 type: string
+ *                 example: Istanbul
+ *     responses:
+ *       200:
+ *         description: Tercihler güncellendi
+ *       400:
+ *         description: Geçersiz veya boş değer
+ *       401:
+ *         description: Token eksik veya geçersiz
+ */
+router.put('/preferences', protect, updatePreferences);
+
+router.post('/fcm-token', protect, saveFcmToken);
 
 module.exports = router;

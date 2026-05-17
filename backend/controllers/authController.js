@@ -287,6 +287,12 @@ const getMe = async (req, res) => {
                 profilFoto: req.user.profilFoto ?? '',
                 tercihler: req.user.tercihler,
                 vucut: req.user.vucut,
+                defaultCity: req.user.defaultCity ?? 'Istanbul',
+                notificationPreferences: req.user.notificationPreferences ?? {
+                    dailyWeatherAI:  true,
+                    travelReminders: true,
+                    weeklyStyle:     true,
+                },
                 createdAt: req.user.createdAt
             }
         });
