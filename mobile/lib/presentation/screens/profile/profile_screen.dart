@@ -24,6 +24,7 @@ import 'package:smart_wardrobe_ai/presentation/widgets/profile/profile_settings_
 import 'package:smart_wardrobe_ai/presentation/widgets/profile/profile_shared_widgets.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/profile/profile_stats_row.dart';
 import 'package:smart_wardrobe_ai/presentation/screens/profile/body_profile_screen.dart';
+import 'package:smart_wardrobe_ai/presentation/screens/profile/notification_settings_screen.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/shared/app_background.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -960,15 +961,44 @@ class _ProfileScreenState extends State<ProfileScreen>
       padding: const EdgeInsets.fromLTRB(22, 10, 22, 0),
       child: ProfileSettingsCard(
         children: [
-          ProfileToggleTile(
-            icon: Icons.notifications_outlined,
-            label: 'Bildirimler',
-            subtitle: 'Push bildirimlerini al',
-            value: _notifEnabled,
-            onChanged: (v) {
-              setState(() => _notifEnabled = v);
-              _savePref('pref_notif', v);
-            },
+          ProfileNavTile(
+            icon: Icons.notifications_active_outlined,
+            label: 'Bildirim Ayarları',
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [AppColors.gold, AppColors.goldLight],
+                    ),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: const Text(
+                    'AI',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 9,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: .5,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                const Icon(
+                  Icons.chevron_right_rounded,
+                  color: AppColors.muted,
+                  size: 20,
+                ),
+              ],
+            ),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const NotificationSettingsScreen(),
+              ),
+            ),
           ),
         ],
       ),
