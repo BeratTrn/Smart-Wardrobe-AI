@@ -11,6 +11,8 @@ const User = require('../models/User');
  * @param {Object} dataPayload - İsteğe bağlı ekstra key-value verisi (tüm değerler string olmalı)
  */
 const sendPushNotification = async (userId, title, body, dataPayload = {}) => {
+    if (process.env.NODE_ENV === 'test') return;
+
     const user = await User.findById(userId).select('fcmTokens');
 
     if (!user || !user.fcmTokens || user.fcmTokens.length === 0) {
