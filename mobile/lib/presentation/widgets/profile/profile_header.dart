@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:smart_wardrobe_ai/core/constants/app_colors.dart';
+import 'package:smart_wardrobe_ai/core/theme/app_theme_extension.dart';
 import 'package:smart_wardrobe_ai/core/utils/avatar_manager.dart';
 import 'package:smart_wardrobe_ai/data/models/user_profile.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/shared/app_text_styles.dart';
@@ -120,18 +121,21 @@ class ProfileHeader extends StatelessWidget {
               children: [
                 Text(
                   profile?.name.isNotEmpty == true ? profile!.name : '—',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Cormorant',
                     fontSize: 22,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.text,
+                    color: AppColorsExtension.of(context).text,
                     letterSpacing: -.3,
                   ),
                 ),
                 const SizedBox(height: 3),
                 Text(
                   profile?.email ?? '',
-                  style: AppTextStyles.caption.copyWith(fontSize: 12),
+                  style: AppTextStyles.caption.copyWith(
+                    fontSize: 12,
+                    color: AppColorsExtension.of(context).textSub,
+                  ),
                 ),
                 const SizedBox(height: 6),
                 // Avatar / kamera ipucu

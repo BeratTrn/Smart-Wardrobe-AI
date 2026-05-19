@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:smart_wardrobe_ai/core/constants/app_colors.dart';
@@ -37,9 +38,9 @@ class LanguageSheet extends StatelessWidget {
         children: [
           const ProfileSheetHandle(),
           const SizedBox(height: 20),
-          const Text(
-            'Dil Seç',
-            style: TextStyle(
+          Text(
+            'language_select'.tr(),
+            style: const TextStyle(
               fontFamily: 'Cormorant',
               fontSize: 22,
               fontWeight: FontWeight.w700,

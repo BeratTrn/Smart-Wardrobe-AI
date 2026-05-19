@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:smart_wardrobe_ai/core/constants/api_constants.dart';
@@ -40,8 +41,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
   double get _passwordStrength {
     final p = _passwordCtrl.text;
     if (p.isEmpty) return 0.0;
-    
-    bool hasSeq = RegExp(r'(0123|1234|2345|3456|4567|5678|6789|7890|abcd|bcde|cdef|defg|efgh|fghi|ghij|hijk|ijkl|jklm|klmn|lmno|mnop|nopq|opqr|pqrs|qrst|rstu|stuv|tuvw|uvwx|vwxy|wxyz)', caseSensitive: false).hasMatch(p);
+
+    bool hasSeq = RegExp(
+      r'(0123|1234|2345|3456|4567|5678|6789|7890|abcd|bcde|cdef|defg|efgh|fghi|ghij|hijk|ijkl|jklm|klmn|lmno|mnop|nopq|opqr|pqrs|qrst|rstu|stuv|tuvw|uvwx|vwxy|wxyz)',
+      caseSensitive: false,
+    ).hasMatch(p);
 
     if (p.length < 6 || hasSeq) return 0.25;
 
@@ -60,16 +64,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
   String get _strengthLabel {
     final p = _passwordCtrl.text;
     if (p.isEmpty) return '';
-    bool hasSeq = RegExp(r'(0123|1234|2345|3456|4567|5678|6789|7890|abcd|bcde|cdef|defg|efgh|fghi|ghij|hijk|ijkl|jklm|klmn|lmno|mnop|nopq|opqr|pqrs|qrst|rstu|stuv|tuvw|uvwx|vwxy|wxyz)', caseSensitive: false).hasMatch(p);
-    
-    if (hasSeq) return 'Zayıf (Ardışık Karakter)';
-    if (p.length < 6) return 'Zayıf (Çok Kısa)';
+    bool hasSeq = RegExp(
+      r'(0123|1234|2345|3456|4567|5678|6789|7890|abcd|bcde|cdef|defg|efgh|fghi|ghij|hijk|ijkl|jklm|klmn|lmno|mnop|nopq|opqr|pqrs|qrst|rstu|stuv|tuvw|uvwx|vwxy|wxyz)',
+      caseSensitive: false,
+    ).hasMatch(p);
+
+    if (hasSeq) return 'signup.password_sequential_chars'.tr();
+    if (p.length < 6) return 'signup.password_too_short'.tr();
 
     final s = _passwordStrength;
-    if (s <= .25) return 'Zayıf';
-    if (s <= .50) return 'Orta';
-    if (s <= .80) return 'İyi';
-    return 'Çok Güçlü';
+    if (s <= .25) return 'signup.password_weak'.tr();
+    if (s <= .50) return 'signup.password_medium'.tr();
+    if (s <= .80) return 'signup.password_good'.tr();
+    return 'signup.password_strong'.tr();
   }
 
   Color get _strengthColor {
@@ -81,21 +88,22 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   bool get _passwordsMatch => _passwordCtrl.text == _confirmCtrl.text;
-  bool get _showMismatchError => _confirmCtrl.text.isNotEmpty && !_passwordsMatch;
+  bool get _showMismatchError =>
+      _confirmCtrl.text.isNotEmpty && !_passwordsMatch;
 
   Future<void> _register() async {
     if (_nameCtrl.text.trim().isEmpty ||
         _emailCtrl.text.trim().isEmpty ||
         _passwordCtrl.text.isEmpty) {
-      showAuthSnack(context, 'Lütfen tüm alanları doldurun.');
+      showAuthSnack(context, 'signup.all_fields_required'.tr());
       return;
     }
     if (_passwordCtrl.text != _confirmCtrl.text) {
-      showAuthSnack(context, 'Şifreler eşleşmiyor.');
+      showAuthSnack(context, 'signup.passwords_do_not_match'.tr());
       return;
     }
     if (!_termsAccepted) {
-      showAuthSnack(context, 'Koşulları kabul etmelisiniz.');
+      showAuthSnack(context, 'signup.conditions_not_accepted'.tr());
       return;
     }
 
@@ -119,16 +127,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
         final email = data['email'] ?? _emailCtrl.text.trim();
         Navigator.push(
           context,
-          MaterialPageRoute(
-            builder: (_) => VerificationScreen(email: email),
-          ),
+          MaterialPageRoute(builder: (_) => VerificationScreen(email: email)),
         );
       } else {
         if (data['emailSendFailed'] == true) {
           showAuthSnack(
             context,
-            data['mesaj'] ??
-                'Doğrulama maili gönderilemedi. Lütfen birkaç dakika sonra tekrar deneyin.',
+            data['mesaj'] ?? 'signup.verification_email_not_sent'.tr(),
           );
         } else {
           showAuthSnack(context, data['mesaj'] ?? 'Kayıt başarısız.');
@@ -172,7 +177,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 const SizedBox(height: 36),
 
                 Text(
-                  'Hesap\nOluştur.',
+                  'signup.account_creation'.tr(),
                   style: TextStyle(
                     fontFamily: 'Cormorant',
                     fontSize: 44,
@@ -183,8 +188,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                const Text(
-                  'Dolabını dijitale taşımaya başla.',
+                Text(
+                  'signup.digitalize_your_wardrobe'.tr(),
                   style: TextStyle(color: AuthColors.muted, fontSize: 14),
                 ),
 
@@ -192,20 +197,20 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
                 AuthTextField(
                   controller: _nameCtrl,
-                  hint: 'Ad Soyad',
+                  hint: 'signup.full_name'.tr(),
                   icon: Icons.person_outline_rounded,
                 ),
                 const SizedBox(height: 14),
                 AuthTextField(
                   controller: _emailCtrl,
-                  hint: 'E-posta',
+                  hint: 'signup.email'.tr(),
                   icon: Icons.mail_outline_rounded,
                   keyboardType: TextInputType.emailAddress,
                 ),
                 const SizedBox(height: 14),
                 AuthTextField(
                   controller: _passwordCtrl,
-                  hint: 'Şifre',
+                  hint: 'signup.password'.tr(),
                   icon: Icons.lock_outline_rounded,
                   isPassword: true,
                 ),
@@ -223,7 +228,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 const SizedBox(height: 14),
                 AuthTextField(
                   controller: _confirmCtrl,
-                  hint: 'Şifre Tekrar',
+                  hint: 'signup.confirm_password'.tr(),
                   icon: Icons.lock_outline_rounded,
                   isPassword: true,
                 ),
@@ -234,10 +239,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     padding: const EdgeInsets.only(top: 8, left: 4),
                     child: Row(
                       children: [
-                        const Icon(Icons.error_outline_rounded, color: AuthColors.error, size: 14),
+                        const Icon(
+                          Icons.error_outline_rounded,
+                          color: AuthColors.error,
+                          size: 14,
+                        ),
                         const SizedBox(width: 6),
-                        const Text(
-                          'Şifreler birbiriyle eşleşmiyor.',
+                        Text(
+                          'signup.passwords_not_match'.tr(),
                           style: TextStyle(
                             color: AuthColors.error,
                             fontSize: 12,
@@ -280,8 +289,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             : null,
                       ),
                       const SizedBox(width: 10),
-                      const Text(
-                        'Kullanım koşullarını kabul ediyorum',
+                      Text(
+                        'signup.i_accept_terms'.tr(),
                         style: TextStyle(color: AuthColors.muted, fontSize: 13),
                       ),
                     ],
@@ -290,7 +299,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
                 const SizedBox(height: 28),
                 AuthPrimaryButton(
-                  label: 'Kayıt Ol',
+                  label: 'signup.sign_up'.tr(),
                   onTap: _register,
                   loading: _loading,
                 ),
@@ -301,12 +310,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   child: GestureDetector(
                     onTap: () => Navigator.pop(context),
                     child: RichText(
-                      text: const TextSpan(
-                        text: 'Zaten hesabın var mı? ',
+                      text: TextSpan(
+                        text: 'signup.already_have_account'.tr(),
                         style: TextStyle(color: AuthColors.muted, fontSize: 14),
                         children: [
                           TextSpan(
-                            text: 'Giriş yap',
+                            text: 'signup.sign_in'.tr(),
                             style: TextStyle(
                               color: AuthColors.gold,
                               fontWeight: FontWeight.w600,

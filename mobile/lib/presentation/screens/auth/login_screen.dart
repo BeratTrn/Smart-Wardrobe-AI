@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:smart_wardrobe_ai/core/controllers/app_settings_controller.dart';
 import 'package:smart_wardrobe_ai/presentation/screens/auth/sign_up_screen.dart';
 import 'package:smart_wardrobe_ai/core/constants/api_constants.dart';
 import 'package:smart_wardrobe_ai/presentation/screens/main/home_screen.dart';
@@ -60,7 +62,7 @@ class _LoginScreenState extends State<LoginScreen>
     final password = _passwordCtrl.text.trim();
 
     if (email.isEmpty || password.isEmpty) {
-      showAuthSnack(context, 'Lütfen tüm alanları doldurun.');
+      showAuthSnack(context, 'login.please_fill_in_all_fields'.tr());
       return;
     }
 
@@ -80,10 +82,14 @@ class _LoginScreenState extends State<LoginScreen>
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('token', data['token'] ?? '');
 
-        // Backend'den 'kullanici' nesnesi içinde geliyor: data['kullanici']['kullaniciAdi']
-        final k = data['kullanici'];
-        final userName = k != null ? (k['kullaniciAdi'] ?? '') : '';
+        final k = data['kullanici'] as Map<String, dynamic>?;
+        final userName = k != null ? (k['kullaniciAdi'] as String? ?? '') : '';
         await prefs.setString('userName', userName);
+
+        // Çapraz cihaz senkronizasyonu — backend'in tema ve dil tercihini uygula
+        if (k != null && mounted) {
+          await _applyBackendSettings(k);
+        }
 
         if (!mounted) return;
         Navigator.pushAndRemoveUntil(
@@ -101,12 +107,42 @@ class _LoginScreenState extends State<LoginScreen>
     }
   }
 
+  /// Backend kullanici nesnesindeki tema ve dil tercihlerini yerel olarak uygular.
+  Future<void> _applyBackendSettings(Map<String, dynamic> kullanici) async {
+    final theme = kullanici['theme'] as String?;
+    final lang = kullanici['language'] as String?;
+
+    if (theme != null) {
+      await AppSettingsController.instance.applyBackendSettings(
+        isDark: theme == 'dark',
+      );
+    }
+    if (lang != null && mounted) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('pref_language', lang);
+      await context.setLocale(_langCodeToLocale(lang));
+    }
+  }
+
+  static Locale _langCodeToLocale(String code) {
+    switch (code) {
+      case 'en':
+        return const Locale('en');
+      case 'de':
+        return const Locale('de');
+      case 'fr':
+        return const Locale('fr');
+      default:
+        return const Locale('tr');
+    }
+  }
+
   Future<void> _signInWithGoogle() async {
     setState(() => _googleLoading = true);
     try {
       // Önce çıkış yap ki her seferinde hesap seçme ekranı gelsin
       await _googleSignIn.signOut();
-      
+
       final googleUser = await _googleSignIn.signIn();
       if (googleUser == null) {
         setState(() => _googleLoading = false);
@@ -133,11 +169,17 @@ class _LoginScreenState extends State<LoginScreen>
       if (res.statusCode == 200) {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('token', data['token'] ?? '');
-        final k = data['kullanici'];
+        final k = data['kullanici'] as Map<String, dynamic>?;
         await prefs.setString(
           'userName',
-          k != null ? (k['kullaniciAdi'] ?? '') : '',
+          k != null ? (k['kullaniciAdi'] as String? ?? '') : '',
         );
+
+        // Çapraz cihaz senkronizasyonu — backend'in tema ve dil tercihini uygula
+        if (k != null && mounted) {
+          await _applyBackendSettings(k);
+        }
+
         if (!mounted) return;
         Navigator.pushAndRemoveUntil(
           context,
@@ -145,10 +187,17 @@ class _LoginScreenState extends State<LoginScreen>
           (_) => false,
         );
       } else {
-        showAuthSnack(context, data['mesaj'] ?? 'Google ile giriş başarısız.');
+        showAuthSnack(
+          context,
+          data['mesaj'] ?? 'login.google_sign_in_failed'.tr(),
+        );
       }
     } catch (_) {
-      if (mounted) showAuthSnack(context, 'Google ile giriş yapılamadı.');
+      if (mounted)
+        showAuthSnack(
+          context,
+          'login.google_sign_in_failed_could_not_use'.tr(),
+        );
     } finally {
       if (mounted) setState(() => _googleLoading = false);
     }
@@ -205,7 +254,7 @@ class _LoginScreenState extends State<LoginScreen>
                 const SizedBox(height: 36),
 
                 Text(
-                  'Tekrar\nHoş Geldin.',
+                  'login.welcome_back'.tr(),
                   style: TextStyle(
                     fontFamily: 'Cormorant',
                     fontSize: 44,
@@ -221,14 +270,14 @@ class _LoginScreenState extends State<LoginScreen>
                 // — alanlar
                 AuthTextField(
                   controller: _emailCtrl,
-                  hint: 'E-posta',
+                  hint: 'login.email'.tr(),
                   icon: Icons.mail_outline_rounded,
                   keyboardType: TextInputType.emailAddress,
                 ),
                 const SizedBox(height: 14),
                 AuthTextField(
                   controller: _passwordCtrl,
-                  hint: 'Şifre',
+                  hint: 'login.password'.tr(),
                   icon: Icons.lock_outline_rounded,
                   isPassword: true,
                 ),
@@ -243,8 +292,8 @@ class _LoginScreenState extends State<LoginScreen>
                         builder: (_) => const ForgotPasswordScreen(),
                       ),
                     ),
-                    child: const Text(
-                      'Şifremi unuttum?',
+                    child: Text(
+                      'login.forgot_password'.tr(),
                       style: TextStyle(
                         color: AuthColors.gold,
                         fontSize: 13,
@@ -257,7 +306,7 @@ class _LoginScreenState extends State<LoginScreen>
                 const SizedBox(height: 8),
 
                 AuthPrimaryButton(
-                  label: 'Giriş Yap',
+                  label: 'login.sign_in'.tr(),
                   onTap: _login,
                   loading: _loading,
                 ),
@@ -277,11 +326,10 @@ class _LoginScreenState extends State<LoginScreen>
                             color: AuthColors.gold,
                           ),
                         )
-                      : const GoogleIcon(),
-                  label: 'Google ile giriş yap',
+                      : GoogleIcon(),
+                  label: 'login.sign_in_with_google'.tr(),
                   onTap: _googleLoading ? () {} : _signInWithGoogle,
                 ),
-
 
                 const SizedBox(height: 32),
 
@@ -293,13 +341,16 @@ class _LoginScreenState extends State<LoginScreen>
                       MaterialPageRoute(builder: (_) => const SignUpScreen()),
                     ),
                     child: RichText(
-                      text: const TextSpan(
-                        text: 'Hesabın yok mu? ',
-                        style: TextStyle(color: AuthColors.muted, fontSize: 14),
+                      text: TextSpan(
+                        text: 'login.not_have_account'.tr(),
+                        style: const TextStyle(
+                          color: AuthColors.muted,
+                          fontSize: 14,
+                        ),
                         children: [
                           TextSpan(
-                            text: 'Hemen kaydol',
-                            style: TextStyle(
+                            text: 'login.sign_up'.tr(),
+                            style: const TextStyle(
                               color: AuthColors.gold,
                               fontWeight: FontWeight.w600,
                             ),

@@ -41,7 +41,7 @@ class _TryOnScreenState extends State<TryOnScreen>
   XFile? _xFile;
 
   // ── UI state ──────────────────────────────────────────────────────────────
-  bool _saved = false;  // initState'te store'dan güncellenir
+  bool _saved = false; // initState'te store'dan güncellenir
   bool _saving = false; // API isteği sürerken true
 
   final _store = SavedOutfitsStore.instance;
@@ -199,7 +199,9 @@ class _TryOnScreenState extends State<TryOnScreen>
           ),
           backgroundColor: AppColors.success,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           duration: const Duration(seconds: 3),
           action: SnackBarAction(
             label: 'Kombinlerim →',
@@ -225,7 +227,9 @@ class _TryOnScreenState extends State<TryOnScreen>
           ),
           backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       );
     }

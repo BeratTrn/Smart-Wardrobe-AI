@@ -1,12 +1,14 @@
 import 'dart:convert';
 import 'dart:math' as math;
 import 'dart:ui';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:smart_wardrobe_ai/core/constants/api_constants.dart';
 import 'package:smart_wardrobe_ai/core/constants/app_colors.dart';
+import 'package:smart_wardrobe_ai/core/theme/app_theme_extension.dart';
 import 'package:smart_wardrobe_ai/data/models/clothing_item.dart';
 import 'package:smart_wardrobe_ai/data/models/saved_outfit.dart';
 import 'package:smart_wardrobe_ai/data/services/saved_outfits_store.dart';
@@ -64,7 +66,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   List<ClothingItem> _recentItems = [];
   List<ClothingItem> _allItems = [];
 
-  String _weatherDesc = 'Yükleniyor...';
+  String _weatherDesc = 'home.loading'.tr();
   String _weatherTemp = '--°';
   IconData _weatherIcon = Icons.wb_cloudy_rounded;
   String _weatherFeelsLike = '--°';
@@ -128,7 +130,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     if (token.isEmpty) {
       if (mounted) {
         setState(() {
-          _weatherDesc = 'Oturum yok';
+          _weatherDesc = 'home.no_session'.tr();
           _itemsLoading = false;
           _outfitsLoading = false;
         });
@@ -140,7 +142,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     _loadWeather(token);
 
     // Items + outfits + profile photo in parallel
-    await Future.wait([_fetchItems(token), _fetchOutfits(), _fetchProfile(token)]);
+    await Future.wait([
+      _fetchItems(token),
+      _fetchOutfits(),
+      _fetchProfile(token),
+    ]);
 
     // Trigger staggered card entrance
     if (mounted) _cardCtrl.forward(from: 0);
@@ -228,19 +234,24 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     try {
       final enabled = await Geolocator.isLocationServiceEnabled();
       if (!enabled) {
-        if (mounted) setState(() => _weatherDesc = 'Konum kapalı');
+        if (mounted)
+          setState(() => _weatherDesc = 'home.location_disabled'.tr());
         return;
       }
       LocationPermission perm = await Geolocator.checkPermission();
       if (perm == LocationPermission.denied) {
         perm = await Geolocator.requestPermission();
         if (perm == LocationPermission.denied) {
-          if (mounted) setState(() => _weatherDesc = 'İzin reddedildi');
+          if (mounted)
+            setState(() => _weatherDesc = 'home.permission_denied'.tr());
           return;
         }
       }
       if (perm == LocationPermission.deniedForever) {
-        if (mounted) setState(() => _weatherDesc = 'İzin engellendi');
+        if (mounted)
+          setState(
+            () => _weatherDesc = 'home.permission_denied_permanently'.tr(),
+          );
         return;
       }
 
@@ -255,7 +266,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       } catch (_) {
         pos = await Geolocator.getLastKnownPosition();
         if (pos == null) {
-          if (mounted) setState(() => _weatherDesc = 'Konum bulunamadı');
+          if (mounted)
+            setState(() => _weatherDesc = 'home.location_not_found'.tr());
           return;
         }
       }
@@ -273,10 +285,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       if (res.statusCode == 200) {
         _parseWeather(res.body);
       } else {
-        if (mounted) setState(() => _weatherDesc = 'Hava bilgisi yok');
+        if (mounted) setState(() => _weatherDesc = 'home.no_weather_info'.tr());
       }
     } catch (_) {
-      if (mounted) setState(() => _weatherDesc = 'Bağlantı hatası');
+      if (mounted) setState(() => _weatherDesc = 'home.connection_error'.tr());
     }
   }
 
@@ -322,7 +334,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
-      barrierLabel: 'Kapat',
+      barrierLabel: 'home.close'.tr(),
       barrierColor: Colors.black.withValues(alpha: .4),
       transitionDuration: const Duration(milliseconds: 300),
       pageBuilder: (ctx, _, __) => _WeatherDetailDialog(
@@ -335,10 +347,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         mainIcon: _weatherIcon,
       ),
       transitionBuilder: (ctx, anim, _, child) {
-        final curve = CurvedAnimation(
-          parent: anim,
-          curve: Curves.easeOutCubic,
-        );
+        final curve = CurvedAnimation(parent: anim, curve: Curves.easeOutCubic);
         return FadeTransition(
           opacity: CurvedAnimation(parent: anim, curve: Curves.easeOut),
           child: SlideTransition(
@@ -424,9 +433,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     ),
                   ),
 
-                  // ══════════════════════════════════════════════════════════
                   //  SECTION 1 — "Sana Özel Kombinler"  (real saved outfits)
-                  // ══════════════════════════════════════════════════════════
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(22, 28, 22, 14),
@@ -436,8 +443,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           _AiBadge(),
                           const SizedBox(height: 10),
                           _SectionHeader(
-                            title: 'Sana Özel Kombinler',
-                            action: 'Tümünü Gör',
+                            title: 'home.my_outfits'.tr(),
+                            action: 'home.see_all'.tr(),
                             onAction: () => Navigator.pushReplacement(
                               context,
                               slide(const SavedOutfitsScreen()),
@@ -445,8 +452,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            '$_weatherTemp · $_weatherDesc için kaydedilmiş kombinler',
-                            style: AppTextStyles.caption,
+                            'home.outfits_subtitle'.tr(
+                              namedArgs: {
+                                'temp': _weatherTemp,
+                                'desc': _weatherDesc,
+                              },
+                            ),
+                            style: AppTextStyles.caption.copyWith(
+                              color: AppColorsExtension.of(context).textSub,
+                            ),
                           ),
                         ],
                       ),
@@ -473,9 +487,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     ),
                   ),
 
-                  // ══════════════════════════════════════════════════════════
                   //  SECTION 2 — Stil Profilin  (Style Scorecard)
-                  // ══════════════════════════════════════════════════════════
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(22, 28, 22, 0),
@@ -485,15 +497,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     ),
                   ),
 
-                  // ══════════════════════════════════════════════════════════
                   //  SECTION 3 — "Son Eklenenler"  (horizontal thumbnail row)
-                  // ══════════════════════════════════════════════════════════
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(22, 28, 22, 14),
                       child: _SectionHeader(
-                        title: 'Son Eklenenler',
-                        action: 'Tümünü Gör',
+                        title: 'home.recent_items'.tr(),
+                        action: 'home.see_all'.tr(),
                         onAction: () => Navigator.pushReplacement(
                           context,
                           slide(const WardrobeScreen()),
@@ -522,9 +532,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
 //  SECTION 1 — Lookbook Carousel
-// ═══════════════════════════════════════════════════════════════════════════
 
 class _LookbookCarousel extends StatelessWidget {
   final List<SavedOutfit> outfits;
@@ -565,7 +573,7 @@ class _LookbookCarousel extends StatelessWidget {
   }
 }
 
-// ── Individual lookbook card  (SavedOutfit) ──────────────────────────────────
+// ── Individual lookbook card  (SavedOutfit)
 
 class _LookbookCard extends StatelessWidget {
   final SavedOutfit outfit;
@@ -609,13 +617,13 @@ class _LookbookCard extends StatelessWidget {
       ),
       child: Stack(
         children: [
-          // ── Mosaic of clothing images ─────────────────────────────────
+          // ── Mosaic of clothing images
           ClipRRect(
             borderRadius: BorderRadius.circular(24),
             child: _OutfitMosaic(items: items),
           ),
 
-          // ── Bottom gradient ───────────────────────────────────────────
+          // ── Bottom gradient
           Positioned.fill(
             child: ClipRRect(
               borderRadius: BorderRadius.circular(24),
@@ -636,7 +644,7 @@ class _LookbookCard extends StatelessWidget {
             ),
           ),
 
-          // ── ✨ KAYITLI badge — top right ──────────────────────────────
+          // ── KAYITLI badge — top right ───────────────────────────
           Positioned(
             top: 12,
             right: 12,
@@ -657,13 +665,13 @@ class _LookbookCard extends StatelessWidget {
                       width: .8,
                     ),
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text('✨', style: TextStyle(fontSize: 11)),
                       SizedBox(width: 4),
                       Text(
-                        'KAYITLI',
+                        'home.saved'.tr(),
                         style: TextStyle(
                           color: AppColors.goldLight,
                           fontSize: 9,
@@ -678,7 +686,7 @@ class _LookbookCard extends StatelessWidget {
             ),
           ),
 
-          // ── Style tag — top left ──────────────────────────────────────
+          // ── Style tag — top left
           Positioned(
             top: 12,
             left: 12,
@@ -704,7 +712,7 @@ class _LookbookCard extends StatelessWidget {
             ),
           ),
 
-          // ── Bottom info strip ─────────────────────────────────────────
+          // ── Bottom info strip
           Positioned(
             left: 0,
             right: 0,
@@ -806,7 +814,7 @@ class _ItemCountPill extends StatelessWidget {
         ),
         const SizedBox(width: 4),
         Text(
-          '$count parça',
+          '$count ' + 'home.items'.tr(),
           style: const TextStyle(
             color: AppColors.goldLight,
             fontSize: 10,
@@ -819,7 +827,7 @@ class _ItemCountPill extends StatelessWidget {
   );
 }
 
-// ── Outfit image mosaic ──────────────────────────────────────────────────────
+// ── Outfit image mosaic
 //  0 items  → full placeholder
 //  1 item   → single full-frame
 //  2 items  → top 60% / bottom 40%  (full width each)
@@ -929,9 +937,7 @@ class _MosaicPlaceholder extends StatelessWidget {
   );
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
 //  SECTION 2 — Style Scorecard  (Glassmorphism)
-// ═══════════════════════════════════════════════════════════════════════════
 
 class _StyleScorecardCard extends StatelessWidget {
   final List<ClothingItem> items;
@@ -1038,12 +1044,12 @@ class _StyleScorecardCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 10),
-                  const Column(
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Stil Profilin',
-                        style: TextStyle(
+                        'home.style_profile_title'.tr(),
+                        style: const TextStyle(
                           fontFamily: 'Cormorant',
                           fontSize: 20,
                           fontWeight: FontWeight.w700,
@@ -1052,8 +1058,8 @@ class _StyleScorecardCard extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        'Dolap analizi',
-                        style: TextStyle(
+                        'home.style_profile_subtitle'.tr(),
+                        style: const TextStyle(
                           color: AppColors.muted,
                           fontSize: 11,
                           letterSpacing: .3,
@@ -1068,7 +1074,7 @@ class _StyleScorecardCard extends StatelessWidget {
               const Divider(color: Color(0xFF272720), height: 1),
               const SizedBox(height: 18),
 
-              // ── Stats row ────────────────────────────────────────────────
+              // ── Stats row
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -1098,9 +1104,9 @@ class _StyleScorecardCard extends StatelessWidget {
                                 fontFamily: 'Cormorant',
                               ),
                             ),
-                            const Text(
-                              'Parça',
-                              style: TextStyle(
+                            Text(
+                              'home.pieces'.tr(),
+                              style: const TextStyle(
                                 color: AppColors.muted,
                                 fontSize: 9,
                                 letterSpacing: .5,
@@ -1121,15 +1127,17 @@ class _StyleScorecardCard extends StatelessWidget {
                       children: [
                         _StatRow(
                           icon: Icons.style_outlined,
-                          label: 'Baskın Stil',
+                          label: 'home.dominant_style'.tr(),
                           value: dominant,
                           valueColor: AppColors.goldLight,
                         ),
                         const SizedBox(height: 10),
                         _StatRow(
                           icon: Icons.checkroom_outlined,
-                          label: 'Toplam Parça',
-                          value: '$total kıyafet',
+                          label: 'home.total_items'.tr(),
+                          value: 'home.total_items_count'.tr(
+                            namedArgs: {'count': '$total'},
+                          ),
                           valueColor: AppColors.text,
                         ),
                         if (topColors.isNotEmpty) ...[
@@ -1142,9 +1150,9 @@ class _StyleScorecardCard extends StatelessWidget {
                                 size: 13,
                               ),
                               const SizedBox(width: 5),
-                              const Text(
-                                'Renk Paleti',
-                                style: TextStyle(
+                              Text(
+                                'home.color_palette'.tr(),
+                                style: const TextStyle(
                                   color: AppColors.muted,
                                   fontSize: 10,
                                   letterSpacing: .5,
@@ -1188,7 +1196,7 @@ class _StyleScorecardCard extends StatelessWidget {
                 ],
               ),
 
-              // ── Legend chips ─────────────────────────────────────────────
+              // ── Legend chips
               if (slices.isNotEmpty) ...[
                 const SizedBox(height: 16),
                 Wrap(
@@ -1287,9 +1295,7 @@ class _StatRow extends StatelessWidget {
   );
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
 //  SECTION 3 — "Son Eklenenler"  Horizontal thumbnail carousel
-// ═══════════════════════════════════════════════════════════════════════════
 
 class _RecentItemsRow extends StatelessWidget {
   final List<ClothingItem> items;
@@ -1424,9 +1430,7 @@ class _RecentItemCard extends StatelessWidget {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
 //  Gold Shimmer Widgets  (no extra package)
-// ═══════════════════════════════════════════════════════════════════════════
 
 class _GoldShimmerRow extends StatefulWidget {
   final double itemWidth;
@@ -1548,9 +1552,7 @@ class _GoldShimmerCardState extends State<_GoldShimmerCard>
   );
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
 //  Empty States
-// ═══════════════════════════════════════════════════════════════════════════
 
 class _EmptyLookbook extends StatelessWidget {
   const _EmptyLookbook();
@@ -1581,21 +1583,21 @@ class _EmptyLookbook extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 14),
-          const Text(
-            'Henüz kombin kaydetmediniz',
-            style: TextStyle(
+          Text(
+            'home.empty_lookbook'.tr(),
+            style: const TextStyle(
               color: AppColors.textSub,
               fontSize: 13,
               fontWeight: FontWeight.w500,
             ),
           ),
           const SizedBox(height: 6),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 40),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 40),
             child: Text(
-              'Dolabınızdan yeni stiller oluşturun ve burada görün',
+              'home.empty_lookbook_subtitle'.tr(),
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 color: AppColors.muted,
                 fontSize: 11,
                 height: 1.5,
@@ -1623,14 +1625,18 @@ class _EmptyLookbook extends StatelessWidget {
                   ),
                 ],
               ),
-              child: const Row(
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.checkroom_outlined, color: Colors.black, size: 15),
-                  SizedBox(width: 7),
+                  const Icon(
+                    Icons.checkroom_outlined,
+                    color: Colors.black,
+                    size: 15,
+                  ),
+                  const SizedBox(width: 7),
                   Text(
-                    'Dolabıma Git',
-                    style: TextStyle(
+                    'home.go_to_wardrobe'.tr(),
+                    style: const TextStyle(
                       color: Colors.black,
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
@@ -1659,19 +1665,23 @@ class _EmptyWardrobe extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.border),
       ),
-      child: const Column(
+      child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.checkroom_outlined, color: AppColors.muted, size: 30),
-          SizedBox(height: 10),
-          Text(
-            'Henüz kıyafet yok',
-            style: TextStyle(color: AppColors.muted, fontSize: 13),
+          const Icon(
+            Icons.checkroom_outlined,
+            color: AppColors.muted,
+            size: 30,
           ),
-          SizedBox(height: 4),
+          const SizedBox(height: 10),
           Text(
-            '+ butonuna bas, dolabını oluştur',
-            style: TextStyle(color: AppColors.muted, fontSize: 11),
+            'home.empty_items'.tr(),
+            style: const TextStyle(color: AppColors.muted, fontSize: 13),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'home.add_to_wardrobe'.tr(),
+            style: const TextStyle(color: AppColors.muted, fontSize: 11),
           ),
         ],
       ),
@@ -1679,9 +1689,7 @@ class _EmptyWardrobe extends StatelessWidget {
   );
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
 //  Shared UI Widgets
-// ═══════════════════════════════════════════════════════════════════════════
 
 class _TopBar extends StatelessWidget {
   final String userName, profilFoto, weatherTemp, weatherDesc;
@@ -1707,17 +1715,20 @@ class _TopBar extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Merhaba,',
-              style: AppTextStyles.label.copyWith(letterSpacing: 1),
+              'home.greeting'.tr(),
+              style: AppTextStyles.label.copyWith(
+                color: AppColorsExtension.of(context).textSub,
+                letterSpacing: 1,
+              ),
             ),
             const SizedBox(height: 2),
             Text(
               userName,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Cormorant',
                 fontSize: 28,
                 fontWeight: FontWeight.w700,
-                color: AppColors.text,
+                color: AppColorsExtension.of(context).text,
                 letterSpacing: -.5,
               ),
             ),
@@ -1729,9 +1740,9 @@ class _TopBar extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: AppColorsExtension.of(context).surface,
             borderRadius: BorderRadius.circular(30),
-            border: Border.all(color: AppColors.border),
+            border: Border.all(color: AppColorsExtension.of(context).border),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -1740,16 +1751,16 @@ class _TopBar extends StatelessWidget {
               const SizedBox(width: 5),
               Text(
                 '$weatherTemp $weatherDesc',
-                style: const TextStyle(
-                  color: AppColors.textSub,
+                style: TextStyle(
+                  color: AppColorsExtension.of(context).textSub,
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
                 ),
               ),
               const SizedBox(width: 3),
-              const Icon(
+              Icon(
                 Icons.keyboard_arrow_down_rounded,
-                color: AppColors.muted,
+                color: AppColorsExtension.of(context).muted,
                 size: 14,
               ),
             ],
@@ -1768,9 +1779,7 @@ class _TopBar extends StatelessWidget {
   );
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
 //  Profile Avatar  (network / asset / initial fallback)
-// ═══════════════════════════════════════════════════════════════════════════
 
 class _ProfileAvatar extends StatelessWidget {
   final String foto;
@@ -1881,7 +1890,7 @@ class _AiBadge extends StatelessWidget {
         ),
         const SizedBox(width: 5),
         Text(
-          'AI ÖNERİSİ',
+          'home.ai_badge'.tr(),
           style: AppTextStyles.label.copyWith(
             color: AppColors.goldLight,
             letterSpacing: 1.4,
@@ -1906,8 +1915,8 @@ class _SectionHeader extends StatelessWidget {
     children: [
       Text(
         title,
-        style: const TextStyle(
-          color: AppColors.text,
+        style: TextStyle(
+          color: AppColorsExtension.of(context).text,
           fontSize: 18,
           fontWeight: FontWeight.w600,
           letterSpacing: -.2,
@@ -1941,9 +1950,7 @@ class _SectionHeader extends StatelessWidget {
   );
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
 //  Donut Chart
-// ═══════════════════════════════════════════════════════════════════════════
 
 class _DonutSlice {
   final String label;
@@ -2005,13 +2012,7 @@ class _DoughnutPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter _) => true;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-//  Color name → Color
-// ═══════════════════════════════════════════════════════════════════════════
-
-// ═══════════════════════════════════════════════════════════════════════════
 //  Weather Detail Dialog
-// ═══════════════════════════════════════════════════════════════════════════
 
 class _WeatherDetailDialog extends StatelessWidget {
   final String temp, feelsLike, humidity, wind, city, desc;
@@ -2064,7 +2065,7 @@ class _WeatherDetailDialog extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // ── Handle ──────────────────────────────────────────────
+                    // ── Handle
                     Container(
                       width: 32,
                       height: 3,
@@ -2075,17 +2076,19 @@ class _WeatherDetailDialog extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
 
-                    // ── Header: icon + city + desc + temp ───────────────────
+                    // ── Header: icon + city + desc + temp
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            gradient: LinearGradient(colors: [
-                              AppColors.gold.withValues(alpha: .22),
-                              AppColors.goldLight.withValues(alpha: .08),
-                            ]),
+                            gradient: LinearGradient(
+                              colors: [
+                                AppColors.gold.withValues(alpha: .22),
+                                AppColors.goldLight.withValues(alpha: .08),
+                              ],
+                            ),
                             shape: BoxShape.circle,
                             border: Border.all(
                               color: AppColors.gold.withValues(alpha: .35),
@@ -2145,13 +2148,13 @@ class _WeatherDetailDialog extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
 
-                    // ── Metrics 2×2 grid ────────────────────────────────────
+                    // ── Metrics 2×2 grid
                     Row(
                       children: [
                         Expanded(
                           child: _WeatherMetric(
                             icon: Icons.thermostat_outlined,
-                            label: 'Hissedilen',
+                            label: 'home.feels_like'.tr(),
                             value: feelsLike,
                           ),
                         ),
@@ -2163,7 +2166,7 @@ class _WeatherDetailDialog extends StatelessWidget {
                         Expanded(
                           child: _WeatherMetric(
                             icon: Icons.water_drop_outlined,
-                            label: 'Nem',
+                            label: 'home.humidity'.tr(),
                             value: humidity,
                           ),
                         ),
@@ -2177,7 +2180,7 @@ class _WeatherDetailDialog extends StatelessWidget {
                         Expanded(
                           child: _WeatherMetric(
                             icon: Icons.air_rounded,
-                            label: 'Rüzgar',
+                            label: 'home.wind'.tr(),
                             value: wind,
                           ),
                         ),
@@ -2189,7 +2192,7 @@ class _WeatherDetailDialog extends StatelessWidget {
                         Expanded(
                           child: _WeatherMetric(
                             icon: Icons.location_on_outlined,
-                            label: 'Konum',
+                            label: 'home.location'.tr(),
                             value: city.isNotEmpty
                                 ? city.split(',').first.trim()
                                 : '--',
@@ -2200,9 +2203,9 @@ class _WeatherDetailDialog extends StatelessWidget {
 
                     const SizedBox(height: 14),
 
-                    // ── Dismiss hint ─────────────────────────────────────────
+                    // ── Dismiss hint
                     Text(
-                      'Kapatmak için dışarıya dokun',
+                      'home.tap_outside_to_close'.tr(),
                       style: TextStyle(
                         color: AppColors.muted.withValues(alpha: .5),
                         fontSize: 9,
@@ -2275,9 +2278,7 @@ class _WeatherMetric extends StatelessWidget {
   );
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
 //  Color name → Color
-// ═══════════════════════════════════════════════════════════════════════════
 
 Color _nameToColor(String name) {
   switch (name) {

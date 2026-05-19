@@ -1,6 +1,6 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:smart_wardrobe_ai/core/constants/app_colors.dart';
-
 
 /// Gizlilik Politikası veya Yardım & Destek için bilgi diyaloğu
 class ProfileInfoDialog extends StatelessWidget {
@@ -74,9 +74,9 @@ class ProfileInfoDialog extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: AppColors.border),
               ),
-              child: const Center(
+              child: Center(
                 child: Text(
-                  'Tamam',
+                  'confirm.ok'.tr(),
                   style: TextStyle(color: AppColors.textSub, fontSize: 14),
                 ),
               ),

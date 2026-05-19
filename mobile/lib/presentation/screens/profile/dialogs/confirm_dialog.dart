@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:smart_wardrobe_ai/core/constants/app_colors.dart';
 
@@ -30,7 +31,9 @@ class ProfileConfirmDialog extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: (isDanger ? AppColors.error : AppColors.gold).withValues(alpha: .12),
+              color: (isDanger ? AppColors.error : AppColors.gold).withValues(
+                alpha: .12,
+              ),
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -77,10 +80,13 @@ class ProfileConfirmDialog extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: AppColors.border),
                     ),
-                    child: const Center(
+                    child: Center(
                       child: Text(
-                        'İptal',
-                        style: TextStyle(color: AppColors.textSub, fontSize: 14),
+                        'confirm.cancel'.tr(),
+                        style: TextStyle(
+                          color: AppColors.textSub,
+                          fontSize: 14,
+                        ),
                       ),
                     ),
                   ),

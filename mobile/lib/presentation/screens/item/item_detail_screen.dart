@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
@@ -27,9 +28,10 @@ class _ItemDetailScreenState extends State<ItemDetailScreen>
   void initState() {
     super.initState();
     _isFav = widget.item.favori;
-    _heroCtrl =
-        AnimationController(vsync: this, duration: const Duration(milliseconds: 800))
-          ..forward();
+    _heroCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    )..forward();
     _heroAnim = CurvedAnimation(parent: _heroCtrl, curve: Curves.easeOutCubic);
   }
 
@@ -46,10 +48,14 @@ class _ItemDetailScreenState extends State<ItemDetailScreen>
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token') ?? '';
     try {
-      final res = await http.patch(
-        Uri.parse('${ApiConstants.baseUrl}/items/${widget.item.id}/favorite'),
-        headers: {'Authorization': 'Bearer $token'},
-      ).timeout(const Duration(seconds: 6));
+      final res = await http
+          .patch(
+            Uri.parse(
+              '${ApiConstants.baseUrl}/items/${widget.item.id}/favorite',
+            ),
+            headers: {'Authorization': 'Bearer $token'},
+          )
+          .timeout(const Duration(seconds: 6));
       if (!mounted) return;
       if (res.statusCode == 200) {
         final body = jsonDecode(res.body);
@@ -59,7 +65,10 @@ class _ItemDetailScreenState extends State<ItemDetailScreen>
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Bağlantı hatası'), backgroundColor: AppColors.error),
+          SnackBar(
+            content: Text('item_detail.connection_error'.tr()),
+            backgroundColor: AppColors.error,
+          ),
         );
       }
     } finally {
@@ -79,7 +88,10 @@ class _ItemDetailScreenState extends State<ItemDetailScreen>
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: GestureDetector(
-          onTap: () => Navigator.pop(context, _isFav != widget.item.favori ? _isFav : null),
+          onTap: () => Navigator.pop(
+            context,
+            _isFav != widget.item.favori ? _isFav : null,
+          ),
           child: Container(
             margin: const EdgeInsets.only(left: 16),
             width: 40,
@@ -89,8 +101,11 @@ class _ItemDetailScreenState extends State<ItemDetailScreen>
               shape: BoxShape.circle,
               border: Border.all(color: AppColors.border),
             ),
-            child: const Icon(Icons.arrow_back_ios_new_rounded,
-                color: AppColors.text, size: 18),
+            child: const Icon(
+              Icons.arrow_back_ios_new_rounded,
+              color: AppColors.text,
+              size: 18,
+            ),
           ),
         ),
         actions: [
@@ -115,7 +130,9 @@ class _ItemDetailScreenState extends State<ItemDetailScreen>
                   ? const Padding(
                       padding: EdgeInsets.all(12),
                       child: CircularProgressIndicator(
-                          strokeWidth: 2, color: Color(0xFFE05C5C)),
+                        strokeWidth: 2,
+                        color: Color(0xFFE05C5C),
+                      ),
                     )
                   : AnimatedSwitcher(
                       duration: const Duration(milliseconds: 300),
@@ -156,26 +173,34 @@ class _ItemDetailScreenState extends State<ItemDetailScreen>
                     Row(
                       children: [
                         _CategoryBadge(
-                            label: item.category, color: _accentColor),
+                          label: item.category,
+                          color: _accentColor,
+                        ),
                         if (item.aiDogrulandi) ...[
                           const SizedBox(width: 8),
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 9, vertical: 4),
+                              horizontal: 9,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
                               color: AppColors.gold.withValues(alpha: .12),
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
-                                  color: AppColors.gold.withValues(alpha: .3)),
+                                color: AppColors.gold.withValues(alpha: .3),
+                              ),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(Icons.auto_awesome_rounded,
-                                    color: AppColors.gold, size: 11),
+                                const Icon(
+                                  Icons.auto_awesome_rounded,
+                                  color: AppColors.gold,
+                                  size: 11,
+                                ),
                                 const SizedBox(width: 4),
                                 Text(
-                                  'AI Onaylı',
+                                  'item_detail.ai_approved'.tr(),
                                   style: TextStyle(
                                     color: AppColors.gold,
                                     fontSize: 10,
@@ -209,9 +234,10 @@ class _ItemDetailScreenState extends State<ItemDetailScreen>
                       Text(
                         item.marka!,
                         style: const TextStyle(
-                            color: AppColors.muted,
-                            fontSize: 13,
-                            letterSpacing: .5),
+                          color: AppColors.muted,
+                          fontSize: 13,
+                          letterSpacing: .5,
+                        ),
                       ),
                     ],
 
@@ -237,10 +263,12 @@ class _ItemDetailScreenState extends State<ItemDetailScreen>
                         height: 54,
                         decoration: BoxDecoration(
                           gradient: _isFav
-                              ? const LinearGradient(colors: [
-                                  Color(0xFFE05C5C),
-                                  Color(0xFFB03A3A),
-                                ])
+                              ? const LinearGradient(
+                                  colors: [
+                                    Color(0xFFE05C5C),
+                                    Color(0xFFB03A3A),
+                                  ],
+                                )
                               : null,
                           color: _isFav ? null : AppColors.surface,
                           borderRadius: BorderRadius.circular(16),
@@ -263,10 +291,12 @@ class _ItemDetailScreenState extends State<ItemDetailScreen>
                             const SizedBox(width: 8),
                             Text(
                               _isFav
-                                  ? 'Favorilerden Çıkar'
-                                  : 'Favorilere Ekle',
+                                  ? 'item_detail.remove_from_favorites'.tr()
+                                  : 'item_detail.add_to_favorites'.tr(),
                               style: TextStyle(
-                                color: _isFav ? Colors.white : AppColors.textSub,
+                                color: _isFav
+                                    ? Colors.white
+                                    : AppColors.textSub,
                                 fontWeight: FontWeight.w600,
                                 fontSize: 15,
                               ),
@@ -305,10 +335,7 @@ class _HeroImage extends StatelessWidget {
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [
-                  accentColor.withValues(alpha: .18),
-                  AppColors.bg,
-                ],
+                colors: [accentColor.withValues(alpha: .18), AppColors.bg],
               ),
             ),
           ),
@@ -350,9 +377,12 @@ class _Placeholder extends StatelessWidget {
   const _Placeholder({required this.color});
   @override
   Widget build(BuildContext context) => Center(
-        child: Icon(Icons.checkroom_outlined,
-            color: color.withValues(alpha: .3), size: 80),
-      );
+    child: Icon(
+      Icons.checkroom_outlined,
+      color: color.withValues(alpha: .3),
+      size: 80,
+    ),
+  );
 }
 
 // ── Kategori Badge ────────────────────────────────────────────────────────────
@@ -363,22 +393,22 @@ class _CategoryBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: .15),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: color.withValues(alpha: .4)),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: color,
-            fontSize: 12,
-            fontWeight: FontWeight.w700,
-            letterSpacing: .5,
-          ),
-        ),
-      );
+    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+    decoration: BoxDecoration(
+      color: color.withValues(alpha: .15),
+      borderRadius: BorderRadius.circular(20),
+      border: Border.all(color: color.withValues(alpha: .4)),
+    ),
+    child: Text(
+      label,
+      style: TextStyle(
+        color: color,
+        fontSize: 12,
+        fontWeight: FontWeight.w700,
+        letterSpacing: .5,
+      ),
+    ),
+  );
 }
 
 // ── Detay Grid (Renk, Mevsim, Stil) ──────────────────────────────────────────
@@ -391,19 +421,32 @@ class _DetailGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     final tiles = <_DetailTile>[];
     if (item.color != null && item.color!.isNotEmpty) {
-      tiles.add(_DetailTile(
+      tiles.add(
+        _DetailTile(
           icon: Icons.palette_outlined,
-          label: 'Renk',
+          label: 'item_detail.color'.tr(),
           value: item.color!,
-          swatchColor: _hexToColor(item.color!)));
+          swatchColor: _hexToColor(item.color!),
+        ),
+      );
     }
     if (item.season != null && item.season!.isNotEmpty) {
-      tiles.add(_DetailTile(
-          icon: Icons.wb_sunny_outlined, label: 'Mevsim', value: item.season!));
+      tiles.add(
+        _DetailTile(
+          icon: Icons.wb_sunny_outlined,
+          label: 'item_detail.season'.tr(),
+          value: item.season!,
+        ),
+      );
     }
     if (item.stil != null && item.stil!.isNotEmpty) {
-      tiles.add(_DetailTile(
-          icon: Icons.style_outlined, label: 'Stil', value: item.stil!));
+      tiles.add(
+        _DetailTile(
+          icon: Icons.style_outlined,
+          label: 'item_detail.style'.tr(),
+          value: item.stil!,
+        ),
+      );
     }
     if (tiles.isEmpty) return const SizedBox.shrink();
 
@@ -426,8 +469,12 @@ class _DetailTile {
   final String label;
   final String value;
   final Color? swatchColor;
-  const _DetailTile(
-      {required this.icon, required this.label, required this.value, this.swatchColor});
+  const _DetailTile({
+    required this.icon,
+    required this.label,
+    required this.value,
+    this.swatchColor,
+  });
 }
 
 class _DetailCard extends StatelessWidget {
@@ -437,66 +484,72 @@ class _DetailCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.border),
+    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+    decoration: BoxDecoration(
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(14),
+      border: Border.all(color: AppColors.border),
+    ),
+    child: Row(
+      children: [
+        Container(
+          width: 34,
+          height: 34,
+          decoration: BoxDecoration(
+            color: accentColor.withValues(alpha: .12),
+            borderRadius: BorderRadius.circular(9),
+          ),
+          child: Icon(tile.icon, color: accentColor, size: 17),
         ),
-        child: Row(
-          children: [
-            Container(
-              width: 34,
-              height: 34,
-              decoration: BoxDecoration(
-                color: accentColor.withValues(alpha: .12),
-                borderRadius: BorderRadius.circular(9),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                tile.label,
+                style: const TextStyle(
+                  color: AppColors.muted,
+                  fontSize: 10,
+                  letterSpacing: .5,
+                ),
               ),
-              child: Icon(tile.icon, color: accentColor, size: 17),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(tile.label,
-                      style: const TextStyle(
-                          color: AppColors.muted,
-                          fontSize: 10,
-                          letterSpacing: .5)),
-                  const SizedBox(height: 4),
-                  if (tile.swatchColor != null)
-                    Container(
-                      width: 26,
-                      height: 26,
-                      decoration: BoxDecoration(
-                        color: tile.swatchColor,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.border, width: 1.5),
-                        boxShadow: [
-                          BoxShadow(
-                            color: tile.swatchColor!.withValues(alpha: .4),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
+              const SizedBox(height: 4),
+              if (tile.swatchColor != null)
+                Container(
+                  width: 26,
+                  height: 26,
+                  decoration: BoxDecoration(
+                    color: tile.swatchColor,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.border, width: 1.5),
+                    boxShadow: [
+                      BoxShadow(
+                        color: tile.swatchColor!.withValues(alpha: .4),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
                       ),
-                    )
-                  else
-                    Text(tile.value,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                            color: AppColors.text,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600)),
-                ],
-              ),
-            ),
-          ],
+                    ],
+                  ),
+                )
+              else
+                Text(
+                  tile.value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: AppColors.text,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+            ],
+          ),
         ),
-      );
+      ],
+    ),
+  );
 }
 
 // ── Notlar Kartı ─────────────────────────────────────────────────────────────
@@ -506,34 +559,42 @@ class _NotlarCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.border),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    width: double.infinity,
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(14),
+      border: Border.all(color: AppColors.border),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
           children: [
-            const Row(
-              children: [
-                Icon(Icons.notes_rounded, color: AppColors.muted, size: 15),
-                SizedBox(width: 6),
-                Text('Notlar',
-                    style: TextStyle(
-                        color: AppColors.muted,
-                        fontSize: 11,
-                        letterSpacing: .5)),
-              ],
+            Icon(Icons.notes_rounded, color: AppColors.muted, size: 15),
+            SizedBox(width: 6),
+            Text(
+              'item_detail.notes'.tr(),
+              style: TextStyle(
+                color: AppColors.muted,
+                fontSize: 11,
+                letterSpacing: .5,
+              ),
             ),
-            const SizedBox(height: 8),
-            Text(notlar,
-                style: const TextStyle(
-                    color: AppColors.textSub, fontSize: 13, height: 1.5)),
           ],
         ),
-      );
+        const SizedBox(height: 8),
+        Text(
+          notlar,
+          style: const TextStyle(
+            color: AppColors.textSub,
+            fontSize: 13,
+            height: 1.5,
+          ),
+        ),
+      ],
+    ),
+  );
 }
 
 // ── HEX → Flutter Color ───────────────────────────────────────────────────────

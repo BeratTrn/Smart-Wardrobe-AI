@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -23,20 +24,33 @@ class OutfitGeneratorScreen extends StatefulWidget {
 class _OutfitGeneratorScreenState extends State<OutfitGeneratorScreen>
     with TickerProviderStateMixin {
   // ─── Filtre seçimleri ──────────────────────────────────────────────────────
-  String _occasion = 'Günlük';
-  String _weather = 'Ilık';
-  String _style = 'Günlük';
+  String _occasion = 'outfit_generator.daily'.tr();
+  String _weather = 'outfit_generator.warm'.tr();
+  String _style = 'outfit_generator.casual'.tr();
 
-  static const _occasions = [
-    'Günlük',
-    'İş',
-    'Parti',
-    'Spor',
-    'Romantik',
-    'Seyahat',
+  final List<String> _occasions = [
+    'outfit_generator.daily'.tr(),
+    'outfit_generator.work'.tr(),
+    'outfit_generator.party'.tr(),
+    'outfit_generator.sport'.tr(),
+    'outfit_generator.romantic'.tr(),
+    'outfit_generator.travel'.tr(),
   ];
-  static const _weathers = ['Sıcak', 'Ilık', 'Serin', 'Soğuk'];
-  static const _styles = ['Günlük', 'Klasik', 'Spor', 'Sokak', 'Minimal', 'Şık', 'Resmi'];
+  final List<String> _weathers = [
+    'outfit_generator.hot'.tr(),
+    'outfit_generator.warm'.tr(),
+    'outfit_generator.cool'.tr(),
+    'outfit_generator.cold'.tr(),
+  ];
+  final List<String> _styles = [
+    'outfit_generator.casual'.tr(),
+    'outfit_generator.classic'.tr(),
+    'outfit_generator.sport'.tr(),
+    'outfit_generator.street'.tr(),
+    'outfit_generator.minimal'.tr(),
+    'outfit_generator.chic'.tr(),
+    'outfit_generator.formal'.tr(),
+  ];
 
   // ─── State ─────────────────────────────────────────────────────────────────
   bool _generating = false;
@@ -103,7 +117,7 @@ class _OutfitGeneratorScreenState extends State<OutfitGeneratorScreen>
     } catch (_) {
       if (!mounted) return;
       setState(() => _generating = false);
-      _snack('Sunucuya bağlanılamadı.');
+      _snack('outfit_generator.connection_error'.tr());
     }
   }
 
@@ -123,11 +137,13 @@ class _OutfitGeneratorScreenState extends State<OutfitGeneratorScreen>
         body: jsonEncode({'kombinId': outfit.id}),
       );
       _snack(
-        res.statusCode == 200 ? 'Kombin kaydedildi ✓' : 'Kaydedilemedi.',
+        res.statusCode == 200
+            ? 'outfit_generator.outfit_saved'.tr()
+            : 'outfit_generator.outfit_not_saved'.tr(),
         isError: res.statusCode != 200,
       );
     } catch (_) {
-      _snack('Sunucuya bağlanılamadı.');
+      _snack('outfit_generator.connection_error'.tr());
     }
   }
 
@@ -188,21 +204,21 @@ class _OutfitGeneratorScreenState extends State<OutfitGeneratorScreen>
                     children: [
                       // ── Filtreler
                       _FilterSection(
-                        title: 'DURUM',
+                        title: 'outfit_generator.status'.tr(),
                         options: _occasions,
                         selected: _occasion,
                         onSelect: (v) => setState(() => _occasion = v),
                       ),
                       const SizedBox(height: 18),
                       _FilterSection(
-                        title: 'HAVA',
+                        title: 'outfit_generator.weather'.tr(),
                         options: _weathers,
                         selected: _weather,
                         onSelect: (v) => setState(() => _weather = v),
                       ),
                       const SizedBox(height: 18),
                       _FilterSection(
-                        title: 'STİL',
+                        title: 'outfit_generator.style'.tr(),
                         options: _styles,
                         selected: _style,
                         onSelect: (v) => setState(() => _style = v),
@@ -258,12 +274,12 @@ class _Header extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'KOMBİN',
+                'outfit_generator.outfit_upper'.tr(),
                 style: AppTextStyles.label.copyWith(letterSpacing: 2),
               ),
               const SizedBox(height: 2),
-              const Text(
-                'AI Kombin Üretici',
+              Text(
+                'outfit_generator.outfit_generator'.tr(),
                 style: TextStyle(
                   fontFamily: 'Cormorant',
                   fontSize: 28,
@@ -417,7 +433,7 @@ class _GenerateButton extends StatelessWidget {
                     color: Colors.black,
                   ),
                 )
-              : const Row(
+              : Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
@@ -427,7 +443,7 @@ class _GenerateButton extends StatelessWidget {
                     ),
                     SizedBox(width: 8),
                     Text(
-                      'Kombin Oluştur',
+                      'outfit_generator.create_outfit'.tr(),
                       style: TextStyle(
                         color: Colors.black,
                         fontSize: 16,
@@ -469,8 +485,8 @@ class _ResultList extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Text(
-                'Önerilen Kombin',
+              Text(
+                'outfit_generator.recommended_outfit'.tr(),
                 style: TextStyle(
                   color: AppColors.text,
                   fontSize: 17,
@@ -478,7 +494,10 @@ class _ResultList extends StatelessWidget {
                 ),
               ),
               const Spacer(),
-              Text('${outfits.length} kombin', style: AppTextStyles.caption),
+              Text(
+                '${outfits.length} ' + 'outfit_generator.outfit'.tr(),
+                style: AppTextStyles.caption,
+              ),
             ],
           ),
           const SizedBox(height: 14),
@@ -583,7 +602,8 @@ class _OutfitCard extends StatelessWidget {
                       color: AppColors.gold.withValues(alpha: .12),
                       shape: BoxShape.circle,
                       border: Border.all(
-                          color: AppColors.gold.withValues(alpha: .3)),
+                        color: AppColors.gold.withValues(alpha: .3),
+                      ),
                     ),
                     child: const Icon(
                       Icons.bookmark_border_rounded,
@@ -777,9 +797,9 @@ class _InitialHint extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 14),
-          const Expanded(
+          Expanded(
             child: Text(
-              'Durum, hava ve stilini seç — AI dolabından senin için en uygun kombinleri seçsin.',
+              'outfit_generator.select_condition'.tr(),
               style: TextStyle(
                 color: AppColors.textSub,
                 fontSize: 13,

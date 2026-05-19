@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -16,21 +17,20 @@ class NotificationSettingsScreen extends StatefulWidget {
       _NotificationSettingsScreenState();
 }
 
-class _NotificationSettingsScreenState
-    extends State<NotificationSettingsScreen>
+class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
     with SingleTickerProviderStateMixin {
   bool _loading = true;
-  bool _saving   = false;
+  bool _saving = false;
 
-  bool   _dailyWeatherAI  = true;
-  bool   _travelReminders = true;
-  bool   _weeklyStyle     = true;
-  String _defaultCity     = 'Istanbul';
+  bool _dailyWeatherAI = true;
+  bool _travelReminders = true;
+  bool _weeklyStyle = true;
+  String _defaultCity = 'Istanbul';
 
   final _cityCtrl = TextEditingController();
 
   late final AnimationController _fadeCtrl;
-  late final Animation<double>   _fadeAnim;
+  late final Animation<double> _fadeAnim;
 
   @override
   void initState() {
@@ -67,18 +67,19 @@ class _NotificationSettingsScreenState
       if (!mounted) return;
 
       if (res.statusCode == 200) {
-        final data      = jsonDecode(res.body) as Map<String, dynamic>;
+        final data = jsonDecode(res.body) as Map<String, dynamic>;
         final kullanici = data['kullanici'] as Map<String, dynamic>? ?? {};
-        final notifPrefs = kullanici['notificationPreferences'] as Map<String, dynamic>? ?? {};
+        final notifPrefs =
+            kullanici['notificationPreferences'] as Map<String, dynamic>? ?? {};
         final city = kullanici['defaultCity'] as String? ?? 'Istanbul';
 
         setState(() {
-          _dailyWeatherAI  = notifPrefs['dailyWeatherAI']  as bool? ?? true;
+          _dailyWeatherAI = notifPrefs['dailyWeatherAI'] as bool? ?? true;
           _travelReminders = notifPrefs['travelReminders'] as bool? ?? true;
-          _weeklyStyle     = notifPrefs['weeklyStyle']     as bool? ?? true;
-          _defaultCity     = city;
-          _cityCtrl.text   = city;
-          _loading         = false;
+          _weeklyStyle = notifPrefs['weeklyStyle'] as bool? ?? true;
+          _defaultCity = city;
+          _cityCtrl.text = city;
+          _loading = false;
         });
         return;
       }
@@ -87,12 +88,12 @@ class _NotificationSettingsScreenState
     // Fallback: SharedPreferences cache
     if (!mounted) return;
     setState(() {
-      _dailyWeatherAI  = prefs.getBool('notif_weather')  ?? true;
-      _travelReminders = prefs.getBool('notif_travel')   ?? true;
-      _weeklyStyle     = prefs.getBool('notif_weekly')   ?? true;
-      _defaultCity     = prefs.getString('notif_city')   ?? 'Istanbul';
-      _cityCtrl.text   = _defaultCity;
-      _loading         = false;
+      _dailyWeatherAI = prefs.getBool('notif_weather') ?? true;
+      _travelReminders = prefs.getBool('notif_travel') ?? true;
+      _weeklyStyle = prefs.getBool('notif_weekly') ?? true;
+      _defaultCity = prefs.getString('notif_city') ?? 'Istanbul';
+      _cityCtrl.text = _defaultCity;
+      _loading = false;
     });
   }
 
@@ -104,53 +105,55 @@ class _NotificationSettingsScreenState
     bool? weeklyStyle,
   }) async {
     // Önceki değerleri rollback için sakla
-    final prevWeather  = _dailyWeatherAI;
-    final prevTravel   = _travelReminders;
-    final prevWeekly   = _weeklyStyle;
+    final prevWeather = _dailyWeatherAI;
+    final prevTravel = _travelReminders;
+    final prevWeekly = _weeklyStyle;
 
     // Optimistic UI — hemen güncelle
     setState(() {
-      if (dailyWeatherAI  != null) _dailyWeatherAI  = dailyWeatherAI;
+      if (dailyWeatherAI != null) _dailyWeatherAI = dailyWeatherAI;
       if (travelReminders != null) _travelReminders = travelReminders;
-      if (weeklyStyle     != null) _weeklyStyle     = weeklyStyle;
+      if (weeklyStyle != null) _weeklyStyle = weeklyStyle;
     });
 
     try {
       await ApiService.instance.updateNotificationPreferences(
-        dailyWeatherAI:  dailyWeatherAI,
+        dailyWeatherAI: dailyWeatherAI,
         travelReminders: travelReminders,
-        weeklyStyle:     weeklyStyle,
+        weeklyStyle: weeklyStyle,
       );
 
       // Başarılı — SharedPreferences'ı da güncelle
       final prefs = await SharedPreferences.getInstance();
-      if (dailyWeatherAI  != null) prefs.setBool('notif_weather', dailyWeatherAI);
-      if (travelReminders != null) prefs.setBool('notif_travel',  travelReminders);
-      if (weeklyStyle     != null) prefs.setBool('notif_weekly',  weeklyStyle);
+      if (dailyWeatherAI != null)
+        prefs.setBool('notif_weather', dailyWeatherAI);
+      if (travelReminders != null)
+        prefs.setBool('notif_travel', travelReminders);
+      if (weeklyStyle != null) prefs.setBool('notif_weekly', weeklyStyle);
     } on ApiException catch (e) {
       // Rollback — API başarısız oldu, eski değerlere dön
       if (!mounted) return;
       setState(() {
-        _dailyWeatherAI  = prevWeather;
+        _dailyWeatherAI = prevWeather;
         _travelReminders = prevTravel;
-        _weeklyStyle     = prevWeekly;
+        _weeklyStyle = prevWeekly;
       });
       _showSnack(e.message, isError: true);
     } catch (_) {
       if (!mounted) return;
       setState(() {
-        _dailyWeatherAI  = prevWeather;
+        _dailyWeatherAI = prevWeather;
         _travelReminders = prevTravel;
-        _weeklyStyle     = prevWeekly;
+        _weeklyStyle = prevWeekly;
       });
-      _showSnack('Değişiklik kaydedilemedi.', isError: true);
+      _showSnack('notifications.change_could_not_be_saved'.tr(), isError: true);
     }
   }
 
   Future<void> _saveCity() async {
     final city = _cityCtrl.text.trim();
     if (city.isEmpty) {
-      _showSnack('Şehir adı boş olamaz.', isError: true);
+      _showSnack('notifications.city_name_cannot_be_empty'.tr(), isError: true);
       return;
     }
     if (city == _defaultCity) return;
@@ -158,14 +161,16 @@ class _NotificationSettingsScreenState
     setState(() => _saving = true);
 
     try {
-      await ApiService.instance.updateNotificationPreferences(defaultCity: city);
+      await ApiService.instance.updateNotificationPreferences(
+        defaultCity: city,
+      );
 
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('notif_city', city);
 
       if (!mounted) return;
       setState(() => _defaultCity = city);
-      _showSnack('Şehir kaydedildi ✅');
+      _showSnack('notifications.city_saved'.tr() + ' ✅');
     } on ApiException catch (e) {
       if (!mounted) return;
       // Rollback text field
@@ -174,7 +179,7 @@ class _NotificationSettingsScreenState
     } catch (_) {
       if (!mounted) return;
       _cityCtrl.text = _defaultCity;
-      _showSnack('Şehir kaydedilemedi.', isError: true);
+      _showSnack('notifications.city_could_not_be_saved'.tr(), isError: true);
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -247,8 +252,8 @@ class _NotificationSettingsScreenState
             onTap: () => Navigator.pop(context),
           ),
           const SizedBox(width: 12),
-          const Text(
-            'Bildirim Ayarları',
+          Text(
+            'notifications.notification_settings'.tr(),
             style: TextStyle(
               fontFamily: 'Cormorant',
               fontSize: 22,
@@ -290,10 +295,12 @@ class _NotificationSettingsScreenState
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                gradient: LinearGradient(colors: [
-                  AppColors.gold.withValues(alpha: .25),
-                  AppColors.goldLight.withValues(alpha: .12),
-                ]),
+                gradient: LinearGradient(
+                  colors: [
+                    AppColors.gold.withValues(alpha: .25),
+                    AppColors.goldLight.withValues(alpha: .12),
+                  ],
+                ),
                 shape: BoxShape.circle,
                 border: Border.all(
                   color: AppColors.gold.withValues(alpha: .4),
@@ -307,12 +314,12 @@ class _NotificationSettingsScreenState
               ),
             ),
             const SizedBox(width: 14),
-            const Expanded(
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'AI Bildirim Motoru',
+                    'notifications.ai_notification_engine'.tr(),
                     style: TextStyle(
                       fontFamily: 'Cormorant',
                       fontSize: 17,
@@ -322,7 +329,8 @@ class _NotificationSettingsScreenState
                   ),
                   SizedBox(height: 3),
                   Text(
-                    'Gerçek dolabın ve hava durumuna göre\nkişiselleştirilmiş öneriler alırsın.',
+                    'notifications.personalized_recommendations_based_on_your_real_wardrobe_and_weather'
+                        .tr(),
                     style: TextStyle(
                       color: AppColors.muted,
                       fontSize: 11,
@@ -346,12 +354,14 @@ class _NotificationSettingsScreenState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _SectionLabel(label: 'BİLDİRİM TÜRLERİ'),
+          _SectionLabel(label: 'notifications.notification_types'.tr()),
           const SizedBox(height: 10),
           _NotifTile(
             icon: Icons.wb_sunny_outlined,
-            title: 'Hava Durumu & Kombin',
-            subtitle: 'Her sabah 08:00\'de dolabına göre AI kombin önerisi',
+            title: 'notifications.weather_and_outfit'.tr(),
+            subtitle:
+                'notifications.every_morning_at_0800_ai_outfit_recommendation_based_on_your_wardrobe'
+                    .tr(),
             badge: 'AI',
             value: _dailyWeatherAI,
             onChanged: (v) => _updateToggle(dailyWeatherAI: v),
@@ -359,16 +369,17 @@ class _NotificationSettingsScreenState
           const SizedBox(height: 10),
           _NotifTile(
             icon: Icons.flight_takeoff_rounded,
-            title: 'Seyahat Hatırlatıcıları',
-            subtitle: 'Yarınki seyahatin için bavulunu kontrol et',
+            title: 'notifications.travel_reminders'.tr(),
+            subtitle: 'notifications.tomorrow_your_trip_check_your_suitcase'
+                .tr(),
             value: _travelReminders,
             onChanged: (v) => _updateToggle(travelReminders: v),
           ),
           const SizedBox(height: 10),
           _NotifTile(
             icon: Icons.calendar_month_outlined,
-            title: 'Haftalık Stil Özeti',
-            subtitle: 'Her Pazar 10:00\'da haftanı planla',
+            title: 'notifications.weekly_style_summary'.tr(),
+            subtitle: 'notifications.every_sunday_at_1000_plan_your_week'.tr(),
             value: _weeklyStyle,
             onChanged: (v) => _updateToggle(weeklyStyle: v),
           ),
@@ -385,7 +396,7 @@ class _NotificationSettingsScreenState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _SectionLabel(label: 'HAVA DURUMU ŞEHRİ'),
+          _SectionLabel(label: 'notifications.weather_city'.tr()),
           const SizedBox(height: 10),
           Container(
             decoration: BoxDecoration(
@@ -410,10 +421,13 @@ class _NotificationSettingsScreenState
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       border: InputBorder.none,
-                      hintText: 'Örn: Istanbul, Ankara...',
-                      hintStyle: TextStyle(color: AppColors.muted, fontSize: 13),
+                      hintText: 'notifications.e_g_istanbul_ankara'.tr(),
+                      hintStyle: TextStyle(
+                        color: AppColors.muted,
+                        fontSize: 13,
+                      ),
                       isDense: true,
                       contentPadding: EdgeInsets.symmetric(vertical: 14),
                     ),
@@ -444,8 +458,8 @@ class _NotificationSettingsScreenState
                             ),
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          child: const Text(
-                            'Kaydet',
+                          child: Text(
+                            'notifications.save'.tr(),
                             style: TextStyle(
                               color: Colors.black,
                               fontSize: 12,
@@ -459,10 +473,11 @@ class _NotificationSettingsScreenState
             ),
           ),
           const SizedBox(height: 8),
-          const Padding(
+          Padding(
             padding: EdgeInsets.only(left: 4),
             child: Text(
-              'Sabah hava durumu bildirimleri bu şehre göre gönderilir.',
+              'notifications.morning_weather_notifications_are_sent_according_to_this_city'
+                  .tr(),
               style: TextStyle(color: AppColors.muted, fontSize: 11),
             ),
           ),
@@ -480,22 +495,22 @@ class _SectionLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Text(
-        label,
-        style: const TextStyle(
-          color: AppColors.muted,
-          fontSize: 10,
-          fontWeight: FontWeight.w600,
-          letterSpacing: 1.2,
-        ),
-      );
+    label,
+    style: const TextStyle(
+      color: AppColors.muted,
+      fontSize: 10,
+      fontWeight: FontWeight.w600,
+      letterSpacing: 1.2,
+    ),
+  );
 }
 
 class _NotifTile extends StatelessWidget {
   final IconData icon;
-  final String   title;
-  final String   subtitle;
-  final String?  badge;
-  final bool     value;
+  final String title;
+  final String subtitle;
+  final String? badge;
+  final bool value;
   final ValueChanged<bool> onChanged;
 
   const _NotifTile({
@@ -627,16 +642,16 @@ class _GlassButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => GestureDetector(
-        onTap: onTap,
-        child: Container(
-          width: 38,
-          height: 38,
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(11),
-            border: Border.all(color: AppColors.border),
-          ),
-          child: Icon(icon, color: AppColors.muted, size: 17),
-        ),
-      );
+    onTap: onTap,
+    child: Container(
+      width: 38,
+      height: 38,
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(11),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Icon(icon, color: AppColors.muted, size: 17),
+    ),
+  );
 }

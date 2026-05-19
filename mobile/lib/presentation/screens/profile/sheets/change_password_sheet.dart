@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -41,10 +42,12 @@ class _ChangePasswordSheetState extends State<ChangePasswordSheet> {
     final confirm = _confirmCtrl.text.trim();
 
     if (current.isEmpty || newPass.isEmpty || confirm.isEmpty) {
-      return 'Lütfen tüm alanları doldurun.';
+      return 'change_password.please_fill_all_fields'.tr();
     }
-    if (newPass != confirm) return 'Yeni şifreler eşleşmiyor.';
-    if (newPass.length < 6) return 'Yeni şifre en az 6 karakter olmalı.';
+    if (newPass != confirm)
+      return 'change_password.new_passwords_do_not_match'.tr();
+    if (newPass.length < 6)
+      return 'change_password.new_password_min_6_chars'.tr();
     return null;
   }
 
@@ -83,22 +86,24 @@ class _ChangePasswordSheetState extends State<ChangePasswordSheet> {
       if (res.statusCode == 200) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Şifren başarıyla güncellendi ✓'),
+          SnackBar(
+            content: Text('change_password.password_updated_successfully'.tr()),
             backgroundColor: AppColors.success,
           ),
         );
       } else {
         final data = jsonDecode(res.body);
         setState(() {
-          _error = data['mesaj'] ?? 'Şifre değiştirilemedi.';
+          _error =
+              data['mesaj'] ??
+              'change_password.password_could_not_be_updated'.tr();
           _loading = false;
         });
       }
     } catch (_) {
       if (mounted) {
         setState(() {
-          _error = 'Bağlantı hatası. Tekrar dene.';
+          _error = 'change_password.connection_error'.tr();
           _loading = false;
         });
       }
@@ -124,8 +129,8 @@ class _ChangePasswordSheetState extends State<ChangePasswordSheet> {
         children: [
           const ProfileSheetHandle(),
           const SizedBox(height: 20),
-          const Text(
-            'Şifre Değiştir',
+          Text(
+            'change_password.change_password'.tr(),
             style: TextStyle(
               fontFamily: 'Cormorant',
               fontSize: 22,
@@ -134,28 +139,28 @@ class _ChangePasswordSheetState extends State<ChangePasswordSheet> {
             ),
           ),
           const SizedBox(height: 4),
-          const Text(
-            'Güvenliğin için mevcut şifreni doğrula',
+          Text(
+            'change_password.verify_current_password'.tr(),
             style: TextStyle(color: AppColors.muted, fontSize: 12),
           ),
           const SizedBox(height: 20),
           ProfilePasswordField(
             ctrl: _currentCtrl,
-            label: 'Mevcut Şifre',
+            label: 'change_password.current_password'.tr(),
             obscure: _obscureCurrent,
             onToggle: () => setState(() => _obscureCurrent = !_obscureCurrent),
           ),
           const SizedBox(height: 12),
           ProfilePasswordField(
             ctrl: _newCtrl,
-            label: 'Yeni Şifre',
+            label: 'change_password.new_password'.tr(),
             obscure: _obscureNew,
             onToggle: () => setState(() => _obscureNew = !_obscureNew),
           ),
           const SizedBox(height: 12),
           ProfilePasswordField(
             ctrl: _confirmCtrl,
-            label: 'Yeni Şifre (Tekrar)',
+            label: 'change_password.new_password_repeat'.tr(),
             obscure: _obscureConfirm,
             onToggle: () => setState(() => _obscureConfirm = !_obscureConfirm),
           ),
@@ -165,7 +170,7 @@ class _ChangePasswordSheetState extends State<ChangePasswordSheet> {
           ],
           const SizedBox(height: 20),
           ProfileGoldButton(
-            label: 'Şifreyi Güncelle',
+            label: 'change_password.update_password'.tr(),
             loading: _loading,
             onTap: _submit,
           ),

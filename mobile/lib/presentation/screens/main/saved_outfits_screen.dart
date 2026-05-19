@@ -6,9 +6,11 @@
 import 'dart:ui' as ui;
 
 import 'package:calendar_date_picker2/calendar_date_picker2.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:smart_wardrobe_ai/core/constants/app_colors.dart';
+import 'package:smart_wardrobe_ai/core/theme/app_theme_extension.dart';
 import 'package:smart_wardrobe_ai/core/utils/nav_transitions.dart';
 import 'package:smart_wardrobe_ai/data/models/clothing_item.dart';
 import 'package:smart_wardrobe_ai/data/models/saved_outfit.dart';
@@ -151,8 +153,8 @@ class _SavedOutfitsScreenState extends State<SavedOutfitsScreen>
               ),
             ),
             const SizedBox(height: 20),
-            const Text(
-              'Bavulu Sil',
+            Text(
+              'saved_outfits.delete_bag'.tr(),
               style: TextStyle(
                 fontFamily: 'Cormorant',
                 fontSize: 22,
@@ -162,7 +164,7 @@ class _SavedOutfitsScreenState extends State<SavedOutfitsScreen>
             ),
             const SizedBox(height: 6),
             Text(
-              '"${suitcase.sehir}" seyahat bavulunu silmek istediğinize emin misiniz?',
+              '"${suitcase.sehir}" ' + 'saved_outfits.delete_bag_confirm'.tr(),
               style: const TextStyle(
                 color: AppColors.textSub,
                 fontSize: 13,
@@ -182,9 +184,9 @@ class _SavedOutfitsScreenState extends State<SavedOutfitsScreen>
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: AppColors.border),
                       ),
-                      child: const Center(
+                      child: Center(
                         child: Text(
-                          'İptal',
+                          'saved_outfits.cancel'.tr(),
                           style: TextStyle(
                             color: AppColors.textSub,
                             fontWeight: FontWeight.w500,
@@ -210,9 +212,9 @@ class _SavedOutfitsScreenState extends State<SavedOutfitsScreen>
                           color: AppColors.error.withValues(alpha: .4),
                         ),
                       ),
-                      child: const Center(
+                      child: Center(
                         child: Text(
-                          'Sil',
+                          'saved_outfits.delete'.tr(),
                           style: TextStyle(
                             color: AppColors.error,
                             fontWeight: FontWeight.w700,
@@ -254,8 +256,8 @@ class _SavedOutfitsScreenState extends State<SavedOutfitsScreen>
               ),
             ),
             const SizedBox(height: 20),
-            const Text(
-              'Kombini Sil',
+            Text(
+              'saved_outfits.delete_outfit'.tr(),
               style: TextStyle(
                 fontFamily: 'Cormorant',
                 fontSize: 22,
@@ -265,7 +267,8 @@ class _SavedOutfitsScreenState extends State<SavedOutfitsScreen>
             ),
             const SizedBox(height: 6),
             Text(
-              '"${outfit.baslik}" kombinini listeden kaldırmak istediğinize emin misiniz?',
+              '"${outfit.baslik}" ' +
+                  'saved_outfits.delete_outfit_confirm'.tr(),
               style: const TextStyle(
                 color: AppColors.textSub,
                 fontSize: 13,
@@ -285,9 +288,9 @@ class _SavedOutfitsScreenState extends State<SavedOutfitsScreen>
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: AppColors.border),
                       ),
-                      child: const Center(
+                      child: Center(
                         child: Text(
-                          'İptal',
+                          'saved_outfits.cancel'.tr(),
                           style: TextStyle(
                             color: AppColors.textSub,
                             fontWeight: FontWeight.w500,
@@ -313,9 +316,9 @@ class _SavedOutfitsScreenState extends State<SavedOutfitsScreen>
                           color: AppColors.error.withValues(alpha: .4),
                         ),
                       ),
-                      child: const Center(
+                      child: Center(
                         child: Text(
-                          'Sil',
+                          'saved_outfits.delete'.tr(),
                           style: TextStyle(
                             color: AppColors.error,
                             fontWeight: FontWeight.w700,
@@ -344,7 +347,9 @@ class _SavedOutfitsScreenState extends State<SavedOutfitsScreen>
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                '${suitcase.sehir} bavulunuz hazırlandı! 🧳',
+                '${suitcase.sehir} ' +
+                    'saved_outfits.outfit_bag_ready'.tr() +
+                    ' 🧳',
                 style: const TextStyle(color: AppColors.text),
               ),
               backgroundColor: AppColors.surface,
@@ -384,8 +389,9 @@ class _SavedOutfitsScreenState extends State<SavedOutfitsScreen>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'STİL ARŞİVİ',
+                            'saved_outfits.style_archive'.tr(),
                             style: AppTextStyles.label.copyWith(
+                              color: AppColorsExtension.of(context).textSub,
                               letterSpacing: 2,
                             ),
                           ),
@@ -405,14 +411,14 @@ class _SavedOutfitsScreenState extends State<SavedOutfitsScreen>
                             ),
                             child: Text(
                               _currentTab == 0
-                                  ? 'Kombinlerim'
-                                  : 'Seyahat Bavullarım',
+                                  ? 'saved_outfits.my_outfits'.tr()
+                                  : 'saved_outfits.travel_bags'.tr(),
                               key: ValueKey(_currentTab),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontFamily: 'Cormorant',
                                 fontSize: 32,
                                 fontWeight: FontWeight.w700,
-                                color: AppColors.text,
+                                color: AppColorsExtension.of(context).text,
                                 letterSpacing: -.3,
                               ),
                             ),
@@ -431,13 +437,17 @@ class _SavedOutfitsScreenState extends State<SavedOutfitsScreen>
                                     (_isLoading || list.isEmpty)
                                     ? const SizedBox.shrink()
                                     : _CountBadge(
-                                        label: '${list.length} kombin',
+                                        label:
+                                            '${list.length} ' +
+                                            'saved_outfits.outfit'.tr(),
                                       ),
                               )
                             : (!_suitcasesLoading && _suitcases.isNotEmpty)
                             ? _CountBadge(
                                 key: const ValueKey('suitcaseBadge'),
-                                label: '${_suitcases.length} bavul',
+                                label:
+                                    '${_suitcases.length} ' +
+                                    'saved_outfits.bag'.tr(),
                               )
                             : const SizedBox.shrink(key: ValueKey('noBadge')),
                       ),
@@ -451,9 +461,11 @@ class _SavedOutfitsScreenState extends State<SavedOutfitsScreen>
                   child: Container(
                     padding: const EdgeInsets.all(3),
                     decoration: BoxDecoration(
-                      color: AppColors.surface,
+                      color: AppColorsExtension.of(context).surface,
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: AppColors.border),
+                      border: Border.all(
+                        color: AppColorsExtension.of(context).border,
+                      ),
                     ),
                     child: TabBar(
                       controller: _tabCtrl,
@@ -476,9 +488,9 @@ class _SavedOutfitsScreenState extends State<SavedOutfitsScreen>
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
                       ),
-                      tabs: const [
-                        Tab(height: 36, text: 'Kombinlerim'),
-                        Tab(height: 36, text: 'Seyahat Bavullarım'),
+                      tabs: [
+                        Tab(height: 36, text: 'saved_outfits.my_outfits'.tr()),
+                        Tab(height: 36, text: 'saved_outfits.travel_bags'.tr()),
                       ],
                     ),
                   ),
@@ -575,13 +587,13 @@ class _SavedOutfitsScreenState extends State<SavedOutfitsScreen>
                   ),
                 ],
               ),
-              child: const Row(
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(Icons.add_rounded, color: Colors.black, size: 18),
                   SizedBox(width: 7),
                   Text(
-                    'Yeni Seyahat',
+                    'saved_outfits.new_trip'.tr(),
                     style: TextStyle(
                       color: Colors.black,
                       fontSize: 13,
@@ -599,9 +611,7 @@ class _SavedOutfitsScreenState extends State<SavedOutfitsScreen>
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 //  SEYAHAT BANNER KARTI
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _TravelBannerCard extends StatelessWidget {
   final VoidCallback onPack;
@@ -685,7 +695,7 @@ class _TravelBannerCard extends StatelessWidget {
                           ),
                           const SizedBox(width: 5),
                           Text(
-                            'AI SEYAHAT',
+                            'saved_outfits.ai_travel'.tr(),
                             style: AppTextStyles.label.copyWith(
                               color: AppColors.goldLight,
                               fontSize: 10,
@@ -698,8 +708,8 @@ class _TravelBannerCard extends StatelessWidget {
 
                     const SizedBox(height: 18),
 
-                    const Text(
-                      'Yaklaşan bir seyahatin mi var? ✈️',
+                    Text(
+                      'saved_outfits.upcoming_trip'.tr() + ' ✈️',
                       style: TextStyle(
                         fontFamily: 'Cormorant',
                         fontSize: 26,
@@ -712,9 +722,9 @@ class _TravelBannerCard extends StatelessWidget {
 
                     const SizedBox(height: 10),
 
-                    const Text(
-                      'Gideceğin yeri ve tarihi seç, AI senin için '
-                      'hava durumuna uygun kapsül bavulunu hazırlasın.',
+                    Text(
+                      'saved_outfits.choose_destination_and_date'.tr() +
+                          'saved_outfits.prepare_capsule_wardrobe'.tr(),
                       style: TextStyle(
                         color: AppColors.textSub,
                         fontSize: 13,
@@ -746,7 +756,7 @@ class _TravelBannerCard extends StatelessWidget {
                             ),
                           ],
                         ),
-                        child: const Row(
+                        child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
@@ -756,7 +766,7 @@ class _TravelBannerCard extends StatelessWidget {
                             ),
                             SizedBox(width: 7),
                             Text(
-                              'Bavul Hazırla',
+                              'saved_outfits.prepare_bag'.tr(),
                               style: TextStyle(
                                 color: Colors.black,
                                 fontSize: 13,
@@ -781,9 +791,7 @@ class _TravelBannerCard extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 //  SEYAHAT PLANI — Modal Bottom Sheet
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _TravelPlanSheet extends StatefulWidget {
   final ValueChanged<TravelSuitcase> onSuccess;
@@ -809,7 +817,7 @@ class _TravelPlanSheetState extends State<_TravelPlanSheet> {
     await showGeneralDialog<void>(
       context: context,
       barrierDismissible: true,
-      barrierLabel: 'Kapat',
+      barrierLabel: 'saved_outfits.close'.tr(),
       barrierColor: Colors.black.withValues(alpha: .72),
       transitionDuration: const Duration(milliseconds: 280),
       transitionBuilder: (_, anim, __, child) => FadeTransition(
@@ -833,7 +841,7 @@ class _TravelPlanSheetState extends State<_TravelPlanSheet> {
   }
 
   String get _dateLabel {
-    if (_dateRange == null) return 'Tarih aralığı seç';
+    if (_dateRange == null) return 'saved_outfits.select_date_range'.tr();
     final fmt = DateFormat('d MMM', 'tr_TR');
     return '${fmt.format(_dateRange!.start)}  →  ${fmt.format(_dateRange!.end)}';
   }
@@ -843,7 +851,7 @@ class _TravelPlanSheetState extends State<_TravelPlanSheet> {
     if (city.isEmpty || _dateRange == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Lütfen şehir ve tarih aralığı girin.'),
+          content: Text('saved_outfits.please_enter_destination_and_date'.tr()),
           backgroundColor: AppColors.surface,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -955,7 +963,7 @@ class _TravelPlanSheetState extends State<_TravelPlanSheet> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'YENİ SEYAHAT PLANI',
+                            'saved_outfits.new_trip_plan'.tr(),
                             style: AppTextStyles.label.copyWith(
                               letterSpacing: 1.6,
                               fontSize: 9,
@@ -963,8 +971,8 @@ class _TravelPlanSheetState extends State<_TravelPlanSheet> {
                             ),
                           ),
                           const SizedBox(height: 2),
-                          const Text(
-                            'Yeni Seyahat Planı',
+                          Text(
+                            'saved_outfits.new_trip_plan_2'.tr(),
                             style: TextStyle(
                               fontFamily: 'Cormorant',
                               fontSize: 22,
@@ -982,7 +990,7 @@ class _TravelPlanSheetState extends State<_TravelPlanSheet> {
 
                   // ── Destination city field ────────────────────────────────
                   Text(
-                    'GİDİLECEK ŞEHİR',
+                    'saved_outfits.destination_city'.tr(),
                     style: AppTextStyles.label.copyWith(
                       fontSize: 9,
                       letterSpacing: 1.5,
@@ -1006,7 +1014,8 @@ class _TravelPlanSheetState extends State<_TravelPlanSheet> {
                       cursorColor: AppColors.gold,
                       textCapitalization: TextCapitalization.words,
                       decoration: InputDecoration(
-                        hintText: 'ör. Roma, Paris, Tokyo…',
+                        hintText: 'saved_outfits.destination_city_placeholder'
+                            .tr(),
                         hintStyle: TextStyle(
                           color: AppColors.muted.withValues(alpha: .6),
                           fontSize: 14,
@@ -1029,7 +1038,7 @@ class _TravelPlanSheetState extends State<_TravelPlanSheet> {
 
                   // ── Date range selector ───────────────────────────────────
                   Text(
-                    'SEYAHAT TARİHLERİ',
+                    'saved_outfits.travel_dates'.tr(),
                     style: AppTextStyles.label.copyWith(
                       fontSize: 9,
                       letterSpacing: 1.5,
@@ -1090,7 +1099,8 @@ class _TravelPlanSheetState extends State<_TravelPlanSheet> {
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
-                                '${_dateRange!.duration.inDays} gün',
+                                '${_dateRange!.duration.inDays} ' +
+                                    'saved_outfits.days'.tr(),
                                 style: AppTextStyles.label.copyWith(
                                   color: AppColors.goldLight,
                                   fontSize: 10,
@@ -1140,7 +1150,7 @@ class _TravelPlanSheetState extends State<_TravelPlanSheet> {
                         ],
                       ),
                       child: _isSubmitting
-                          ? const Row(
+                          ? Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 SizedBox(
@@ -1155,7 +1165,7 @@ class _TravelPlanSheetState extends State<_TravelPlanSheet> {
                                 ),
                                 SizedBox(width: 12),
                                 Text(
-                                  'AI bavulunuzu hazırlıyor...',
+                                  'saved_outfits.ai_is_preparing_your_bag'.tr(),
                                   style: TextStyle(
                                     color: Colors.black,
                                     fontSize: 14,
@@ -1165,7 +1175,7 @@ class _TravelPlanSheetState extends State<_TravelPlanSheet> {
                                 ),
                               ],
                             )
-                          : const Row(
+                          : Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(
@@ -1175,7 +1185,8 @@ class _TravelPlanSheetState extends State<_TravelPlanSheet> {
                                 ),
                                 SizedBox(width: 9),
                                 Text(
-                                  'AI ile Bavulumu Hazırla ✨',
+                                  'saved_outfits.prepare_bag_with_ai'.tr() +
+                                      ' ✨',
                                   style: TextStyle(
                                     color: Colors.black,
                                     fontSize: 15,
@@ -1221,7 +1232,7 @@ class _LoadingSpinner extends StatelessWidget {
           ),
           const SizedBox(height: 18),
           Text(
-            'Kombinler yükleniyor...',
+            'saved_outfits.outfits_loading'.tr(),
             style: TextStyle(
               color: AppColors.textSub,
               fontSize: 13,
@@ -1266,8 +1277,8 @@ class _EmptyState extends StatelessWidget {
 
             const SizedBox(height: 22),
 
-            const Text(
-              'Stil Arşiviniz Boş',
+            Text(
+              'saved_outfits.empty_closet_title'.tr(),
               style: TextStyle(
                 fontFamily: 'Cormorant',
                 fontSize: 24,
@@ -1278,8 +1289,8 @@ class _EmptyState extends StatelessWidget {
 
             const SizedBox(height: 10),
 
-            const Text(
-              'Henüz kaydedilmiş bir kombininiz yok.\nDolabınızdan yeni bir stil oluşturun.',
+            Text(
+              'saved_outfits.empty_closet_message'.tr(),
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: AppColors.textSub,
@@ -1313,7 +1324,7 @@ class _EmptyState extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
@@ -1323,7 +1334,7 @@ class _EmptyState extends StatelessWidget {
                     ),
                     SizedBox(width: 8),
                     Text(
-                      'Dolabıma Git',
+                      'saved_outfits.go_to_closet'.tr(),
                       style: TextStyle(
                         color: Colors.black,
                         fontSize: 14,
@@ -1406,7 +1417,7 @@ class _OutfitCardState extends State<_OutfitCard> {
                             child: Text(
                               widget.outfit.baslik.isNotEmpty
                                   ? widget.outfit.baslik
-                                  : 'Kombin',
+                                  : 'saved_outfits.outfit'.tr(),
                               style: AppTextStyles.label.copyWith(
                                 color: AppColors.gold,
                                 fontSize: 9,
@@ -1529,8 +1540,8 @@ class _OutfitCardState extends State<_OutfitCard> {
                                   children: [
                                     Text(
                                       _isExpanded
-                                          ? 'Daralt'
-                                          : 'Devamını Oku...',
+                                          ? 'saved_outfits.narrow_down'.tr()
+                                          : 'saved_outfits.read_more'.tr(),
                                       style: TextStyle(
                                         color: AppColors.goldDim.withValues(
                                           alpha: .85,
@@ -1793,7 +1804,7 @@ class _SuitcaseCardState extends State<_SuitcaseCard> {
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Text(
-                                '${s.gunSayisi} gün',
+                                '${s.gunSayisi} ' + 'saved_outfits.days'.tr(),
                                 style: AppTextStyles.label.copyWith(
                                   color: AppColors.goldLight,
                                   fontSize: 10,
@@ -1846,7 +1857,7 @@ class _SuitcaseCardState extends State<_SuitcaseCard> {
                       if (s.tahminiHava) ...[
                         const SizedBox(height: 4),
                         Text(
-                          'Tahmini hava',
+                          'saved_outfits.estimated_weather'.tr(),
                           style: TextStyle(
                             color: AppColors.muted.withValues(alpha: .6),
                             fontSize: 9,
@@ -1986,7 +1997,9 @@ class _SuitcaseCardState extends State<_SuitcaseCard> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                _isExpanded ? 'Daralt' : 'Devamını Oku...',
+                                _isExpanded
+                                    ? 'saved_outfits.narrow_down'.tr()
+                                    : 'saved_outfits.read_more'.tr(),
                                 style: TextStyle(
                                   color: AppColors.goldDim.withValues(
                                     alpha: .85,
@@ -2120,11 +2133,11 @@ class _DateRangePickerDialogState extends State<_DateRangePickerDialog> {
                         ),
                       ),
                       const SizedBox(width: 12),
-                      const Column(
+                      Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'SEYAHAT TARİHLERİ',
+                            'saved_outfits.travel_dates'.tr(),
                             style: TextStyle(
                               color: AppColors.muted,
                               fontSize: 9,
@@ -2134,7 +2147,7 @@ class _DateRangePickerDialogState extends State<_DateRangePickerDialog> {
                           ),
                           SizedBox(height: 1),
                           Text(
-                            'Tarih Aralığı Seç',
+                            'saved_outfits.select_date_range'.tr(),
                             style: TextStyle(
                               fontFamily: 'Cormorant',
                               fontSize: 19,
@@ -2282,7 +2295,8 @@ class _DateRangePickerDialogState extends State<_DateRangePickerDialog> {
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
-                              '${_value[1]!.difference(_value[0]!).inDays} gün',
+                              '${_value[1]!.difference(_value[0]!).inDays} ' +
+                                  'saved_outfits.days'.tr(),
                               style: const TextStyle(
                                 color: AppColors.goldLight,
                                 fontSize: 10,
@@ -2310,9 +2324,9 @@ class _DateRangePickerDialogState extends State<_DateRangePickerDialog> {
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(color: AppColors.border),
                             ),
-                            child: const Center(
+                            child: Center(
                               child: Text(
-                                'İptal',
+                                'saved_outfits.cancel'.tr(),
                                 style: TextStyle(
                                   color: AppColors.muted,
                                   fontWeight: FontWeight.w500,
@@ -2360,7 +2374,7 @@ class _DateRangePickerDialogState extends State<_DateRangePickerDialog> {
                             ),
                             child: Center(
                               child: Text(
-                                'Onayla',
+                                'saved_outfits.confirm'.tr(),
                                 style: TextStyle(
                                   color: _isRangeComplete
                                       ? Colors.black

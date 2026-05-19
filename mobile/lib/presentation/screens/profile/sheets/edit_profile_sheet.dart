@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -37,8 +38,8 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
 
   // ── Doğrulama
   String? _validate(String name) {
-    if (name.isEmpty) return 'Kullanıcı adı boş olamaz.';
-    if (name.length < 3) return 'En az 3 karakter olmalı.';
+    if (name.isEmpty) return 'edit_profile.username_required'.tr();
+    if (name.length < 3) return 'edit_profile.username_too_short'.tr();
     return null;
   }
 
@@ -77,22 +78,22 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
         if (!mounted) return;
         Navigator.pop(context, true); // true = yenile sinyali
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Profil güncellendi ✓'),
+          SnackBar(
+            content: Text('edit_profile.profile_updated_successfully'.tr()),
             backgroundColor: AppColors.success,
           ),
         );
       } else {
         final data = jsonDecode(res.body);
         setState(() {
-          _error = data['mesaj'] ?? 'Güncelleme başarısız.';
+          _error = data['mesaj'] ?? 'edit_profile.profile_update_failed'.tr();
           _loading = false;
         });
       }
     } catch (_) {
       if (mounted) {
         setState(() {
-          _error = 'Bağlantı hatası. Tekrar dene.';
+          _error = 'edit_profile.connection_error'.tr();
           _loading = false;
         });
       }
@@ -118,8 +119,8 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
         children: [
           const ProfileSheetHandle(),
           const SizedBox(height: 20),
-          const Text(
-            'Profili Düzenle',
+          Text(
+            'edit_profile.edit_profile'.tr(),
             style: TextStyle(
               fontFamily: 'Cormorant',
               fontSize: 22,
@@ -128,8 +129,8 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
             ),
           ),
           const SizedBox(height: 4),
-          const Text(
-            'Kullanıcı adını değiştirebilirsin',
+          Text(
+            'edit_profile.change_username'.tr(),
             style: TextStyle(color: AppColors.muted, fontSize: 12),
           ),
           const SizedBox(height: 20),
@@ -139,7 +140,7 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
             style: const TextStyle(color: AppColors.text, fontSize: 14),
             textCapitalization: TextCapitalization.words,
             decoration: InputDecoration(
-              labelText: 'Kullanıcı Adı',
+              labelText: 'edit_profile.username'.tr(),
               labelStyle: const TextStyle(color: AppColors.muted, fontSize: 13),
               prefixIcon: const Icon(
                 Icons.person_outline_rounded,
@@ -171,7 +172,11 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
             ProfileErrorRow(message: _error!),
           ],
           const SizedBox(height: 20),
-          ProfileGoldButton(label: 'Kaydet', loading: _loading, onTap: _save),
+          ProfileGoldButton(
+            label: 'edit_profile.save'.tr(),
+            loading: _loading,
+            onTap: _save,
+          ),
         ],
       ),
     );

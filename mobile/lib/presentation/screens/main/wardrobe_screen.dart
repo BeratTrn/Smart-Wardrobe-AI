@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -31,16 +32,16 @@ class _WardrobeScreenState extends State<WardrobeScreen>
   List<ClothingItem> _all = [];
   List<ClothingItem> _filtered = [];
   bool _loading = true;
-  String _activeFilter = 'Tümü';
+  String _activeFilter = 'wardrobe.all'.tr();
 
-  static const _filters = [
-    'Tümü',
-    'Üst Giyim',
-    'Alt Giyim',
-    'Elbise & Etek',
-    'Dış Giyim',
-    'Ayakkabı',
-    'Aksesuar',
+  final List<String> _filters = [
+    'wardrobe.all'.tr(),
+    'wardrobe.topwear'.tr(),
+    'wardrobe.bottomwear'.tr(),
+    'wardrobe.dress'.tr(),
+    'wardrobe.outerwear'.tr(),
+    'wardrobe.shoes'.tr(),
+    'wardrobe.accessories'.tr(),
   ];
 
   late final AnimationController _fadeCtrl;
@@ -98,7 +99,7 @@ class _WardrobeScreenState extends State<WardrobeScreen>
   void _applyFilter(String filter) {
     setState(() {
       _activeFilter = filter;
-      _filtered = filter == 'Tümü'
+      _filtered = filter == 'wardrobe.all'.tr()
           ? List.from(_all)
           : _all.where((item) => item.category == filter).toList();
     });
@@ -175,14 +176,14 @@ class _WardrobeScreenState extends State<WardrobeScreen>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'DOLABIM',
+                            'wardrobe.my_wardrobe'.tr(),
                             style: AppTextStyles.label.copyWith(
                               letterSpacing: 2,
                             ),
                           ),
                           const SizedBox(height: 2),
-                          const Text(
-                            'My Wardrobe',
+                          Text(
+                            'wardrobe.wardrobe'.tr(),
                             style: TextStyle(
                               fontFamily: 'Cormorant',
                               fontSize: 30,
@@ -220,7 +221,7 @@ class _WardrobeScreenState extends State<WardrobeScreen>
                               ),
                               const SizedBox(width: 5),
                               Text(
-                                'Kombin',
+                                'wardrobe.outfits'.tr(),
                                 style: AppTextStyles.label.copyWith(
                                   color: AppColors.gold,
                                   fontSize: 11,
@@ -236,7 +237,7 @@ class _WardrobeScreenState extends State<WardrobeScreen>
                 Padding(
                   padding: const EdgeInsets.fromLTRB(22, 6, 22, 0),
                   child: Text(
-                    '${_filtered.length} kıyafet',
+                    '${_filtered.length} ' + 'wardrobe.garment'.tr(),
                     style: AppTextStyles.caption,
                   ),
                 ),
@@ -364,14 +365,14 @@ class _EmptyState extends StatelessWidget {
         ),
         const SizedBox(height: 14),
         Text(
-          filter == 'Tümü'
-              ? 'Dolabın boş'
-              : '"$filter" kategorisinde kıyafet yok',
+          filter == 'wardrobe.all'.tr()
+              ? 'wardrobe.empty_wardrobe'.tr()
+              : '"$filter" ' + 'wardrobe.empty_category'.tr(),
           style: const TextStyle(color: AppColors.textSub, fontSize: 14),
         ),
         const SizedBox(height: 5),
-        const Text(
-          'Kıyafet eklemek için + butonuna bas',
+        Text(
+          'wardrobe.add_garment_prompt'.tr(),
           style: TextStyle(color: AppColors.muted, fontSize: 12),
         ),
       ],
@@ -407,8 +408,8 @@ class _DeleteDialog extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          const Text(
-            'Kıyafeti Sil',
+          Text(
+            'wardrobe.delete_garment'.tr(),
             style: TextStyle(
               fontFamily: 'Cormorant',
               fontSize: 22,
@@ -418,7 +419,7 @@ class _DeleteDialog extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            '"$name" dolabından silinecek.',
+            '"$name" ' + 'wardrobe.delete_garment_confirm'.tr(),
             textAlign: TextAlign.center,
             style: const TextStyle(
               color: AppColors.textSub,
@@ -439,9 +440,9 @@ class _DeleteDialog extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: AppColors.border),
                     ),
-                    child: const Center(
+                    child: Center(
                       child: Text(
-                        'İptal',
+                        'wardrobe.cancel'.tr(),
                         style: TextStyle(color: AppColors.textSub),
                       ),
                     ),
@@ -458,9 +459,9 @@ class _DeleteDialog extends StatelessWidget {
                       color: AppColors.error,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Center(
+                    child: Center(
                       child: Text(
-                        'Sil',
+                        'wardrobe.delete'.tr(),
                         style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.w600,

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:smart_wardrobe_ai/core/constants/app_colors.dart';
@@ -71,11 +72,11 @@ class _AvatarSheetState extends State<AvatarSheet> {
                 ),
               ),
               const SizedBox(width: 12),
-              const Column(
+              Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Avatar Seç',
+                    'avatar.title'.tr(),
                     style: TextStyle(
                       fontFamily: 'Cormorant',
                       fontSize: 21,
@@ -85,7 +86,7 @@ class _AvatarSheetState extends State<AvatarSheet> {
                     ),
                   ),
                   Text(
-                    'Profil fotoğrafını özelleştir',
+                    'avatar.subtitle'.tr(),
                     style: TextStyle(
                       color: AppColors.muted,
                       fontSize: 11,

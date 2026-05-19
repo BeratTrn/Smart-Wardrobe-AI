@@ -50,11 +50,11 @@ class ProfileAboutDialog extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            'Versiyon 1.0.0',
+            'Versiyon' + ' 1.0.0',
             style: AppTextStyles.caption.copyWith(color: AppColors.muted),
           ),
           const SizedBox(height: 12),
-          const Text(
+          Text(
             'AI destekli akıllı gardırop asistanın.\nHer gün en iyi kombinini seç.',
             textAlign: TextAlign.center,
             style: TextStyle(
@@ -74,7 +74,7 @@ class ProfileAboutDialog extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: AppColors.border),
               ),
-              child: const Center(
+              child: Center(
                 child: Text(
                   'Kapat',
                   style: TextStyle(color: AppColors.textSub, fontSize: 14),

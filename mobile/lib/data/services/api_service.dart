@@ -952,6 +952,77 @@ class ApiService {
       client.close();
     }
   }
+  // ─── GET /api/auth/me (tam kullanıcı profili + ayarlar) ─────────────────────
+
+  /// Giriş yapan kullanıcının tam profilini döner; theme ve language dahildir.
+  /// Başarıda kullanici map'ini döner, token geçersiz/ağ hatasında null döner.
+  /// Giriş sonrası çapraz cihaz senkronizasyonunda kullanılır.
+  Future<Map<String, dynamic>?> fetchMe() async {
+    final token = await _getToken();
+    if (token.isEmpty) return null;
+
+    final uri = Uri.parse('${ApiConstants.baseUrl}/auth/me');
+    try {
+      final res = await http
+          .get(
+            uri,
+            headers: {
+              'Authorization': 'Bearer ${token.trim()}',
+              'Accept': 'application/json',
+            },
+          )
+          .timeout(const Duration(seconds: 8));
+
+      if (kDebugMode) {
+        debugPrint('[ApiService] GET /auth/me → ${res.statusCode}');
+      }
+
+      if (res.statusCode == 200) {
+        final json = jsonDecode(res.body) as Map<String, dynamic>;
+        return json['kullanici'] as Map<String, dynamic>?;
+      }
+
+      if (res.statusCode == 401) {
+        // Token geçersiz — yerel kaydı temizle
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.remove('token');
+        await prefs.remove('userName');
+      }
+
+      return null;
+    } catch (_) {
+      return null; // Ağ hatası — sessizce null döner
+    }
+  }
+
+  // ─── PUT /api/users/preferences (tema ve dil senkronizasyonu) ───────────────
+
+  /// Tema ve/veya dil tercihini backend'e kaydeder.
+  /// Fire-and-forget olarak çağrılır; hata sessizce yutulur.
+  Future<void> updateAppSettings({String? theme, String? language}) async {
+    final token = await _getToken();
+    if (token.isEmpty) return;
+
+    final body = <String, dynamic>{};
+    if (theme    != null) body['theme']    = theme;
+    if (language != null) body['language'] = language;
+    if (body.isEmpty) return;
+
+    try {
+      await http
+          .put(
+            Uri.parse('${ApiConstants.baseUrl}/users/preferences'),
+            headers: {
+              'Authorization':  'Bearer ${token.trim()}',
+              'Content-Type':   'application/json',
+            },
+            body: jsonEncode(body),
+          )
+          .timeout(const Duration(seconds: 8));
+    } catch (_) {
+      // Ayar senkronizasyonu kritik değil; sessizce geç.
+    }
+  }
 } // ApiService
 
 /// Backend hatalarını temsil eden özel exception sınıfı.

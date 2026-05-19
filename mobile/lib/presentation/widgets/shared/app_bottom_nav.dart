@@ -1,5 +1,6 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:smart_wardrobe_ai/core/constants/app_colors.dart';
+import 'package:smart_wardrobe_ai/core/theme/app_theme_extension.dart';
 
 /// Uygulamanın 5 sekmeli alt navigasyon çubuğu.
 /// Her ekran bu widget'ı kendi Scaffold'una ekler.
@@ -14,53 +15,45 @@ class AppBottomNav extends StatelessWidget {
     required this.onTap,
   });
 
-  static const List<_NavItem> _items = [
-    _NavItem(
-      activeIcon: Icons.home_rounded,
-      icon: Icons.home_outlined,
-      label: 'Ana Sayfa',
-    ),
-    _NavItem(
-      activeIcon: Icons.favorite_rounded,
-      icon: Icons.favorite_border_rounded,
-      label: 'Favoriler',
-    ),
-    _NavItem(
-      activeIcon: Icons.add_circle_rounded,
-      icon: Icons.add_circle_rounded,
-      label: 'Kıyafet Ekle',
-    ),
-    _NavItem(
-      activeIcon: Icons.collections_bookmark_rounded,
-      icon: Icons.collections_bookmark_outlined,
-      label: 'Stil Arşivim',
-    ),
-    _NavItem(
-      activeIcon: Icons.checkroom_rounded,
-      icon: Icons.checkroom_outlined,
-      label: 'Dolabım',
-    ),
+  static List<_NavItem> _items() => [
+    _NavItem(activeIcon: Icons.home_rounded,               icon: Icons.home_outlined,               label: 'nav.home'.tr()),
+    _NavItem(activeIcon: Icons.favorite_rounded,           icon: Icons.favorite_border_rounded,      label: 'nav.favorites'.tr()),
+    _NavItem(activeIcon: Icons.add_circle_rounded,         icon: Icons.add_circle_rounded,           label: 'nav.add'.tr()),
+    _NavItem(activeIcon: Icons.collections_bookmark_rounded, icon: Icons.collections_bookmark_outlined, label: 'nav.archive'.tr()),
+    _NavItem(activeIcon: Icons.checkroom_rounded,          icon: Icons.checkroom_outlined,           label: 'nav.wardrobe'.tr()),
   ];
 
   @override
   Widget build(BuildContext context) {
     final bottomPadding = MediaQuery.of(context).padding.bottom;
 
+    final c = AppColorsExtension.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       height: 68 + bottomPadding,
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        border: Border(top: BorderSide(color: AppColors.border, width: 1)),
+      decoration: BoxDecoration(
+        color: c.surface,
+        border: Border(top: BorderSide(color: c.border, width: 1)),
+        boxShadow: isDark
+            ? null
+            : [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: .04),
+                  offset: const Offset(0, -2),
+                  blurRadius: 12,
+                ),
+              ],
       ),
       padding: EdgeInsets.only(bottom: bottomPadding),
       child: Row(
-        children: List.generate(_items.length, (i) => _buildTab(context, i)),
+        children: List.generate(_items().length, (i) => _buildTab(context, i, _items())),
       ),
     );
   }
 
-  Widget _buildTab(BuildContext context, int index) {
-    final item = _items[index];
+  Widget _buildTab(BuildContext context, int index, List<_NavItem> items) {
+    final item = items[index];
     final active = index == currentIndex;
     final isAdd = index == 2;
 
@@ -87,26 +80,29 @@ class AppBottomNav extends StatelessWidget {
 
 class _AddButton extends StatelessWidget {
   @override
-  Widget build(BuildContext context) => Container(
-    width: 46,
-    height: 46,
-    decoration: BoxDecoration(
-      gradient: const LinearGradient(
-        colors: [AppColors.gold, AppColors.goldLight],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      ),
-      borderRadius: BorderRadius.circular(14),
-      boxShadow: [
-        BoxShadow(
-          color: AppColors.gold.withValues(alpha: .4),
-          blurRadius: 14,
-          offset: const Offset(0, 4),
+  Widget build(BuildContext context) {
+    final c = AppColorsExtension.of(context);
+    return Container(
+      width: 46,
+      height: 46,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [c.gold, c.goldLight],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
-      ],
-    ),
-    child: const Icon(Icons.add_rounded, color: Colors.black, size: 26),
-  );
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: c.gold.withValues(alpha: .4),
+            blurRadius: 14,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: const Icon(Icons.add_rounded, color: Colors.black, size: 26),
+    );
+  }
 }
 
 class _TabIcon extends StatelessWidget {
@@ -115,11 +111,14 @@ class _TabIcon extends StatelessWidget {
   const _TabIcon({required this.item, required this.active});
 
   @override
-  Widget build(BuildContext context) => Icon(
-    active ? item.activeIcon : item.icon,
-    color: active ? AppColors.gold : AppColors.muted,
-    size: 22,
-  );
+  Widget build(BuildContext context) {
+    final c = AppColorsExtension.of(context);
+    return Icon(
+      active ? item.activeIcon : item.icon,
+      color: active ? c.gold : c.muted,
+      size: 22,
+    );
+  }
 }
 
 class _TabLabel extends StatelessWidget {
@@ -128,16 +127,19 @@ class _TabLabel extends StatelessWidget {
   const _TabLabel({required this.label, required this.active});
 
   @override
-  Widget build(BuildContext context) => Text(
-    label,
-    maxLines: 1,
-    overflow: TextOverflow.ellipsis,
-    style: TextStyle(
-      fontSize: label.length > 7 ? 8.5 : 10,
-      fontWeight: active ? FontWeight.w600 : FontWeight.w400,
-      color: active ? AppColors.gold : AppColors.muted,
-    ),
-  );
+  Widget build(BuildContext context) {
+    final c = AppColorsExtension.of(context);
+    return Text(
+      label,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: TextStyle(
+        fontSize: label.length > 7 ? 8.5 : 10,
+        fontWeight: active ? FontWeight.w600 : FontWeight.w400,
+        color: active ? c.gold : c.muted,
+      ),
+    );
+  }
 }
 
 // Model

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:smart_wardrobe_ai/core/constants/api_constants.dart';
@@ -20,7 +21,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Future<void> _send() async {
     final email = _emailCtrl.text.trim();
     if (email.isEmpty) {
-      showAuthSnack(context, 'E-posta adresinizi girin.');
+      showAuthSnack(context, 'forgot_password.enter_your_email_address'.tr());
       return;
     }
 
@@ -137,7 +138,7 @@ class _FormView extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Şifreni\nSıfırla.',
+          'forgot_password.reset_password'.tr(),
           style: TextStyle(
             fontFamily: 'Cormorant',
             fontSize: 44,
@@ -148,20 +149,20 @@ class _FormView extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 10),
-        const Text(
-          'E-posta adresinize sıfırlama bağlantısı göndereceğiz.',
+        Text(
+          'forgot_password.reset_password_subtitle'.tr(),
           style: TextStyle(color: AuthColors.muted, fontSize: 14, height: 1.5),
         ),
         const SizedBox(height: 36),
         AuthTextField(
           controller: emailCtrl,
-          hint: 'E-posta',
+          hint: 'forgot_password.email'.tr(),
           icon: Icons.mail_outline_rounded,
           keyboardType: TextInputType.emailAddress,
         ),
         const SizedBox(height: 24),
         AuthPrimaryButton(
-          label: 'Sıfırlama Bağlantısı Gönder',
+          label: ' forgot_password.send_reset_link'.tr(),
           onTap: onSend,
           loading: loading,
         ),
@@ -213,7 +214,7 @@ class _SuccessView extends StatelessWidget {
         ),
         const SizedBox(height: 28),
         Text(
-          'E-posta\nGönderildi!',
+          'forgot_password.email_sent'.tr(),
           style: TextStyle(
             fontFamily: 'Cormorant',
             fontSize: 44,
@@ -225,7 +226,7 @@ class _SuccessView extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         Text(
-          '$email adresine sıfırlama bağlantısı gönderildi. Gelen kutunuzu kontrol edin.',
+          '$email' + ' ' + 'forgot_password.reset_link_sent_to_email'.tr(),
           style: const TextStyle(
             color: AuthColors.muted,
             fontSize: 14,
@@ -236,12 +237,12 @@ class _SuccessView extends StatelessWidget {
         GestureDetector(
           onTap: onResend,
           child: RichText(
-            text: const TextSpan(
-              text: 'E-posta gelmedi mi? ',
+            text: TextSpan(
+              text: 'forgot_password.email_not_received'.tr() + ' ',
               style: TextStyle(color: AuthColors.muted, fontSize: 14),
               children: [
                 TextSpan(
-                  text: 'Tekrar gönder',
+                  text: 'forgot_password.resend'.tr(),
                   style: TextStyle(
                     color: AuthColors.gold,
                     fontWeight: FontWeight.w600,

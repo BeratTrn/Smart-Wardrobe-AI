@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -34,50 +35,50 @@ class _Fit {
   });
 }
 
-const _shapes = [
+final List<_Shape> _shapes = [
   _Shape(
     key: 'kum_saati',
-    label: 'Kum Saati',
-    description: 'Omuz & kalça dengeli, bel belirgin',
+    label: 'body_profile.hourglass'.tr(),
+    description: 'body_profile.hourglass_desc'.tr(),
     index: '01',
   ),
   _Shape(
     key: 'armut',
-    label: 'Armut',
-    description: 'Kalça omuzdan biraz daha geniş',
+    label: 'body_profile.pear'.tr(),
+    description: 'body_profile.pear_desc'.tr(),
     index: '02',
   ),
   _Shape(
     key: 'ters_ucgen',
-    label: 'Ters Üçgen',
-    description: 'Omuz kalçadan daha geniş',
+    label: 'body_profile.inverted_triangle'.tr(),
+    description: 'body_profile.inverted_triangle_desc'.tr(),
     index: '03',
   ),
   _Shape(
     key: 'dikdortgen',
-    label: 'Dikdörtgen',
-    description: 'Omuz, bel ve kalça hemen hemen eşit',
+    label: 'body_profile.rectangle'.tr(),
+    description: 'body_profile.rectangle_desc'.tr(),
     index: '04',
   ),
 ];
 
-const _fits = [
+final List<_Fit> _fits = [
   _Fit(
     key: 'slim',
-    label: 'Slim-fit',
-    description: 'Vücuda yakın, dar kesim',
+    label: 'body_profile.slim'.tr(),
+    description: 'body_profile.slim_desc'.tr(),
     icon: Icons.compress_rounded,
   ),
   _Fit(
     key: 'regular',
-    label: 'Regular',
-    description: 'Standart, dengeli kesim',
+    label: 'body_profile.regular'.tr(),
+    description: 'body_profile.regular_desc'.tr(),
     icon: Icons.remove_rounded,
   ),
   _Fit(
     key: 'oversize',
-    label: 'Oversize',
-    description: 'Bol ve rahat, özgür his',
+    label: 'body_profile.oversize'.tr(),
+    description: 'body_profile.oversize_desc'.tr(),
     icon: Icons.open_in_full_rounded,
   ),
 ];
@@ -152,7 +153,7 @@ class _BodyProfileScreenState extends State<BodyProfileScreen>
     // Her iki alan da seçilmeli
     if (_selectedShape == null || _selectedFit == null) {
       _showSnackBar(
-        'Lütfen vücut şekli ve kalıp tercihini seçin.',
+        'body_profile.please_select_body_shape_and_fit'.tr(),
         isError: true,
       );
       return;
@@ -171,17 +172,17 @@ class _BodyProfileScreenState extends State<BodyProfileScreen>
       // Yerel cache'i güncelle (offline destek)
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_prefShape, _selectedShape!);
-      await prefs.setString(_prefFit,   _selectedFit!);
+      await prefs.setString(_prefFit, _selectedFit!);
 
       if (!mounted) return;
-      _showSnackBar('Tercihleriniz başarıyla kaydedildi.');
+      _showSnackBar('body_profile.preferences_saved_successfully'.tr());
       Navigator.pop(context, true);
     } on ApiException catch (e) {
       if (!mounted) return;
       _showSnackBar(e.message, isError: true);
     } catch (_) {
       if (!mounted) return;
-      _showSnackBar('Bir hata oluştu, lütfen tekrar deneyin.', isError: true);
+      _showSnackBar('body_profile.error_occurred'.tr(), isError: true);
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -209,8 +210,8 @@ class _BodyProfileScreenState extends State<BodyProfileScreen>
                       // ══ SECTION 1 — Vücut Şekli ══════════════════════════
                       SliverToBoxAdapter(
                         child: _SectionHeader(
-                          label: 'VÜCUT ŞEKLİ',
-                          subtitle: 'Sana en yakın vücut tipini seç',
+                          label: 'body_profile.body_shape'.tr(),
+                          subtitle: 'body_profile.select_body_shape'.tr(),
                         ),
                       ),
                       SliverToBoxAdapter(child: _buildShapeList()),
@@ -218,8 +219,9 @@ class _BodyProfileScreenState extends State<BodyProfileScreen>
                       // ══ SECTION 2 — Kalıp Tercihi ═════════════════════════
                       SliverToBoxAdapter(
                         child: _SectionHeader(
-                          label: 'KALIP TERCİHİ',
-                          subtitle: 'Nasıl giyinmeyi seversin?',
+                          label: 'body_profile.fit_preference'.tr(),
+                          subtitle: 'body_profile.how_do_you_like_to_dress'
+                              .tr(),
                         ),
                       ),
                       SliverToBoxAdapter(child: _buildFitList()),
@@ -257,12 +259,12 @@ class _BodyProfileScreenState extends State<BodyProfileScreen>
             onTap: () => Navigator.pop(context),
           ),
           const SizedBox(width: 14),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Vücut Profili',
+                  'body_profile.body_profile'.tr(),
                   style: TextStyle(
                     fontFamily: 'Cormorant',
                     fontSize: 26,
@@ -274,7 +276,7 @@ class _BodyProfileScreenState extends State<BodyProfileScreen>
                 ),
                 SizedBox(height: 2),
                 Text(
-                  'AI kombinlerin için kişisel veriler',
+                  'body_profile.personal_data_for_ai_combinations'.tr(),
                   style: TextStyle(
                     color: AppColors.muted,
                     fontSize: 11,
@@ -317,7 +319,8 @@ class _BodyProfileScreenState extends State<BodyProfileScreen>
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                'AI stilistiniz bu bilgileri kullanarak sana vücut tipine özel kombinler önerecek.',
+                'body_profile.ai_stylist_will_recommend_combinations_for_your_body_type'
+                    .tr(),
                 style: TextStyle(
                   color: AppColors.goldLight.withValues(alpha: .78),
                   fontSize: 11,
@@ -645,6 +648,10 @@ class _FloatingSaveButton extends StatelessWidget {
         ),
       ],
     ),
-    child: ProfileGoldButton(label: 'Kaydet', loading: loading, onTap: onTap),
+    child: ProfileGoldButton(
+      label: 'body_profile.save'.tr(),
+      loading: loading,
+      onTap: onTap,
+    ),
   );
 }

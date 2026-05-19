@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_wardrobe_ai/core/constants/app_colors.dart';
@@ -15,23 +16,22 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   final _pageCtrl = PageController();
   int _currentPage = 0;
 
-  static const _pages = [
+  final List<_OnboardingPage> _pages = [
     _OnboardingPage(
-      title: 'Dijital\nDolabın.',
-      subtitle: 'Tüm kıyafetlerini tek bir yerde topla, yönet ve keşfet.',
+      title: 'on_boarding.title1'.tr(),
+      subtitle: 'on_boarding.subtitle1'.tr(),
       icon: Icons.checkroom_rounded,
       color: AppColors.catTops,
     ),
     _OnboardingPage(
-      title: 'AI ile\nAnaliz.',
-      subtitle:
-          'GPT-4o fotoğrafını analiz eder, kategori ve rengi otomatik saptar.',
+      title: 'on_boarding.title2'.tr(),
+      subtitle: 'on_boarding.subtitle2'.tr(),
       icon: Icons.auto_awesome_rounded,
       color: AppColors.gold,
     ),
     _OnboardingPage(
-      title: 'Mükemmel\nKombin.',
-      subtitle: 'Hava durumu ve ruh haline göre AI\'dan kıyafet kombinleri al.',
+      title: 'on_boarding.title3'.tr(),
+      subtitle: 'on_boarding.subtitle3'.tr(),
       icon: Icons.style_rounded,
       color: AppColors.catBottoms,
     ),
@@ -116,8 +116,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                   alignment: Alignment.centerRight,
                   child: TextButton(
                     onPressed: _finish,
-                    child: const Text(
-                      'Geç',
+                    child: Text(
+                      'on_boarding.btn_skip'.tr(),
                       style: TextStyle(
                         color: AppColors.muted,
                         fontSize: 14,
@@ -317,7 +317,7 @@ class _NextButton extends StatelessWidget {
       ),
       child: Center(
         child: Text(
-          isLast ? 'Başla' : 'Devam',
+          isLast ? 'on_boarding.btn_start'.tr() : 'on_boarding.btn_next'.tr(),
           style: const TextStyle(
             color: Colors.black,
             fontSize: 16,

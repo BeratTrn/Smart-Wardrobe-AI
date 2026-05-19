@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
@@ -7,6 +8,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_wardrobe_ai/core/constants/api_constants.dart';
 import 'package:smart_wardrobe_ai/core/constants/app_colors.dart';
+import 'package:smart_wardrobe_ai/core/theme/app_theme_extension.dart';
+import 'package:smart_wardrobe_ai/core/controllers/app_settings_controller.dart';
 import 'package:smart_wardrobe_ai/core/utils/avatar_manager.dart';
 import 'package:smart_wardrobe_ai/data/services/api_service.dart';
 import 'package:smart_wardrobe_ai/presentation/screens/auth/login_screen.dart';
@@ -42,12 +45,12 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   // ── Profil fotoğrafı
   String? _profilePhoto;
-  bool    _photoUploading = false;
+  bool _photoUploading = false;
 
   // ── Tercihler
   bool _notifEnabled = true;
-  bool _darkMode = true;
-  String _selectedLang = 'Türkçe';
+  // _darkMode ve _selectedLang artık AppSettingsController / easy_localization
+  // tarafından yönetilir — state'te tutulmuyor.
 
   // ── AI Asistan Ayarları
   String _stilTonu = 'Samimi';
@@ -57,6 +60,47 @@ class _ProfileScreenState extends State<ProfileScreen>
   late final Animation<double> _fadeAnim;
 
   static const _languages = ['Türkçe', 'English', 'Deutsch', 'Français'];
+
+  // ── Locale yardımcıları ──────────────────────────────────────────────────────
+
+  static String _localeToDisplay(Locale locale) {
+    switch (locale.languageCode) {
+      case 'en':
+        return 'English';
+      case 'de':
+        return 'Deutsch';
+      case 'fr':
+        return 'Français';
+      default:
+        return 'Türkçe';
+    }
+  }
+
+  static Locale _displayToLocale(String display) {
+    switch (display) {
+      case 'English':
+        return const Locale('en');
+      case 'Deutsch':
+        return const Locale('de');
+      case 'Français':
+        return const Locale('fr');
+      default:
+        return const Locale('tr');
+    }
+  }
+
+  static String _displayToLangCode(String display) {
+    switch (display) {
+      case 'English':
+        return 'en';
+      case 'Deutsch':
+        return 'de';
+      case 'Français':
+        return 'fr';
+      default:
+        return 'tr';
+    }
+  }
 
   // ─────────────────────────────────────── Lifecycle ──
 
@@ -85,9 +129,9 @@ class _ProfileScreenState extends State<ProfileScreen>
     if (!mounted) return;
     setState(() {
       _notifEnabled = prefs.getBool('pref_notif') ?? true;
-      _darkMode     = prefs.getBool('pref_darkMode') ?? true;
-      _selectedLang = prefs.getString('pref_lang') ?? 'Türkçe';
-      _stilTonu     = prefs.getString('pref_stilTonu') ?? 'Samimi';
+      // Tema: AppSettingsController.instance.isDark (zaten hazır)
+      // Dil: context.locale (easy_localization tarafından yönetiliyor)
+      _stilTonu = prefs.getString('pref_stilTonu') ?? 'Samimi';
       // Önce yerel cache'i yükle — API sonucuyla sync edilecek
       _profilePhoto = prefs.getString('pref_profilePhoto');
     });
@@ -148,7 +192,11 @@ class _ProfileScreenState extends State<ProfileScreen>
               )
               .timeout(const Duration(seconds: 5));
 
-          final results = await Future.wait([itemsFuture, favsFuture, savedOutfitsFuture]);
+          final results = await Future.wait([
+            itemsFuture,
+            favsFuture,
+            savedOutfitsFuture,
+          ]);
 
           if (results[0].statusCode == 200) {
             final rawItems = jsonDecode(results[0].body);
@@ -225,14 +273,18 @@ class _ProfileScreenState extends State<ProfileScreen>
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
         padding: EdgeInsets.fromLTRB(
-          24, 16, 24, 24 + MediaQuery.of(ctx).padding.bottom,
+          24,
+          16,
+          24,
+          24 + MediaQuery.of(ctx).padding.bottom,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             // Handle
             Container(
-              width: 36, height: 4,
+              width: 36,
+              height: 4,
               decoration: BoxDecoration(
                 color: AppColors.border,
                 borderRadius: BorderRadius.circular(2),
@@ -241,10 +293,10 @@ class _ProfileScreenState extends State<ProfileScreen>
             const SizedBox(height: 20),
 
             // Header
-            const Align(
+            Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                'Fotoğraf Ekle',
+                'add_photo'.tr(),
                 style: TextStyle(
                   fontFamily: 'Cormorant',
                   fontSize: 20,
@@ -255,10 +307,10 @@ class _ProfileScreenState extends State<ProfileScreen>
               ),
             ),
             const SizedBox(height: 4),
-            const Align(
+            Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                'Nereden eklemek istiyorsun?',
+                'photo_source'.tr(),
                 style: TextStyle(color: AppColors.muted, fontSize: 11),
               ),
             ),
@@ -267,8 +319,8 @@ class _ProfileScreenState extends State<ProfileScreen>
             // Seçenekler
             _PhotoPickerOption(
               icon: Icons.camera_alt_outlined,
-              label: 'Kamera',
-              subtitle: 'Fotoğraf çek',
+              label: 'camera'.tr(),
+              subtitle: 'add_photo'.tr(),
               onTap: () {
                 Navigator.pop(ctx);
                 _pickPhoto(ImageSource.camera);
@@ -277,8 +329,8 @@ class _ProfileScreenState extends State<ProfileScreen>
             const SizedBox(height: 10),
             _PhotoPickerOption(
               icon: Icons.photo_library_outlined,
-              label: 'Galeri',
-              subtitle: 'Galeride seç',
+              label: 'gallery'.tr(),
+              subtitle: 'gallery_subtitle'.tr(),
               onTap: () {
                 Navigator.pop(ctx);
                 _pickPhoto(ImageSource.gallery);
@@ -293,8 +345,8 @@ class _ProfileScreenState extends State<ProfileScreen>
   /// Seçilen avatarı kaydeder ve API'ye gönderir.
   Future<void> _handleAvatarSelected(String assetPath) async {
     setState(() {
-      _profilePhoto    = assetPath;
-      _photoUploading  = true;
+      _profilePhoto = assetPath;
+      _photoUploading = true;
     });
 
     try {
@@ -306,7 +358,7 @@ class _ProfileScreenState extends State<ProfileScreen>
       _showSnackBar(e.message, isError: true);
     } catch (_) {
       if (!mounted) return;
-      _showSnackBar('Profil fotoğrafı kaydedilemedi.', isError: true);
+      _showSnackBar('profile_photo_not_saved'.tr(), isError: true);
     } finally {
       if (mounted) setState(() => _photoUploading = false);
     }
@@ -326,7 +378,7 @@ class _ProfileScreenState extends State<ProfileScreen>
 
       setState(() => _photoUploading = true);
 
-      final bytes    = await picked.readAsBytes();
+      final bytes = await picked.readAsBytes();
       final filename = picked.name;
 
       final url = await ApiService.instance.uploadProfilePhoto(
@@ -348,8 +400,8 @@ class _ProfileScreenState extends State<ProfileScreen>
       if (!mounted) return;
       _showSnackBar(
         e.toString().contains('permission')
-            ? 'Fotoğraf erişim izni gerekli.'
-            : 'Fotoğraf yüklenemedi, tekrar dene.',
+            ? 'add_photo_access_denied'.tr()
+            : 'profile_photo_upload_failed'.tr(),
         isError: true,
       );
     } finally {
@@ -380,9 +432,9 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   Future<void> _logout() async {
     final confirmed = await _showConfirm(
-      title: 'Çıkış Yap',
-      body: 'Hesabından çıkmak istediğine emin misin?',
-      confirmLabel: 'Çıkış Yap',
+      title: 'logout_title'.tr(),
+      body: 'logout_body'.tr(),
+      confirmLabel: 'logout_title'.tr(),
       isDanger: true,
     );
     if (!confirmed || !mounted) return;
@@ -401,9 +453,9 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   Future<void> _deleteAccount() async {
     final confirmed = await _showConfirm(
-      title: 'Hesabı Sil',
-      body: 'Tüm veriler kalıcı olarak silinecek.\nBu işlem geri alınamaz.',
-      confirmLabel: 'Evet, Sil',
+      title: 'delete_account_title'.tr(),
+      body: 'delete_account_body'.tr(),
+      confirmLabel: 'delete_account_confirm'.tr(),
       isDanger: true,
     );
     if (!confirmed || !mounted) return;
@@ -445,8 +497,8 @@ class _ProfileScreenState extends State<ProfileScreen>
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Sunucuya bağlanılamadı. Lütfen tekrar deneyin.'),
+        SnackBar(
+          content: Text('outfit_generator.connection_error'.tr()),
           backgroundColor: Colors.red,
         ),
       );
@@ -479,11 +531,17 @@ class _ProfileScreenState extends State<ProfileScreen>
       context: context,
       backgroundColor: Colors.transparent,
       builder: (_) => LanguageSheet(
-        selected: _selectedLang,
+        selected: _localeToDisplay(context.locale),
         languages: _languages,
-        onSelect: (lang) {
-          setState(() => _selectedLang = lang);
-          _savePref('pref_lang', lang);
+        onSelect: (lang) async {
+          final langCode = _displayToLangCode(lang);
+          // 1) Anında UI güncellemesi — easy_localization widget ağacını yeniden inşa eder
+          await context.setLocale(_displayToLocale(lang));
+          // 2) Yedek anahtar — soğuk başlatmada _resolveStartScreen tarafından okunur
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('pref_language', langCode);
+          // 3) Backend'e fire-and-forget senkronizasyon
+          ApiService.instance.updateAppSettings(language: langCode).ignore();
         },
       ),
     );
@@ -492,15 +550,15 @@ class _ProfileScreenState extends State<ProfileScreen>
   void _showPrivacy() {
     showDialog(
       context: context,
-      builder: (_) => const ProfileInfoDialog(
-        title: 'Gizlilik Politikası',
+      builder: (_) => ProfileInfoDialog(
+        title: 'privacy_policy_title'.tr(),
         icon: Icons.privacy_tip_outlined,
         content:
-            'Smart Wardrobe AI olarak kişisel verilerinizin güvenliğini ön planda tutuyoruz.\n\n'
-            '• Kıyafet fotoğraflarınız yalnızca sizin gardirop hesabınızda saklanır.\n\n'
-            '• Üçüncü taraflarla hiçbir kişisel veriniz paylaşılmaz.\n\n'
-            '• Hesabınızı sildiğinizde tüm verileriniz kalıcı olarak kaldırılır.\n\n'
-            '• JWT tabanlı kimlik doğrulama ile güvenli erişim sağlanır.',
+            'privacy_policy_body'.tr() +
+            'privacy_policy_item1'.tr() +
+            'privacy_policy_item2'.tr() +
+            'privacy_policy_item3'.tr() +
+            'privacy_policy_item4'.tr(),
       ),
     );
   }
@@ -508,15 +566,14 @@ class _ProfileScreenState extends State<ProfileScreen>
   void _showHelp() {
     showDialog(
       context: context,
-      builder: (_) => const ProfileInfoDialog(
+      builder: (_) => ProfileInfoDialog(
         title: 'Yardım & Destek',
         icon: Icons.help_outline_rounded,
         content:
-            'Herhangi bir sorunla karşılaştığında bize ulaşabilirsin:\n\n'
-            '📧  destek@smartwardrobe.ai\n\n'
-            '🌐  smartwardrobe.ai/destek\n\n'
-            'Sık sorulan sorular ve kullanım kılavuzu için web sitemizi ziyaret edebilirsin. '
-            'Yanıt süremiz genellikle 24 saattir.',
+            'privacy_policy_contact'.tr() +
+            '📧  smartwardrobeai@gmail.com\n\n' +
+            'privacy_policy_faq'.tr() +
+            'privacy_policy_response_time'.tr(),
       ),
     );
   }
@@ -596,27 +653,27 @@ class _ProfileScreenState extends State<ProfileScreen>
 
         // ── AI Asistan Ayarları
         const SliverToBoxAdapter(child: SizedBox(height: 8)),
-        ProfileSectionLabel(label: 'AI ASİSTAN AYARLARI'),
+        ProfileSectionLabel(label: 'profile.ai_settings'.tr()),
         SliverToBoxAdapter(child: _buildAiCard()),
 
         // ── Görünüm & Dil
         const SliverToBoxAdapter(child: SizedBox(height: 8)),
-        ProfileSectionLabel(label: 'GÖRÜNÜM & DİL'),
+        ProfileSectionLabel(label: 'profile.appearance'.tr()),
         SliverToBoxAdapter(child: _buildAppearanceCard()),
 
         // ── Bildirimler
         const SliverToBoxAdapter(child: SizedBox(height: 8)),
-        ProfileSectionLabel(label: 'BİLDİRİMLER'),
+        ProfileSectionLabel(label: 'profile.notifications'.tr()),
         SliverToBoxAdapter(child: _buildNotifCard()),
 
         // ── Hesap
         const SliverToBoxAdapter(child: SizedBox(height: 8)),
-        ProfileSectionLabel(label: 'HESAP'),
+        ProfileSectionLabel(label: 'profile.account'.tr()),
         SliverToBoxAdapter(child: _buildAccountCard()),
 
         // ── Oturum
         const SliverToBoxAdapter(child: SizedBox(height: 8)),
-        ProfileSectionLabel(label: 'OTURUM'),
+        ProfileSectionLabel(label: 'profile.session'.tr()),
         SliverToBoxAdapter(child: _buildSessionCard()),
 
         // ── Footer
@@ -636,13 +693,13 @@ class _ProfileScreenState extends State<ProfileScreen>
             onTap: () => Navigator.pop(context),
           ),
           const SizedBox(width: 12),
-          const Text(
-            'Profil & Ayarlar',
+          Text(
+            'profile.title'.tr(),
             style: TextStyle(
               fontFamily: 'Cormorant',
               fontSize: 22,
               fontWeight: FontWeight.w700,
-              color: AppColors.text,
+              color: AppColorsExtension.of(context).text,
               letterSpacing: -.3,
             ),
           ),
@@ -661,7 +718,7 @@ class _ProfileScreenState extends State<ProfileScreen>
         children: [
           ProfileNavTile(
             icon: Icons.record_voice_over_outlined,
-            label: 'Stil Danışmanı Tonu',
+            label: 'profile.style_advisor_tone'.tr(),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -686,7 +743,7 @@ class _ProfileScreenState extends State<ProfileScreen>
           const ProfileTileDivider(),
           ProfileNavTile(
             icon: Icons.accessibility_new_rounded,
-            label: 'Vücut Profili & Tercihler',
+            label: 'profile.body_profile'.tr(),
             onTap: _showVucutProfili,
           ),
         ],
@@ -699,18 +756,18 @@ class _ProfileScreenState extends State<ProfileScreen>
     // Tone options: name + description + icon
     const tones = [
       (
-        'Profesyonel',
-        'Resmi, net ve kurumsal bir stil. Ofis & iş toplantıları için.',
+        'style_advisor_professional',
+        'style_advisor_professional_description',
         Icons.business_center_outlined,
       ),
       (
-        'Samimi',
-        'Enerjik ve neşeli bir dost gibi. Günlük, eğlenceli öneriler.',
+        'style_advisor_friendly',
+        'style_advisor_friendly_description',
         Icons.emoji_emotions_outlined,
       ),
       (
-        'Sert / Moda Eleştirmeni',
-        'Kompromi yok. Cesur, dürüst ve yüksek standartlı.',
+        'style_advisor_harsh',
+        'style_advisor_harsh_description',
         Icons.star_border_rounded,
       ),
     ];
@@ -754,10 +811,12 @@ class _ProfileScreenState extends State<ProfileScreen>
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(colors: [
-                        AppColors.gold.withValues(alpha: .18),
-                        AppColors.goldLight.withValues(alpha: .08),
-                      ]),
+                      gradient: LinearGradient(
+                        colors: [
+                          AppColors.gold.withValues(alpha: .18),
+                          AppColors.goldLight.withValues(alpha: .08),
+                        ],
+                      ),
                       shape: BoxShape.circle,
                       border: Border.all(
                         color: AppColors.gold.withValues(alpha: .3),
@@ -771,11 +830,11 @@ class _ProfileScreenState extends State<ProfileScreen>
                     ),
                   ),
                   const SizedBox(width: 12),
-                  const Column(
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Stil Danışmanı Tonu',
+                        'style_advisor_tone'.tr(),
                         style: TextStyle(
                           fontFamily: 'Cormorant',
                           fontSize: 20,
@@ -784,7 +843,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                         ),
                       ),
                       Text(
-                        'AI\'ın sana nasıl hitap edeceğini seç',
+                        'style_advisor_tone_description'.tr(),
                         style: TextStyle(
                           color: AppColors.muted,
                           fontSize: 11,
@@ -922,26 +981,31 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   // ── Görünüm & Dil kartı
   Widget _buildAppearanceCard() {
+    final isDark = AppSettingsController.instance.isDark;
+    final currentLang = _localeToDisplay(context.locale);
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(22, 10, 22, 0),
       child: ProfileSettingsCard(
         children: [
           ProfileToggleTile(
-            icon: Icons.dark_mode_outlined,
-            label: 'Karanlık Tema',
-            subtitle: 'Koyu arka plan modu',
-            value: _darkMode,
-            onChanged: (v) {
-              setState(() => _darkMode = v);
-              _savePref('pref_darkMode', v);
-            },
+            icon: isDark ? Icons.dark_mode_outlined : Icons.light_mode_outlined,
+            label: isDark
+                ? 'profile.dark_theme'.tr()
+                : 'profile.light_theme'.tr(),
+            subtitle: isDark
+                ? 'profile.dark_theme_subtitle'.tr()
+                : 'profile.light_theme_subtitle'.tr(),
+            value: isDark,
+            // setTheme → notifyListeners → MaterialApp themeMode değişir → anlık UI tepkisi
+            onChanged: (v) => AppSettingsController.instance.setTheme(v),
           ),
           const ProfileTileDivider(),
           ProfileNavTile(
             icon: Icons.language_rounded,
-            label: 'Dil',
+            label: 'profile.language'.tr(),
             trailing: Text(
-              _selectedLang,
+              currentLang,
               style: const TextStyle(
                 color: AppColors.gold,
                 fontSize: 13,
@@ -963,12 +1027,15 @@ class _ProfileScreenState extends State<ProfileScreen>
         children: [
           ProfileNavTile(
             icon: Icons.notifications_active_outlined,
-            label: 'Bildirim Ayarları',
+            label: 'profile.notifications_settings'.tr(),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 7,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
                       colors: [AppColors.gold, AppColors.goldLight],
@@ -1013,31 +1080,31 @@ class _ProfileScreenState extends State<ProfileScreen>
         children: [
           ProfileNavTile(
             icon: Icons.person_outline_rounded,
-            label: 'Profili Düzenle',
+            label: 'profile.edit_profile'.tr(),
             onTap: _showEditProfile,
           ),
           const ProfileTileDivider(),
           ProfileNavTile(
             icon: Icons.lock_outline_rounded,
-            label: 'Şifre Değiştir',
+            label: 'profile.change_password'.tr(),
             onTap: _showChangePassword,
           ),
           const ProfileTileDivider(),
           ProfileNavTile(
             icon: Icons.privacy_tip_outlined,
-            label: 'Gizlilik Politikası',
+            label: 'profile.privacy_policy'.tr(),
             onTap: _showPrivacy,
           ),
           const ProfileTileDivider(),
           ProfileNavTile(
             icon: Icons.help_outline_rounded,
-            label: 'Yardım & Destek',
+            label: 'profile.help_support'.tr(),
             onTap: _showHelp,
           ),
           const ProfileTileDivider(),
           ProfileNavTile(
             icon: Icons.info_outline_rounded,
-            label: 'Hakkında',
+            label: 'profile.about'.tr(),
             onTap: _showAbout,
           ),
         ],
@@ -1053,7 +1120,7 @@ class _ProfileScreenState extends State<ProfileScreen>
         children: [
           ProfileNavTile(
             icon: Icons.logout_rounded,
-            label: 'Çıkış Yap',
+            label: 'profile.logout'.tr(),
             iconColor: AppColors.error,
             textColor: AppColors.error,
             onTap: _logout,
@@ -1061,7 +1128,7 @@ class _ProfileScreenState extends State<ProfileScreen>
           const ProfileTileDivider(),
           ProfileNavTile(
             icon: Icons.delete_forever_outlined,
-            label: 'Hesabı Kalıcı Olarak Sil',
+            label: 'profile.delete_account'.tr(),
             iconColor: AppColors.error,
             textColor: AppColors.error,
             onTap: _deleteAccount,
@@ -1089,65 +1156,62 @@ class _PhotoPickerOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => GestureDetector(
-        onTap: () {
-          HapticFeedback.selectionClick();
-          onTap();
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
-          decoration: BoxDecoration(
-            color: AppColors.bg,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.border),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(colors: [
-                    AppColors.gold.withValues(alpha: .14),
-                    AppColors.goldLight.withValues(alpha: .06),
-                  ]),
-                  borderRadius: BorderRadius.circular(11),
-                  border: Border.all(
-                    color: AppColors.gold.withValues(alpha: .30),
-                  ),
-                ),
-                child: Icon(icon, color: AppColors.goldLight, size: 18),
-              ),
-              const SizedBox(width: 14),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: const TextStyle(
-                      fontFamily: 'Cormorant',
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.text,
-                      letterSpacing: -.1,
-                    ),
-                  ),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(
-                      color: AppColors.muted,
-                      fontSize: 11,
-                    ),
-                  ),
+    onTap: () {
+      HapticFeedback.selectionClick();
+      onTap();
+    },
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+      decoration: BoxDecoration(
+        color: AppColors.bg,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.gold.withValues(alpha: .14),
+                  AppColors.goldLight.withValues(alpha: .06),
                 ],
               ),
-              const Spacer(),
-              const Icon(
-                Icons.chevron_right_rounded,
-                color: AppColors.muted,
-                size: 20,
+              borderRadius: BorderRadius.circular(11),
+              border: Border.all(color: AppColors.gold.withValues(alpha: .30)),
+            ),
+            child: Icon(icon, color: AppColors.goldLight, size: 18),
+          ),
+          const SizedBox(width: 14),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: const TextStyle(
+                  fontFamily: 'Cormorant',
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.text,
+                  letterSpacing: -.1,
+                ),
+              ),
+              Text(
+                subtitle,
+                style: const TextStyle(color: AppColors.muted, fontSize: 11),
               ),
             ],
           ),
-        ),
-      );
+          const Spacer(),
+          const Icon(
+            Icons.chevron_right_rounded,
+            color: AppColors.muted,
+            size: 20,
+          ),
+        ],
+      ),
+    ),
+  );
 }

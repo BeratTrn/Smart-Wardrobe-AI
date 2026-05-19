@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
@@ -20,8 +21,10 @@ class VerificationScreen extends StatefulWidget {
 class _VerificationScreenState extends State<VerificationScreen>
     with TickerProviderStateMixin {
   // 6 ayrı OTP input controller + focus node
-  final List<TextEditingController> _controllers =
-      List.generate(6, (_) => TextEditingController());
+  final List<TextEditingController> _controllers = List.generate(
+    6,
+    (_) => TextEditingController(),
+  );
   final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
 
   bool _loading = false;
@@ -93,8 +96,7 @@ class _VerificationScreenState extends State<VerificationScreen>
   }
 
   // ── 6 kutunun değerini birleştir ───────────────────────────────────────
-  String get _otpValue =>
-      _controllers.map((c) => c.text).join();
+  String get _otpValue => _controllers.map((c) => c.text).join();
 
   // ── OTP bir kutuya girildiğinde ────────────────────────────────────────
   void _onOtpInput(int index, String value) {
@@ -124,7 +126,10 @@ class _VerificationScreenState extends State<VerificationScreen>
   Future<void> _verify() async {
     final otp = _otpValue;
     if (otp.length < 6) {
-      setState(() => _errorMessage = 'Lütfen 6 haneli kodu eksiksiz girin.');
+      setState(
+        () => _errorMessage = 'verify.please_enter_the_complete_6_digit_code'
+            .tr(),
+      );
       _shakeController.forward(from: 0);
       return;
     }
@@ -139,10 +144,7 @@ class _VerificationScreenState extends State<VerificationScreen>
           .post(
             Uri.parse('${ApiConstants.baseUrl}/auth/verify-email'),
             headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({
-              'email': widget.email,
-              'otpCode': otp,
-            }),
+            body: jsonEncode({'email': widget.email, 'otpCode': otp}),
           )
           .timeout(const Duration(seconds: 12));
 
@@ -168,7 +170,8 @@ class _VerificationScreenState extends State<VerificationScreen>
       } else {
         // ❌ Hatalı kod — ekranda kal, hata göster
         setState(() {
-          _errorMessage = data['mesaj'] ?? 'Hatalı doğrulama kodu.';
+          _errorMessage =
+              data['mesaj'] ?? 'verify.incorrect_verification_code'.tr();
         });
         _shakeController.forward(from: 0);
         // Tüm kutuları temizle
@@ -179,12 +182,16 @@ class _VerificationScreenState extends State<VerificationScreen>
       }
     } on TimeoutException {
       if (mounted) {
-        setState(() => _errorMessage = 'Sunucu zaman aşımına uğradı. Tekrar deneyin.');
+        setState(
+          () => _errorMessage = 'verify.server_timeout_please_try_again'.tr(),
+        );
         _shakeController.forward(from: 0);
       }
     } catch (_) {
       if (mounted) {
-        setState(() => _errorMessage = 'Sunucuya bağlanılamadı.');
+        setState(
+          () => _errorMessage = 'verify.could_not_connect_to_server'.tr(),
+        );
         _shakeController.forward(from: 0);
       }
     } finally {
@@ -213,7 +220,7 @@ class _VerificationScreenState extends State<VerificationScreen>
       if (res.statusCode == 200) {
         showAuthSnack(
           context,
-          data['mesaj'] ?? 'Yeni kod e-posta adresinize gönderildi.',
+          data['mesaj'] ?? 'verify.new_code_sent_to_email'.tr(),
         );
         _startCountdown();
         for (final c in _controllers) {
@@ -225,8 +232,7 @@ class _VerificationScreenState extends State<VerificationScreen>
         if (data['emailSendFailed'] == true) {
           showAuthSnack(
             context,
-            data['mesaj'] ??
-                'Kod gönderilemedi. Lütfen internetinizi kontrol edip tekrar deneyin.',
+            data['mesaj'] ?? 'verify.code_could_not_be_sent'.tr(),
           );
         } else {
           showAuthSnack(context, data['mesaj'] ?? 'Kod gönderilemedi.');
@@ -264,8 +270,8 @@ class _VerificationScreenState extends State<VerificationScreen>
                 const SizedBox(height: 40),
 
                 // Başlık
-                const Text(
-                  'E-posta\nDoğrulama.',
+                Text(
+                  'verify.email_verification'.tr(),
                   style: TextStyle(
                     fontFamily: 'Cormorant',
                     fontSize: 44,
@@ -286,7 +292,7 @@ class _VerificationScreenState extends State<VerificationScreen>
                       height: 1.5,
                     ),
                     children: [
-                      const TextSpan(text: '6 haneli doğrulama kodu\n'),
+                      TextSpan(text: 'verify.6_digit_verification_code'.tr()),
                       TextSpan(
                         text: widget.email,
                         style: const TextStyle(
@@ -294,9 +300,7 @@ class _VerificationScreenState extends State<VerificationScreen>
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      const TextSpan(
-                        text: '\nadresine gönderildi.',
-                      ),
+                      TextSpan(text: 'verify.code_sent_to_email'.tr()),
                     ],
                   ),
                 ),
@@ -308,8 +312,7 @@ class _VerificationScreenState extends State<VerificationScreen>
                   animation: _shakeAnimation,
                   builder: (context, child) {
                     final shake = _shakeAnimation.value;
-                    final offset =
-                        (shake < 0.5 ? shake : 1.0 - shake) * 2 * 10;
+                    final offset = (shake < 0.5 ? shake : 1.0 - shake) * 2 * 10;
                     return Transform.translate(
                       offset: Offset(offset, 0),
                       child: child,
@@ -358,7 +361,7 @@ class _VerificationScreenState extends State<VerificationScreen>
 
                 // Doğrula butonu
                 AuthPrimaryButton(
-                  label: 'Doğrula',
+                  label: 'verify.verify'.tr(),
                   onTap: _verify,
                   loading: _loading,
                 ),
@@ -370,8 +373,8 @@ class _VerificationScreenState extends State<VerificationScreen>
                   child: _canResend
                       ? GestureDetector(
                           onTap: _resendCode,
-                          child: const Text(
-                            'Kodu tekrar gönder',
+                          child: Text(
+                            'verify.resend_code'.tr(),
                             style: TextStyle(
                               color: AuthColors.gold,
                               fontSize: 14,
@@ -380,7 +383,7 @@ class _VerificationScreenState extends State<VerificationScreen>
                           ),
                         )
                       : Text(
-                          'Kodu tekrar gönder ($_resendCountdown sn)',
+                          'verify.resend_code'.tr() + ' ($_resendCountdown sn)',
                           style: const TextStyle(
                             color: AuthColors.muted,
                             fontSize: 13,
@@ -454,8 +457,8 @@ class _OtpBox extends StatelessWidget {
                 color: hasError
                     ? AuthColors.error
                     : isFilled
-                        ? AuthColors.gold
-                        : AuthColors.border,
+                    ? AuthColors.gold
+                    : AuthColors.border,
                 width: 1.5,
               ),
             ),
@@ -480,20 +483,20 @@ class _BackButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => GestureDetector(
-        onTap: onTap,
-        child: Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: AuthColors.card,
-            shape: BoxShape.circle,
-            border: Border.all(color: AuthColors.border, width: 1),
-          ),
-          child: const Icon(
-            Icons.arrow_back_ios_new_rounded,
-            color: AuthColors.text,
-            size: 16,
-          ),
-        ),
-      );
+    onTap: onTap,
+    child: Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        color: AuthColors.card,
+        shape: BoxShape.circle,
+        border: Border.all(color: AuthColors.border, width: 1),
+      ),
+      child: const Icon(
+        Icons.arrow_back_ios_new_rounded,
+        color: AuthColors.text,
+        size: 16,
+      ),
+    ),
+  );
 }
