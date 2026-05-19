@@ -1,0 +1,231 @@
+@import "tailwindcss";
+
+/* ═══════════════════════════════════════════════════════════════════════
+   SMART WARDROBE AI — Design Token System
+   Tailwind CSS v4  |  CSS-first configuration  |  No tailwind.config.ts
+
+   TOKEN NAMING → UTILITY MAPPING
+     --color-bg           → bg-bg / text-bg
+     --color-surface      → bg-surface
+     --color-card         → bg-card
+     --color-border       → border-border
+     --color-gold         → bg-gold / text-gold / border-gold
+     --color-gold-light   → text-gold-light
+     --color-gold-dim     → bg-gold-dim
+     --color-text         → text-text
+     --color-text-sub     → text-text-sub
+     --color-muted        → text-muted
+     --color-success      → text-success / bg-success
+     --color-danger       → text-danger / bg-danger
+     --color-info         → text-info / bg-info
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── Dark Theme Design Tokens (default) ─────────────────────────────── */
+@theme {
+  /* ▸ Background layers */
+  --color-bg:             #0A0A0A;
+  --color-surface:        #141414;
+  --color-card:           #1A1A17;
+  --color-border:         #272720;
+
+  /* ▸ Gold accent — brand constant */
+  --color-gold:           #C9A84C;
+  --color-gold-light:     #E8C97A;
+  --color-gold-dim:       #6B5820;
+
+  /* ▸ Text hierarchy */
+  --color-text:           #F5F0E8;
+  --color-text-sub:       #B0A898;
+  --color-muted:          #6A6458;
+
+  /* ▸ Semantic status */
+  --color-success:        #4A8C5C;
+  --color-danger:         #B04040;
+  --color-info:           #3A6EA8;
+
+  /* ▸ Category palette (mirrors Flutter AppColors exactly) */
+  --color-cat-tops:       #5A7A9C;
+  --color-cat-bottoms:    #7A5A9C;
+  --color-cat-shoes:      #9C7A5A;
+  --color-cat-accessory:  #5A9C7A;
+  --color-cat-onepiece:   #9C5A7A;
+  --color-cat-outer:      #6A8C6A;
+}
+
+/* ── Light Theme Token Overrides ─────────────────────────────────────── */
+[data-theme="light"] {
+  --color-bg:             #F8F6F0;
+  --color-surface:        #FFFFFF;
+  --color-card:           #FAF9F6;
+  --color-border:         #E0DED7;
+
+  --color-gold:           #C9A84C;
+  --color-gold-light:     #B8942A;
+  --color-gold-dim:       #EDD9A0;
+
+  --color-text:           #1A1A1A;
+  --color-text-sub:       #757575;
+  --color-muted:          #AAAAAA;
+
+  --color-success:        #3A7A4C;
+  --color-danger:         #9A3030;
+  --color-info:           #2A5E98;
+
+  --color-cat-tops:       #4A6A8C;
+  --color-cat-bottoms:    #6A4A8C;
+  --color-cat-shoes:      #8C6A4A;
+  --color-cat-accessory:  #4A8C6A;
+  --color-cat-onepiece:   #8C4A6A;
+  --color-cat-outer:      #5A7C5A;
+}
+
+/* ── Base Reset & Foundations ────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  height: 100%;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-inter, 'Inter', system-ui, -apple-system, sans-serif);
+  transition: background-color 250ms ease, color 250ms ease;
+}
+
+/* Custom focus ring using gold accent */
+:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* ── Custom Utility Classes ──────────────────────────────────────────── */
+@layer utilities {
+
+  /* ▸ Glassmorphism — primary (topbar, modals, floating panels) */
+  .glass {
+    background: color-mix(in srgb, var(--color-card) 78%, transparent);
+    backdrop-filter: blur(16px) saturate(160%);
+    -webkit-backdrop-filter: blur(16px) saturate(160%);
+    border: 1px solid color-mix(in srgb, var(--color-gold) 10%, transparent);
+  }
+
+  /* ▸ Glassmorphism — surface variant (lighter, for secondary elements) */
+  .glass-surface {
+    background: color-mix(in srgb, var(--color-surface) 85%, transparent);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid color-mix(in srgb, var(--color-border) 60%, transparent);
+  }
+
+  /* ▸ Gold gradient fills (buttons, avatars, active marks) */
+  .bg-gold-gradient {
+    background: linear-gradient(135deg, var(--color-gold) 0%, var(--color-gold-light) 100%);
+  }
+
+  /* ▸ Gold gradient text */
+  .text-gold-gradient {
+    background: linear-gradient(
+      135deg,
+      var(--color-gold) 0%,
+      var(--color-gold-light) 50%,
+      var(--color-gold) 100%
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* ▸ Subtle inset gold glow ring */
+  .ring-gold {
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--color-gold) 35%, transparent),
+      0 0 20px color-mix(in srgb, var(--color-gold) 10%, transparent);
+  }
+
+  /* ▸ Premium elevation shadows */
+  .shadow-card {
+    box-shadow:
+      0 1px 2px color-mix(in srgb, #000 20%, transparent),
+      0 4px 12px color-mix(in srgb, #000 10%, transparent);
+  }
+
+  .shadow-card-lg {
+    box-shadow:
+      0 4px 16px color-mix(in srgb, #000 22%, transparent),
+      0 16px 48px color-mix(in srgb, #000 14%, transparent);
+  }
+
+  /* ▸ Sidebar & panel transition */
+  .sidebar-transition {
+    transition:
+      width 280ms cubic-bezier(0.4, 0, 0.2, 1),
+      transform 280ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* ▸ Smooth entrance animations */
+  .animate-fade-in {
+    animation: swFadeIn 220ms ease-out both;
+  }
+
+  .animate-slide-up {
+    animation: swSlideUp 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  /* ▸ Branded thin scrollbar */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border) transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: var(--color-border);
+    border-radius: 2px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-muted);
+  }
+
+  /* ▸ Skeleton loading shimmer */
+  .skeleton {
+    background: linear-gradient(
+      90deg,
+      var(--color-surface)  25%,
+      var(--color-card)     50%,
+      var(--color-surface)  75%
+    );
+    background-size: 400% 100%;
+    animation: swShimmer 1.8s ease-in-out infinite;
+  }
+}
+
+/* ── Keyframe Definitions ────────────────────────────────────────────── */
+@keyframes swFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0);   }
+}
+
+@keyframes swSlideUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+@keyframes swShimmer {
+  0%   { background-position:  200% 0; }
+  100% { background-position: -200% 0; }
+}
