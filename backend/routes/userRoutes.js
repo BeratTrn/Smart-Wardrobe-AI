@@ -288,7 +288,10 @@ router.put('/profile/photo/upload', protect, upload.single('resim'), uploadProfi
  * @swagger
  * /api/users/preferences:
  *   put:
- *     summary: Bildirim tercihlerini ve varsayılan şehri günceller
+ *     summary: Kullanıcı tercihlerini günceller (bildirim, şehir, tema, dil)
+ *     description: |
+ *       Bildirim ayarları, varsayılan şehir, uygulama teması ve dil tercihlerini günceller.
+ *       En az bir alan gönderilmelidir. Tüm alanlar opsiyoneldir.
  *     tags: [Users]
  *     security:
  *       - bearerAuth: []
@@ -301,20 +304,51 @@ router.put('/profile/photo/upload', protect, upload.single('resim'), uploadProfi
  *             properties:
  *               dailyWeatherAI:
  *                 type: boolean
+ *                 description: Günlük hava durumu + AI kombin bildirimi
+ *                 example: true
  *               travelReminders:
  *                 type: boolean
+ *                 description: Seyahat hatırlatma bildirimleri
+ *                 example: true
  *               weeklyStyle:
  *                 type: boolean
+ *                 description: Haftalık stil özeti bildirimi
+ *                 example: true
  *               defaultCity:
  *                 type: string
+ *                 description: Hava durumu için varsayılan şehir
  *                 example: Istanbul
+ *               theme:
+ *                 type: string
+ *                 enum: [dark, light]
+ *                 description: Uygulama tema tercihi
+ *                 example: dark
+ *               language:
+ *                 type: string
+ *                 enum: [tr, en, de, fr]
+ *                 description: Uygulama dil tercihi
+ *                 example: tr
  *     responses:
  *       200:
- *         description: Tercihler güncellendi
+ *         description: Tercihler başarıyla güncellendi
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 mesaj:
+ *                   type: string
+ *                   example: Tercihler güncellendi. ✅
+ *                 notificationPreferences:
+ *                   type: object
+ *                 defaultCity:
+ *                   type: string
  *       400:
- *         description: Geçersiz veya boş değer
+ *         description: Hiçbir alan gönderilmedi
  *       401:
  *         description: Token eksik veya geçersiz
+ *       500:
+ *         description: Sunucu hatası
  */
 router.put('/preferences', protect, updatePreferences);
 

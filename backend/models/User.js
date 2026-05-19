@@ -45,6 +45,16 @@ const userSchema = new mongoose.Schema({
         default: 'Istanbul',
         trim: true,
     },
+    theme: {
+        type: String,
+        enum: ['dark', 'light'],
+        default: 'dark',
+    },
+    language: {
+        type: String,
+        enum: ['tr', 'en', 'de', 'fr'],
+        default: 'tr',
+    },
     notificationPreferences: {
         dailyWeatherAI:  { type: Boolean, default: true },
         travelReminders: { type: Boolean, default: true },

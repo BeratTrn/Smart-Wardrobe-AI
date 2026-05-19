@@ -262,7 +262,9 @@ const loginUser = async (req, res) => {
                 id: user._id,
                 kullaniciAdi: user.kullaniciAdi,
                 email: user.email,
-                tercihler: user.tercihler
+                tercihler: user.tercihler,
+                theme: user.theme ?? 'dark',
+                language: user.language ?? 'tr',
             }
         });
 
@@ -286,6 +288,8 @@ const getMe = async (req, res) => {
                 email: req.user.email,
                 profilFoto: req.user.profilFoto ?? '',
                 tercihler: req.user.tercihler,
+                theme: req.user.theme ?? 'dark',
+                language: req.user.language ?? 'tr',
                 vucut: req.user.vucut,
                 defaultCity: req.user.defaultCity ?? 'Istanbul',
                 notificationPreferences: req.user.notificationPreferences ?? {

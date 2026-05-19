@@ -118,7 +118,7 @@ const uploadProfilePhoto = async (req, res) => {
 // @access Private
 const updatePreferences = async (req, res) => {
     try {
-        const { dailyWeatherAI, travelReminders, weeklyStyle, defaultCity } = req.body;
+        const { dailyWeatherAI, travelReminders, weeklyStyle, defaultCity, theme, language } = req.body;
 
         const update = {};
         if (dailyWeatherAI  !== undefined) update['notificationPreferences.dailyWeatherAI']  = Boolean(dailyWeatherAI);
@@ -126,6 +126,12 @@ const updatePreferences = async (req, res) => {
         if (weeklyStyle     !== undefined) update['notificationPreferences.weeklyStyle']     = Boolean(weeklyStyle);
         if (defaultCity && typeof defaultCity === 'string' && defaultCity.trim()) {
             update.defaultCity = defaultCity.trim();
+        }
+        if (theme && ['dark', 'light'].includes(theme)) {
+            update.theme = theme;
+        }
+        if (language && ['tr', 'en', 'de', 'fr'].includes(language)) {
+            update.language = language;
         }
 
         if (Object.keys(update).length === 0) {
