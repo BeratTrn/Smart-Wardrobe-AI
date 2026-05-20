@@ -1,12 +1,5 @@
-/**
- * Stats API — wraps GET /api/stats/wardrobe.
- * Response shape mirrors statsController.js exactly.
- */
-
 import api from "./axios";
 import type { Item } from "@/types";
-
-// ── Response shapes ───────────────────────────────────────────────────
 
 export interface StatsOzet {
   toplamKiyafet: number;
@@ -14,27 +7,10 @@ export interface StatsOzet {
   enCokRenk: string;
   enCokKategori: string;
 }
-
-export interface KategoriItem {
-  ad: string;
-  adet: number;
-  yuzde: number;
-}
-
-export interface RenkItem {
-  renk: string;
-  adet: number;
-}
-
-export interface MevsimItem {
-  mevsim: string;
-  adet: number;
-}
-
-export interface StilItem {
-  stil: string;
-  adet: number;
-}
+export interface KategoriItem { ad: string; adet: number; yuzde: number; }
+export interface MevsimItem   { mevsim: string; adet: number; }
+export interface StilItem     { stil: string; adet: number; }
+export interface RenkItem     { renk: string; adet: number; }
 
 export interface WardrobeStatsResponse {
   mesaj: string;
@@ -48,9 +24,6 @@ export interface WardrobeStatsResponse {
   };
 }
 
-// ── API call ──────────────────────────────────────────────────────────
-
-/** GET /api/stats/wardrobe — authenticated */
 export async function getWardrobeStats(): Promise<WardrobeStatsResponse> {
   const res = await api.get<WardrobeStatsResponse>("/stats/wardrobe");
   return res.data;

@@ -6,9 +6,7 @@ export async function getSavedOutfits(): Promise<SavedOutfitsResponse> {
   return res.data;
 }
 
-export async function saveOutfit(
-  payload: SaveOutfitPayload
-): Promise<{ mesaj: string; kombin: SavedOutfit }> {
+export async function saveOutfit(payload: SaveOutfitPayload): Promise<{ mesaj: string; kombin: SavedOutfit }> {
   const res = await api.post<{ mesaj: string; kombin: SavedOutfit }>("/saved-outfits", payload);
   return res.data;
 }

@@ -11,13 +11,7 @@ interface OutfitHistoryGridProps {
   pendingSaveId: string | null;
 }
 
-export function OutfitHistoryGrid({
-  outfits,
-  onFeedback,
-  onSave,
-  pendingFeedbackId,
-  pendingSaveId,
-}: OutfitHistoryGridProps) {
+export function OutfitHistoryGrid({ outfits, onFeedback, onSave, pendingFeedbackId, pendingSaveId }: OutfitHistoryGridProps) {
   if (outfits.length === 0) {
     return (
       <div className="text-center py-16 text-muted">
@@ -25,16 +19,11 @@ export function OutfitHistoryGrid({
       </div>
     );
   }
-
   return (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
       {outfits.map((outfit) => (
-        <OutfitResultCard
-          key={outfit._id}
-          outfit={outfit}
-          showActions
-          onFeedback={onFeedback}
-          onSave={onSave}
+        <OutfitResultCard key={outfit._id} outfit={outfit} showActions
+          onFeedback={onFeedback} onSave={onSave}
           isFeedbackLoading={pendingFeedbackId === outfit._id}
           isSaveLoading={pendingSaveId === outfit._id}
         />

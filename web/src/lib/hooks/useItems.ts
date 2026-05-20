@@ -17,27 +17,18 @@ export function useItems(query: ItemsFilter = {}) {
 }
 
 export function useItem(id: string) {
-  return useQuery({
-    queryKey: itemKeys.detail(id),
-    queryFn: () => itemsApi.getItem(id),
-    enabled: !!id,
-  });
+  return useQuery({ queryKey: itemKeys.detail(id), queryFn: () => itemsApi.getItem(id), enabled: !!id });
 }
 
 export function useAnalyzeItem() {
-  return useMutation({
-    mutationFn: (file: File) => itemsApi.analyzeItem(file),
-  });
+  return useMutation({ mutationFn: (file: File) => itemsApi.analyzeItem(file) });
 }
 
 export function useAddItem(onSuccess?: () => void) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (payload: AddItemPayload) => itemsApi.addItem(payload),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: itemKeys.all });
-      onSuccess?.();
-    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: itemKeys.all }); onSuccess?.(); },
   });
 }
 
@@ -45,9 +36,7 @@ export function useToggleFavorite() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => itemsApi.toggleFavorite(id),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: itemKeys.all });
-    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: itemKeys.all }); },
   });
 }
 
@@ -55,9 +44,6 @@ export function useDeleteItem(onSuccess?: () => void) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => itemsApi.deleteItem(id),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: itemKeys.all });
-      onSuccess?.();
-    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: itemKeys.all }); onSuccess?.(); },
   });
 }

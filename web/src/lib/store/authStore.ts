@@ -6,7 +6,6 @@ function setTokenCookie(token: string) {
   if (typeof document === "undefined") return;
   document.cookie = `sw_token=${token}; max-age=${7 * 24 * 3600}; path=/; SameSite=Lax`;
 }
-
 function clearTokenCookie() {
   if (typeof document === "undefined") return;
   document.cookie = "sw_token=; max-age=0; path=/";

@@ -1,12 +1,51 @@
-// ── User ─────────────────────────────────────────────────────────────────────
+// ── User (minimal — stored in authStore after login) ──────────────────────────
 export interface User {
   _id: string;
-  ad: string;
-  soyad: string;
+  id?: string;
+  ad?: string;
+  soyad?: string;
+  kullaniciAdi?: string;
   email: string;
   defaultCity?: string;
   avatar?: string;
+  profilFoto?: string;
 }
+
+// ── UserProfile (full shape from GET /api/auth/me) ────────────────────────────
+export interface UserTercihler {
+  favoriStil: string;
+  favoriRenkler: string[];
+  bildirimler: boolean;
+}
+
+export interface UserVucut {
+  sekil: string; // kum_saati | armut | ters_ucgen | dikdortgen
+  kalip: string; // slim | regular | oversize
+}
+
+export interface NotificationPreferences {
+  dailyWeatherAI: boolean;
+  travelReminders: boolean;
+  weeklyStyle: boolean;
+}
+
+export interface UserProfile {
+  id: string;
+  kullaniciAdi: string;
+  email: string;
+  profilFoto: string;
+  tercihler: UserTercihler;
+  vucut: UserVucut;
+  defaultCity: string;
+  theme: "dark" | "light";
+  language: "tr" | "en" | "de" | "fr";
+  notificationPreferences: NotificationPreferences;
+  createdAt: string;
+}
+
+export type BodyShape = "kum_saati" | "armut" | "ters_ucgen" | "dikdortgen";
+export type FitPreference = "slim" | "regular" | "oversize";
+export type Language = "tr" | "en" | "de" | "fr";
 
 // ── Auth ─────────────────────────────────────────────────────────────────────
 export interface LoginPayload {
@@ -173,4 +212,33 @@ export interface SaveOutfitPayload {
   kiyafetler: string[];
   havaDurumu?: WeatherData;
   etkinlik?: string;
+}
+
+// ── Travel ────────────────────────────────────────────────────────────────────
+export interface TravelSuitcase {
+  _id: string;
+  sehir: string;
+  baslangicTarihi: string;
+  bitisTarihi: string;
+  gunSayisi: number;
+  havaDurumuOzeti: string;
+  havaSicakligi: number | null;
+  havaIkonu: string;
+  tahminiHava: boolean;
+  onerilenkiyafetler: Item[];
+  aiAciklamasi: string;
+  aiIpucu: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SuitcaseGeneratePayload {
+  sehir: string;
+  baslangicTarihi: string;
+  bitisTarihi: string;
+}
+
+export interface SuitcasesResponse {
+  sayi: number;
+  bavullar: TravelSuitcase[];
 }

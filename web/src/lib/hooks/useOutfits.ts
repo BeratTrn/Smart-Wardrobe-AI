@@ -16,30 +16,22 @@ export function useOutfits(page = 1, limit = 12) {
 }
 
 export function useGenerateOutfit() {
-  return useMutation({
-    mutationFn: (payload: OutfitGeneratePayload) => outfitsApi.generateOutfit(payload),
-  });
+  return useMutation({ mutationFn: (payload: OutfitGeneratePayload) => outfitsApi.generateOutfit(payload) });
 }
 
 export function useSaveOutfit(onSuccess?: () => void) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (payload: SaveOutfitPayload) => outfitsApi.saveOutfit(payload),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: outfitKeys.all });
-      onSuccess?.();
-    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: outfitKeys.all }); onSuccess?.(); },
   });
 }
 
 export function useRateOutfit() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, begeniyor }: { id: string; begeniyor: boolean }) =>
-      outfitsApi.rateOutfit(id, begeniyor),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: outfitKeys.all });
-    },
+    mutationFn: ({ id, begeniyor }: { id: string; begeniyor: boolean }) => outfitsApi.rateOutfit(id, begeniyor),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: outfitKeys.all }); },
   });
 }
 
@@ -47,8 +39,6 @@ export function useDeleteOutfit() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => outfitsApi.deleteOutfit(id),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: outfitKeys.all });
-    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: outfitKeys.all }); },
   });
 }
