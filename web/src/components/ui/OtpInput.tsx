@@ -16,10 +16,10 @@ interface OtpInputProps {
  * OtpInput — six individual digit boxes.
  *
  * Features:
- *   • Auto-advances focus to the next box on digit entry
- *   • Backspace on an empty box moves focus back
- *   • Paste of a numeric string fills all boxes at once
- *   • Filled boxes styled with gold border and text
+ *   - Auto-advances focus to the next box on digit entry
+ *   - Backspace on an empty box moves focus back
+ *   - Paste of a numeric string fills all boxes at once
+ *   - Filled boxes styled with gold border and text
  */
 export function OtpInput({
   value,

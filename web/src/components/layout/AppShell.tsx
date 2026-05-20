@@ -14,7 +14,7 @@ interface AppShellProps {
  *
  * DESKTOP (lg+):
  *   Sidebar is a flex sibling — it pushes the main content area.
- *   Collapsing the sidebar transitions it from 240px → 64px.
+ *   Collapsing the sidebar transitions it from 240px -> 64px.
  *
  * MOBILE (< lg):
  *   Sidebar is position:fixed, slides in as an overlay from the left.

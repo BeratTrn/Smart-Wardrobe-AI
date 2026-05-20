@@ -78,7 +78,10 @@ export const useAuthStore = create<AuthState>()(
         isAuthenticated: state.isAuthenticated,
       }),
       onRehydrateStorage: () => (state) => {
-        if (state?.token) setTokenCookie(state.token);
+        // Re-sync cookie after hydration (covers hard refresh scenarios)
+        if (state?.token) {
+          setTokenCookie(state.token);
+        }
       },
     }
   )

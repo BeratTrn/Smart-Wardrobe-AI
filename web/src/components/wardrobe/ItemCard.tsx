@@ -138,7 +138,7 @@ export function ItemCard({
 
         {/* Brand name (only if present) */}
         {item.marka && (
-          <p className="text-xs text-text-sub font-medium truncate">{item.marka}</p>
+          <p className="text-[11px] text-muted truncate">{item.marka}</p>
         )}
       </div>
     </article>

@@ -4,10 +4,9 @@ import {
   useQuery,
   useMutation,
   useQueryClient,
-  type InfiniteData,
 } from "@tanstack/react-query";
 import * as itemsApi from "@/lib/api/items";
-import type { Item, ItemsResponse } from "@/types";
+import type { ItemsResponse } from "@/types";
 import type { ItemsFilter, AddItemPayload } from "@/lib/api/items";
 
 // ── Query keys ────────────────────────────────────────────────────────

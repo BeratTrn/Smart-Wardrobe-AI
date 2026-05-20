@@ -119,9 +119,9 @@ export function Topbar() {
           aria-label="Search"
         >
           <Search size={13} />
-          <span className="hidden md:block">Search…</span>
+          <span className="hidden md:block">Search...</span>
           <kbd className="hidden md:block text-[10px] px-1.5 py-0.5 rounded bg-card border border-border font-mono">
-            ⌘K
+            K
           </kbd>
         </button>
 
@@ -158,8 +158,8 @@ export function Topbar() {
             <p className="text-[13px] font-medium text-text leading-none">
               {user?.kullaniciAdi ?? "Welcome"}
             </p>
-            <p className="text-[11px] text-muted mt-0.5 leading-none truncate max-w-[120px]">
-              {user?.email ?? "Sign in to sync"}
+            <p className="text-[11px] text-muted mt-0.5 leading-none">
+              {user?.email}
             </p>
           </div>
         </button>

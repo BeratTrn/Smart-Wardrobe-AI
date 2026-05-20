@@ -17,7 +17,7 @@ export default function DashboardPage() {
           Overview
         </p>
         <h2 className="text-2xl font-semibold text-text tracking-tight">
-          Good morning ✦
+          Good morning
         </h2>
         <p className="text-sm text-text-sub mt-1">
           Your wardrobe analytics and AI insights are ready.
@@ -28,10 +28,10 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         {(
           [
-            { label: "Total Items",       value: "—" },
-            { label: "AI Outfits",        value: "—" },
-            { label: "Favourites",        value: "—" },
-            { label: "AI Uses This Month",value: "—" },
+            { label: "Total Items",        value: "—" },
+            { label: "AI Outfits",         value: "—" },
+            { label: "Favourites",         value: "—" },
+            { label: "AI Uses This Month", value: "—" },
           ] as const
         ).map(({ label, value }) => (
           <div

@@ -206,10 +206,10 @@ export function Sidebar() {
           {sidebarCollapsed ? (
             <ChevronRight size={17} className="shrink-0" />
           ) : (
-            <>
-              <ChevronLeft size={17} className="shrink-0" />
-              <span className="animate-fade-in">Collapse</span>
-            </>
+            <ChevronLeft size={17} className="shrink-0" />
+          )}
+          {!sidebarCollapsed && (
+            <span className="animate-fade-in">Collapse</span>
           )}
         </button>
       </div>

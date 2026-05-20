@@ -15,7 +15,7 @@ import { getErrorMessage } from "@/lib/utils/errors";
 import type { ItemCategory, ItemSeason, ItemStyle } from "@/types";
 import type { AddItemPayload, AnalyzeOnlyResponse } from "@/lib/api/items";
 
-// ── Form schema ───────────────────────────────────────────────────────
+// ── Constants ─────────────────────────────────────────────────────────
 
 const CATEGORIES: ItemCategory[] = [
   "Üst Giyim", "Alt Giyim", "Elbise & Etek",
@@ -28,6 +28,8 @@ const STYLES: ItemStyle[] = [
   "Günlük", "Klasik", "Spor", "Sokak", "Minimal", "Şık", "Resmi",
 ];
 
+// ── Form schema ───────────────────────────────────────────────────────
+
 const addItemSchema = z.object({
   kategori: z.enum(CATEGORIES as [ItemCategory, ...ItemCategory[]]),
   renk:     z.string().regex(/^#[0-9A-Fa-f]{6}$/, { message: "Must be a valid hex colour e.g. #2D405C" }),
@@ -39,16 +41,9 @@ const addItemSchema = z.object({
 
 type AddItemFormData = z.infer<typeof addItemSchema>;
 
-// ── Step indicator ────────────────────────────────────────────────────
+// ── Step type ─────────────────────────────────────────────────────────
 
 type Step = "drop" | "analyze" | "confirm";
-
-// ── Modal component ───────────────────────────────────────────────────
-
-interface AddItemModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
 
 // ── Select field component ────────────────────────────────────────────
 
@@ -99,7 +94,12 @@ function SelectField<T extends string>({
   );
 }
 
-// ── Main component ────────────────────────────────────────────────────
+// ── Modal component ───────────────────────────────────────────────────
+
+interface AddItemModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
 
 export function AddItemModal({ isOpen, onClose }: AddItemModalProps) {
   const [step, setStep] = useState<Step>("drop");
@@ -149,10 +149,8 @@ export function AddItemModal({ isOpen, onClose }: AddItemModalProps) {
       analyze.mutate(file, {
         onSuccess: (data) => {
           setAnalysis(data);
-          // Pre-fill form with AI results
           setValue("kategori", data.analiz.kategori);
           setValue("renk", data.analiz.renk);
-          // Default season + style — user can change
           setValue("mevsim", "Tüm Mevsimler");
           setValue("stil", "Günlük");
           setStep("confirm");
@@ -275,7 +273,7 @@ export function AddItemModal({ isOpen, onClose }: AddItemModalProps) {
                     {isDragActive ? "Drop it here" : "Drag & drop your item photo"}
                   </p>
                   <p className="text-xs text-muted">
-                    or click to browse &mdash; JPG, PNG, WEBP up to 10 MB
+                    or click to browse — JPG, PNG, WEBP up to 10 MB
                   </p>
                 </div>
 
@@ -290,7 +288,6 @@ export function AddItemModal({ isOpen, onClose }: AddItemModalProps) {
           {step === "analyze" && (
             <div className="p-6 space-y-5">
               <div className="grid grid-cols-2 gap-4">
-                {/* Image preview */}
                 {preview && (
                   <div className="relative aspect-[3/4] rounded-xl overflow-hidden border border-border">
                     <Image src={preview} alt="Uploading" fill className="object-cover" />
@@ -300,11 +297,10 @@ export function AddItemModal({ isOpen, onClose }: AddItemModalProps) {
                   </div>
                 )}
 
-                {/* Skeleton fields */}
                 <div className="space-y-3 pt-1">
                   <p className="text-xs font-medium text-gold flex items-center gap-1.5">
                     <Sparkles size={12} className="animate-pulse" />
-                    AI is analysing your item&hellip;
+                    AI is analysing your item...
                   </p>
                   {[80, 60, 70, 50, 65].map((w, i) => (
                     <div key={i} className="space-y-1.5">
@@ -323,21 +319,18 @@ export function AddItemModal({ isOpen, onClose }: AddItemModalProps) {
           {/* ── Step 3: Confirm + edit AI results ───────────────── */}
           {step === "confirm" && analysis && (
             <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-5">
-              {/* Success badge */}
               <div className="flex items-center gap-2 rounded-xl border border-success/30 bg-success/10 px-4 py-2.5 text-sm text-success">
                 <CheckCircle2 size={15} className="shrink-0" />
-                AI analysis complete &mdash; review and adjust if needed.
+                AI analysis complete — review and adjust if needed.
               </div>
 
               <div className="grid grid-cols-[auto_1fr] gap-4">
-                {/* Image */}
                 {preview && (
                   <div className="relative w-28 aspect-[3/4] rounded-xl overflow-hidden border border-border shrink-0">
                     <Image src={preview} alt="Item preview" fill className="object-cover" />
                   </div>
                 )}
 
-                {/* Fields */}
                 <div className="space-y-3 min-w-0">
                   <SelectField
                     label="Category"
@@ -373,7 +366,6 @@ export function AddItemModal({ isOpen, onClose }: AddItemModalProps) {
                     {...register("renk")}
                   />
                 </div>
-                {/* Live colour preview swatch */}
                 <div
                   className="w-11 h-11 rounded-xl border border-border shrink-0 transition-colors"
                   style={{
@@ -383,7 +375,6 @@ export function AddItemModal({ isOpen, onClose }: AddItemModalProps) {
                 />
               </div>
 
-              {/* Optional fields */}
               <Input
                 label="Brand (optional)"
                 placeholder="e.g. Zara, H&M"
@@ -412,7 +403,6 @@ export function AddItemModal({ isOpen, onClose }: AddItemModalProps) {
                     setPreview(null);
                     setAnalysis(null);
                     analyze.reset();
-                    reset();
                   }}
                 >
                   Re-upload

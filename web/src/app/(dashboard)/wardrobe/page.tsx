@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Plus, Search, SlidersHorizontal, Heart, X } from "lucide-react";
+import { Plus, Heart, X } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { ItemGrid } from "@/components/wardrobe/ItemGrid";
 import { AddItemModal } from "@/components/add-item/AddItemModal";
 import { useItems, useToggleFavorite, useDeleteItem } from "@/lib/hooks/useItems";
 import { getErrorMessage } from "@/lib/utils/errors";
-import type { ItemCategory, ItemSeason, ItemStyle } from "@/types";
+import type { ItemCategory, ItemSeason } from "@/types";
 import type { ItemsFilter } from "@/lib/api/items";
 
 // ── Filter options ────────────────────────────────────────────────────
@@ -17,21 +17,21 @@ const CATEGORIES: { label: string; value: ItemCategory | "" }[] = [
   { label: "Üst Giyim",      value: "Üst Giyim" },
   { label: "Alt Giyim",      value: "Alt Giyim" },
   { label: "Elbise & Etek",  value: "Elbise & Etek" },
-  { label: "Dış Giyim",      value: "Dış Giyim" },
-  { label: "Ayakkabı",       value: "Ayakkabı" },
+  { label: "Dis Giyim",      value: "Dış Giyim" },
+  { label: "Ayakkabi",       value: "Ayakkabı" },
   { label: "Aksesuar",       value: "Aksesuar" },
 ];
 
 const SEASONS: { label: string; value: ItemSeason | "" }[] = [
-  { label: "All seasons",    value: "" },
-  { label: "İlkbahar",       value: "İlkbahar" },
-  { label: "Yaz",            value: "Yaz" },
-  { label: "Sonbahar",       value: "Sonbahar" },
-  { label: "Kış",            value: "Kış" },
-  { label: "Tüm Mevsimler",  value: "Tüm Mevsimler" },
+  { label: "All seasons",   value: "" },
+  { label: "Ilkbahar",      value: "İlkbahar" },
+  { label: "Yaz",           value: "Yaz" },
+  { label: "Sonbahar",      value: "Sonbahar" },
+  { label: "Kis",           value: "Kış" },
+  { label: "Tum Mevsimler", value: "Tüm Mevsimler" },
 ];
 
-// ── Filter pill ───────────────────────────────────────────────────────
+// ── Filter select ─────────────────────────────────────────────────────
 
 function FilterSelect<T extends string>({
   value,
@@ -51,9 +51,7 @@ function FilterSelect<T extends string>({
         "bg-card text-text-sub",
         "transition-all duration-200",
         "focus:outline-none focus:ring-1 focus:ring-gold/30 focus:border-gold/50",
-        value
-          ? "border-gold/40 text-text"
-          : "border-border"
+        value ? "border-gold/40 text-text" : "border-border"
       )}
     >
       {options.map((o) => (
@@ -86,7 +84,6 @@ export default function WardrobePage() {
   const deleteItem     = useDeleteItem();
 
   const items = data?.kiyafetler ?? [];
-
   const hasActiveFilters = Boolean(kategori || mevsim || showFavoritesOnly);
 
   const clearFilters = () => {
@@ -118,22 +115,24 @@ export default function WardrobePage() {
       {/* ── Page header ─────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-text">My Wardrobe</h1>
-          {!isLoading && (
-            <p className="text-sm text-muted mt-0.5">
-              {data?.toplam ?? 0} item{(data?.toplam ?? 0) !== 1 ? "s" : ""}
-              {hasActiveFilters ? " matching filters" : " in your wardrobe"}
-            </p>
-          )}
+          <p className="text-[11px] font-semibold tracking-[0.3em] text-gold uppercase mb-1.5">
+            My Wardrobe
+          </p>
+          <h2 className="text-2xl font-semibold text-text tracking-tight">
+            Your items
+          </h2>
+          <p className="text-sm text-text-sub mt-1">
+            {isLoading ? "Loading..." : `${data?.toplam ?? 0} items in your wardrobe`}
+          </p>
         </div>
 
+        {/* Add item button */}
         <button
           onClick={() => setModalOpen(true)}
           className={cn(
-            "inline-flex items-center gap-2 h-10 px-5 rounded-xl",
-            "bg-gold-gradient text-black text-sm font-semibold shadow-card",
-            "hover:opacity-90 active:scale-[0.98] transition-all duration-200",
-            "shrink-0"
+            "inline-flex items-center gap-2 h-10 px-4 rounded-xl",
+            "bg-gold-gradient text-black text-sm font-semibold",
+            "shadow-card hover:opacity-90 transition-opacity shrink-0"
           )}
         >
           <Plus size={16} />
@@ -141,13 +140,14 @@ export default function WardrobePage() {
         </button>
       </div>
 
-      {/* ── Filter bar ──────────────────────────────────────────── */}
+      {/* ── Filter strip ────────────────────────────────────────── */}
       <div className="flex flex-wrap items-center gap-2">
         <FilterSelect
           value={kategori}
           onChange={setKategori}
           options={CATEGORIES}
         />
+
         <FilterSelect
           value={mevsim}
           onChange={setMevsim}
@@ -207,7 +207,7 @@ export default function WardrobePage() {
         pendingFavoriteId={pendingFavoriteId}
       />
 
-      {/* ── Add item modal ───────────────────────────────────────── */}
+      {/* ── Add item modal ──────────────────────────────────────── */}
       <AddItemModal
         isOpen={isModalOpen}
         onClose={() => setModalOpen(false)}

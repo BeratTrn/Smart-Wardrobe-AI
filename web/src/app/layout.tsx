@@ -34,7 +34,7 @@ export default function RootLayout({
          * Flash-of-Wrong-Theme prevention.
          * Runs synchronously before first paint — reads persisted Zustand
          * state from localStorage and sets data-theme on <html> immediately.
-         * No visible dark→light flash for light-mode users.
+         * No visible dark->light flash for light-mode users.
          */}
         <script
           dangerouslySetInnerHTML={{
