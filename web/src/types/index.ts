@@ -1,208 +1,24 @@
-/* ═══════════════════════════════════════════════════════════════════════
-   SMART WARDROBE AI — Shared TypeScript Interfaces
-   All types mirror the Node.js/MongoDB models exactly.
-   ═══════════════════════════════════════════════════════════════════════ */
-
-// ── User ──────────────────────────────────────────────────────────────
-
-export interface UserPreferences {
-  favoriStil: string;
-  favoriRenkler: string[];
-  bildirimler: boolean;
-}
-
-export interface UserBody {
-  sekil: string; // kum_saati | armut | ters_ucgen | dikdortgen
-  kalip: string; // slim | regular | oversize
-}
-
-export interface NotificationPreferences {
-  dailyWeatherAI: boolean;
-  travelReminders: boolean;
-  weeklyStyle: boolean;
-}
-
+// ── User ─────────────────────────────────────────────────────────────────────
 export interface User {
   _id: string;
-  kullaniciAdi: string;
+  ad: string;
+  soyad: string;
   email: string;
-  profilFoto: string;
-  tercihler: UserPreferences;
-  vucut: UserBody;
-  googleId: string | null;
-  defaultCity: string;
-  theme: "dark" | "light";
-  language: "tr" | "en" | "de" | "fr";
-  notificationPreferences: NotificationPreferences;
-  isVerified: boolean;
-  createdAt: string;
-  updatedAt: string;
+  defaultCity?: string;
+  avatar?: string;
 }
 
-// ── Clothing Item ─────────────────────────────────────────────────────
-
-export type ItemCategory =
-  | "Üst Giyim"
-  | "Alt Giyim"
-  | "Elbise & Etek"
-  | "Dış Giyim"
-  | "Ayakkabı"
-  | "Aksesuar";
-
-export type ItemSeason =
-  | "İlkbahar"
-  | "Yaz"
-  | "Sonbahar"
-  | "Kış"
-  | "Tüm Mevsimler";
-
-export type ItemStyle =
-  | "Günlük"
-  | "Klasik"
-  | "Spor"
-  | "Sokak"
-  | "Minimal"
-  | "Şık"
-  | "Resmi";
-
-export interface Item {
-  _id: string;
-  kullanici: string;
-  resimUrl: string;
-  cloudinaryId: string;
-  kategori: ItemCategory;
-  renk: string; // HEX e.g. "#2D405C"
-  mevsim: ItemSeason;
-  stil: ItemStyle;
-  marka: string;
-  notlar: string;
-  aiDogrulandi: boolean;
-  favori: boolean;
-  kullanilmaSayisi: number;
-  createdAt: string;
-  updatedAt: string;
+// ── Auth ─────────────────────────────────────────────────────────────────────
+export interface LoginPayload {
+  email: string;
+  sifre: string;
 }
 
-/**
- * Partial Item shape returned by populated outfit queries.
- * Backend projects: resimUrl renk kategori stil marka (mevsim in some routes)
- */
-export interface PopulatedItem
-  extends Pick<Item, "_id" | "resimUrl" | "renk" | "kategori" | "stil"> {
-  mevsim?: ItemSeason;
-  marka?: string;
-}
-
-// ── AI Analyse Result ─────────────────────────────────────────────────
-
-export interface AnalysisResult {
-  kategori: ItemCategory;
-  renk: string;
-  aiDogrulandi: boolean;
-}
-
-// ── Weather ───────────────────────────────────────────────────────────
-
-export interface WeatherData {
-  sicaklik: number;
-  durum: string;
-  konum: string;
-  hissedilen?: number;
-  nem?: number;
-  icon?: string;
-}
-
-// ── Outfit (AI-generated, stored in DB) ──────────────────────────────
-
-export interface OutfitContext {
-  etkinlik: string;
-  havaDurumu?: {
-    sicaklik: number;
-    durum: string;
-    nem?: number;
-    konum: string;
-  };
-}
-
-/** Full Outfit document as returned by GET /api/outfits */
-export interface Outfit {
-  _id: string;
-  kullanici: string;
-  baslik: string;
-  kiyafetler: PopulatedItem[];
-  aiAciklama: string;
-  baglam: OutfitContext;
-  begeniyor: boolean | null; // null = not yet rated
-  kaydedildi: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-/**
- * Custom response shape returned ONLY by POST /api/outfits/recommend.
- * Different from the stored Outfit doc — uses `id` and `aciklama`.
- */
-export interface OutfitRecommendation {
-  id: string;
-  baslik: string;
-  aciklama: string;
-  ipucu: string;
-  kiyafetler: Item[]; // fully populated here
-  havaDurumu: WeatherData;
-  etkinlik: string;
-}
-
-// ── Saved Outfit ──────────────────────────────────────────────────────
-
-export interface SavedOutfit {
-  _id: string;
-  kullanici: string;
-  baslik: string;
-  aciklama: string;
-  ipucu: string;
-  havaDurumu?: Pick<WeatherData, "sicaklik" | "durum" | "konum">;
-  kiyafetler: PopulatedItem[];
-  kullaniciFoto: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-// ── Wardrobe Stats ────────────────────────────────────────────────────
-
-export interface StatBucket {
-  _id: string;
-  sayi: number;
-}
-
-export interface WardrobeStats {
-  toplamKiyafet: number;
-  favoriSayisi: number;
-  kategoriler: StatBucket[];
-  mevsimler: StatBucket[];
-  stiller: StatBucket[];
-  renkler?: StatBucket[];
-}
-
-// ── Travel Suitcase ───────────────────────────────────────────────────
-
-export interface TravelSuitcase {
-  _id: string;
-  kullanici: string;
-  sehir: string;
-  baslangicTarihi: string;
-  bitisTarihi: string;
-  kiyafetler: PopulatedItem[];
-  notlar: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-// ── API Response Envelopes ────────────────────────────────────────────
-
-export interface ApiError {
-  mesaj: string;
-  requiresVerification?: boolean;
-  email?: string;
+export interface RegisterPayload {
+  ad: string;
+  soyad: string;
+  email: string;
+  sifre: string;
 }
 
 export interface AuthResponse {
@@ -211,10 +27,125 @@ export interface AuthResponse {
   kullanici: User;
 }
 
+export interface OtpVerifyPayload {
+  email: string;
+  otp: string;
+}
+
+// ── Item types ────────────────────────────────────────────────────────────────
+export type ItemCategory =
+  | "Üst Giyim"
+  | "Alt Giyim"
+  | "Elbise & Etek"
+  | "Dış Giyim"
+  | "Ayakkabı"
+  | "Aksesuar";
+
+export type Season = "Yaz" | "Kış" | "İlkbahar" | "Sonbahar" | "Tüm Mevsimler";
+export type ItemSeason = Season;
+
+export type StyleTag =
+  | "Günlük"
+  | "Spor"
+  | "Şık"
+  | "Klasik"
+  | "Bohem"
+  | "Minimalist"
+  | "Vintage"
+  | "Sokak Stili";
+export type ItemStyle = StyleTag;
+
+export interface AnalysisResult {
+  kategori: ItemCategory;
+  renk: string;
+  mevsim: ItemSeason[];
+  stil: ItemStyle[];
+  confidence?: number;
+}
+
+// ── Item ─────────────────────────────────────────────────────────────────────
+export interface Item {
+  _id: string;
+  kategori: ItemCategory;
+  renk: string;
+  mevsim: Season[];
+  stil: StyleTag[];
+  marka?: string;
+  aciklama?: string;
+  resimUrl: string;
+  cloudinaryId?: string;
+  favori: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface ItemsResponse {
   mesaj: string;
   toplam: number;
+  sayfa: number;
+  limit: number;
   kiyafetler: Item[];
+}
+
+export interface AddItemPayload {
+  kategori: string;
+  renk: string;
+  mevsim: Season[];
+  stil: StyleTag[];
+  marka?: string;
+  aciklama?: string;
+}
+
+export interface UpdateItemPayload {
+  kategori?: string;
+  renk?: string;
+  mevsim?: Season[];
+  stil?: StyleTag[];
+  marka?: string;
+  aciklama?: string;
+  favori?: boolean;
+}
+
+// ── Weather ──────────────────────────────────────────────────────────────────
+export interface WeatherData {
+  sehir: string;
+  sicaklik: number;
+  hissedilen: number;
+  nem: number;
+  durum: string;
+  konum?: string;
+}
+
+// ── Outfit ────────────────────────────────────────────────────────────────────
+export interface PopulatedItem extends Item {}
+
+export interface Outfit {
+  _id: string;
+  baslik: string;
+  aiAciklama: string;
+  kiyafetler: PopulatedItem[];
+  havaDurumu?: WeatherData;
+  etkinlik?: string;
+  begeniyor?: boolean | null;
+  kaydedildi?: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface OutfitRecommendation {
+  id: string;
+  baslik: string;
+  aciklama: string;
+  ipucu: string;
+  kiyafetler: PopulatedItem[];
+  havaDurumu?: WeatherData;
+  etkinlik?: string;
+}
+
+export interface OutfitGeneratePayload {
+  mevsim?: Season;
+  etkinlik?: string;
+  havaDurumu?: WeatherData;
 }
 
 export interface OutfitsResponse {
@@ -224,13 +155,22 @@ export interface OutfitsResponse {
   kombinler: Outfit[];
 }
 
+export interface SavedOutfit {
+  _id: string;
+  kombId: Outfit;
+  createdAt: string;
+}
+
 export interface SavedOutfitsResponse {
   mesaj: string;
   toplam: number;
   kombinler: SavedOutfit[];
 }
 
-export interface StatsResponse {
-  mesaj: string;
-  istatistikler: WardrobeStats;
+export interface SaveOutfitPayload {
+  baslik: string;
+  aiAciklama: string;
+  kiyafetler: string[];
+  havaDurumu?: WeatherData;
+  etkinlik?: string;
 }

@@ -5,138 +5,76 @@ import { Heart, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import type { Item } from "@/types";
 
-// ── Category label colours ────────────────────────────────────────────
-
-const CATEGORY_STYLE: Record<string, string> = {
-  "Üst Giyim":     "bg-cat-top/15     text-cat-top",
-  "Alt Giyim":     "bg-cat-bottom/15  text-cat-bottom",
-  "Elbise & Etek": "bg-cat-dress/15   text-cat-dress",
-  "Dış Giyim":     "bg-cat-outer/15   text-cat-outer",
-  "Ayakkabı":      "bg-cat-shoes/15   text-cat-shoes",
-  "Aksesuar":      "bg-cat-acc/15     text-cat-acc",
-};
-
-// ── Props ─────────────────────────────────────────────────────────────
-
 interface ItemCardProps {
   item: Item;
   onFavoriteToggle: (id: string) => void;
   onDelete: (id: string) => void;
-  /** Disables the favourite button while the optimistic mutation is pending */
   isFavoriteLoading?: boolean;
 }
 
-// ── Component ─────────────────────────────────────────────────────────
-
-export function ItemCard({
-  item,
-  onFavoriteToggle,
-  onDelete,
-  isFavoriteLoading = false,
-}: ItemCardProps) {
+export function ItemCard({ item, onFavoriteToggle, onDelete, isFavoriteLoading }: ItemCardProps) {
   return (
-    <article
-      className={cn(
-        "group relative overflow-hidden rounded-2xl",
-        "bg-card border border-border",
-        "transition-all duration-300",
-        "hover:border-gold/30 hover:shadow-card-lg hover:-translate-y-0.5"
-      )}
-    >
-      {/* ── Item image ──────────────────────────────────────────── */}
-      <div className="relative w-full overflow-hidden bg-surface">
+    <article className="group relative glass rounded-2xl overflow-hidden hover:ring-1 hover:ring-gold/30 transition-all duration-200">
+      {/* Image */}
+      <div className="relative aspect-[3/4] bg-white/5">
         <Image
           src={item.resimUrl}
-          alt={`${item.kategori} — ${item.renk}`}
-          width={400}
-          height={500}
-          className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+          alt={item.kategori}
+          fill
+          className="object-cover transition-transform duration-300 group-hover:scale-105"
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
         />
 
-        {/* Hover overlay with action buttons */}
-        <div
-          className={cn(
-            "absolute inset-0 flex items-end justify-between p-3",
-            "bg-gradient-to-t from-black/60 via-transparent to-transparent",
-            "opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-          )}
-        >
-          {/* Favourite toggle */}
+        {/* Action buttons overlay */}
+        <div className="absolute top-2 right-2 flex flex-col gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+          {/* Favourite */}
           <button
-            aria-label={item.favori ? "Remove from favourites" : "Add to favourites"}
-            disabled={isFavoriteLoading}
-            onClick={() => onFavoriteToggle(item._id)}
             className={cn(
-              "w-8 h-8 rounded-full flex items-center justify-center",
-              "bg-black/40 backdrop-blur-sm border transition-all duration-200",
-              item.favori
-                ? "border-gold/60 text-gold"
-                : "border-white/20 text-white/70 hover:text-gold hover:border-gold/60",
-              isFavoriteLoading && "opacity-50 cursor-not-allowed"
+              "h-7 w-7 rounded-full glass flex items-center justify-center transition-all",
+              item.favori ? "text-gold" : "text-muted hover:text-gold"
             )}
+            onClick={(e) => {
+              e.stopPropagation();
+              onFavoriteToggle(item._id);
+            }}
+            disabled={isFavoriteLoading}
           >
             <Heart
-              size={14}
-              className={cn("transition-all", item.favori && "fill-gold")}
+              className="h-3.5 w-3.5"
+              fill={item.favori ? "currentColor" : "none"}
             />
           </button>
 
           {/* Delete */}
           <button
-            aria-label="Delete item"
-            onClick={() => onDelete(item._id)}
-            className={cn(
-              "w-8 h-8 rounded-full flex items-center justify-center",
-              "bg-black/40 backdrop-blur-sm border border-white/20",
-              "text-white/60 hover:text-danger hover:border-danger/40",
-              "transition-all duration-200"
-            )}
+            className="h-7 w-7 rounded-full glass flex items-center justify-center text-muted hover:text-danger transition-colors"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(item._id);
+            }}
           >
-            <Trash2 size={13} />
+            <Trash2 className="h-3.5 w-3.5" />
           </button>
         </div>
 
-        {/* Always-visible favourite indicator (when active) */}
+        {/* Favourite indicator (always visible) */}
         {item.favori && (
-          <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-gold/20 backdrop-blur-sm border border-gold/40 flex items-center justify-center">
-            <Heart size={11} className="fill-gold text-gold" />
+          <div className="absolute top-2 left-2 h-5 w-5 rounded-full bg-gold/20 flex items-center justify-center">
+            <Heart className="h-3 w-3 text-gold" fill="currentColor" />
           </div>
         )}
       </div>
 
-      {/* ── Card footer ─────────────────────────────────────────── */}
-      <div className="px-3 py-2.5 space-y-2">
-        {/* Category badge + colour swatch row */}
-        <div className="flex items-center justify-between gap-2">
+      {/* Info */}
+      <div className="p-3 space-y-1">
+        <p className="text-sm font-medium leading-none">{item.kategori}</p>
+        <div className="flex items-center gap-1.5">
           <span
-            className={cn(
-              "inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold tracking-wide truncate",
-              CATEGORY_STYLE[item.kategori] ?? "bg-surface text-text-sub"
-            )}
-          >
-            {item.kategori}
-          </span>
-
-          {/* HEX colour swatch */}
-          <span
-            title={item.renk}
-            className="w-4 h-4 rounded-full border border-border shrink-0 ring-1 ring-offset-1 ring-offset-card ring-border"
-            style={{ backgroundColor: item.renk }}
+            className="h-3 w-3 rounded-full ring-1 ring-white/20 flex-shrink-0"
+            style={{ backgroundColor: item.renk.toLowerCase() }}
           />
+          <p className="text-[12px] text-muted truncate capitalize">{item.renk}</p>
         </div>
-
-        {/* Season + Style */}
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="text-[10px] text-muted bg-surface px-2 py-0.5 rounded-full border border-border">
-            {item.mevsim}
-          </span>
-          <span className="text-[10px] text-muted bg-surface px-2 py-0.5 rounded-full border border-border">
-            {item.stil}
-          </span>
-        </div>
-
-        {/* Brand name (only if present) */}
         {item.marka && (
           <p className="text-[11px] text-muted truncate">{item.marka}</p>
         )}

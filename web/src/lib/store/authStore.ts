@@ -1,86 +1,54 @@
-"use client";
-
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import type { User } from "@/types";
 
-// Cookie helpers
-// The JWT is stored in BOTH localStorage (via Zustand persist, for
-// the Axios interceptor) AND a plain cookie (for the edge middleware,
-// which cannot read localStorage).
-
-const COOKIE_NAME = "sw_token";
-const COOKIE_MAX_AGE = 30 * 24 * 60 * 60; // 30 days in seconds
-
-function setTokenCookie(token: string): void {
+function setTokenCookie(token: string) {
   if (typeof document === "undefined") return;
-  document.cookie = [
-    `${COOKIE_NAME}=${token}`,
-    "path=/",
-    `max-age=${COOKIE_MAX_AGE}`,
-    "SameSite=Lax",
-  ].join("; ");
+  document.cookie = `sw_token=${token}; max-age=${7 * 24 * 3600}; path=/; SameSite=Lax`;
 }
 
-function clearTokenCookie(): void {
+function clearTokenCookie() {
   if (typeof document === "undefined") return;
-  document.cookie = `${COOKIE_NAME}=; path=/; max-age=0; SameSite=Lax`;
+  document.cookie = "sw_token=; max-age=0; path=/";
 }
-
-// Store interface
 
 interface AuthState {
-  token: string | null;
   user: User | null;
+  token: string | null;
   isAuthenticated: boolean;
-
-  /** Called after a successful login / register / Google auth response */
   setAuth: (token: string, user: User) => void;
-
-  /** Patch the cached user without a full re-auth (e.g. after profile update) */
-  updateUser: (updates: Partial<User>) => void;
-
-  /** Clears all auth state, localStorage entry, and cookie */
+  updateUser: (user: User) => void;
   logout: () => void;
+  clearAuth: () => void;
 }
-
-// Store
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set, get) => ({
-      token: null,
+    (set) => ({
       user: null,
+      token: null,
       isAuthenticated: false,
-
       setAuth: (token, user) => {
-        set({ token, user, isAuthenticated: true });
         setTokenCookie(token);
+        set({ token, user, isAuthenticated: true });
       },
-
-      updateUser: (updates) => {
-        const current = get().user;
-        if (!current) return;
-        set({ user: { ...current, ...updates } });
-      },
-
+      updateUser: (user) => set({ user }),
       logout: () => {
-        set({ token: null, user: null, isAuthenticated: false });
         clearTokenCookie();
+        set({ user: null, token: null, isAuthenticated: false });
+      },
+      clearAuth: () => {
+        clearTokenCookie();
+        set({ user: null, token: null, isAuthenticated: false });
       },
     }),
     {
-      name: "sw-auth",
+      name: "auth-storage",
       storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({
-        token: state.token,
-        user: state.user,
-        isAuthenticated: state.isAuthenticated,
-      }),
       onRehydrateStorage: () => (state) => {
-        // Re-sync cookie after hydration (covers hard refresh scenarios)
         if (state?.token) {
           setTokenCookie(state.token);
+          state.isAuthenticated = true;
         }
       },
     }

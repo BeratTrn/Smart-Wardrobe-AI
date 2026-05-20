@@ -6,213 +6,69 @@ import {
   LayoutDashboard,
   Shirt,
   Sparkles,
-  Heart,
+  Bookmark,
   Plane,
   Settings,
   ChevronLeft,
-  ChevronRight,
-  Moon,
-  Sun,
 } from "lucide-react";
-
 import { cn } from "@/lib/utils/cn";
 import { useUIStore } from "@/lib/store/uiStore";
-import { useThemeStore } from "@/lib/store/themeStore";
 
-// ── Navigation structure ──────────────────────────────────────────────
-
-interface NavItem {
-  href: string;
-  label: string;
-  icon: React.ElementType;
-}
-
-const PRIMARY_NAV: NavItem[] = [
-  { href: "/dashboard",     label: "Dashboard",      icon: LayoutDashboard },
-  { href: "/wardrobe",      label: "Wardrobe",        icon: Shirt           },
-  { href: "/outfits",       label: "AI Outfits",      icon: Sparkles        },
-  { href: "/saved-outfits", label: "Saved Outfits",   icon: Heart           },
-  { href: "/travel",        label: "Travel Planner",  icon: Plane           },
-];
-
-const BOTTOM_NAV: NavItem[] = [
+const NAV = [
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/wardrobe", label: "Wardrobe", icon: Shirt },
+  { href: "/outfits", label: "Outfits", icon: Sparkles },
+  { href: "/saved-outfits", label: "Saved", icon: Bookmark },
+  { href: "/travel", label: "Travel", icon: Plane },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
-// ── Sub-components ────────────────────────────────────────────────────
-
-interface NavLinkProps {
-  item: NavItem;
-  collapsed: boolean;
-  isActive: boolean;
-}
-
-function NavLink({ item, collapsed, isActive }: NavLinkProps) {
-  const Icon = item.icon;
-
-  return (
-    <Link
-      href={item.href}
-      title={collapsed ? item.label : undefined}
-      className={cn(
-        "relative flex items-center gap-3 rounded-xl transition-all duration-200",
-        "text-sm font-medium select-none",
-        collapsed ? "justify-center px-0 py-2.5 mx-1" : "px-3 py-2.5",
-        isActive
-          ? "bg-card text-gold"
-          : "text-text-sub hover:bg-card hover:text-text"
-      )}
-    >
-      {/* Gold left-edge accent on active item */}
-      {isActive && !collapsed && (
-        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-gold rounded-full" />
-      )}
-
-      <Icon
-        size={17}
-        className={cn(
-          "shrink-0 transition-colors duration-200",
-          isActive ? "text-gold" : "text-muted"
-        )}
-      />
-
-      {!collapsed && (
-        <span className="truncate flex-1 animate-fade-in">{item.label}</span>
-      )}
-
-      {/* Active indicator dot (expanded view) */}
-      {isActive && !collapsed && (
-        <span className="ml-auto w-1.5 h-1.5 rounded-full bg-gold shrink-0" />
-      )}
-    </Link>
-  );
-}
-
-// ── Main Sidebar Component ────────────────────────────────────────────
-
 export function Sidebar() {
-  const { sidebarCollapsed, toggleSidebar } = useUIStore();
-  const { theme, toggle: toggleTheme } = useThemeStore();
   const pathname = usePathname();
-
-  const isDark = theme === "dark";
+  const { mobileSidebarOpen, closeMobileSidebar } = useUIStore();
 
   return (
     <aside
       className={cn(
-        "flex flex-col h-full bg-surface border-r border-border shrink-0",
-        "sidebar-transition overflow-hidden",
-        sidebarCollapsed ? "w-16" : "w-60"
+        "fixed inset-y-0 left-0 z-30 flex w-64 flex-col glass border-r border-white/10 transition-transform duration-300 lg:static lg:translate-x-0",
+        mobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
       )}
     >
-      {/* ── Brand Mark ─────────────────────────────────────────────── */}
-      <div
-        className={cn(
-          "flex items-center h-[60px] border-b border-border shrink-0 px-4",
-          sidebarCollapsed ? "justify-center" : "gap-3"
-        )}
-      >
-        {/* Gold monogram badge */}
-        <div className="w-7 h-7 rounded-lg bg-gold-gradient flex items-center justify-center shrink-0 shadow-card">
-          <span className="text-[10px] font-black text-black tracking-tight">
-            SW
-          </span>
+      {/* Logo */}
+      <div className="flex h-16 items-center gap-3 px-5 border-b border-white/10">
+        <div className="h-8 w-8 rounded-lg bg-gold-gradient flex items-center justify-center">
+          <Shirt className="h-4 w-4 text-black" />
         </div>
-
-        {!sidebarCollapsed && (
-          <div className="overflow-hidden animate-fade-in">
-            <p className="text-[11px] font-semibold tracking-[0.28em] text-gold uppercase leading-none">
-              Smart Wardrobe
-            </p>
-            <p className="text-[10px] text-muted tracking-[0.2em] mt-0.5 uppercase">
-              AI Platform
-            </p>
-          </div>
-        )}
+        <span className="font-semibold text-sm tracking-wide">Smart Wardrobe</span>
+        <button
+          className="ml-auto lg:hidden text-muted hover:text-foreground"
+          onClick={closeMobileSidebar}
+        >
+          <ChevronLeft className="h-5 w-5" />
+        </button>
       </div>
 
-      {/* ── Primary Navigation ─────────────────────────────────────── */}
-      <nav
-        className={cn(
-          "flex-1 overflow-y-auto scrollbar-thin py-3 space-y-0.5",
-          sidebarCollapsed ? "px-1" : "px-2"
-        )}
-      >
-        {/* Section label — only when expanded */}
-        {!sidebarCollapsed && (
-          <p className="px-3 pb-2 text-[10px] font-semibold tracking-[0.2em] text-muted uppercase">
-            Menu
-          </p>
-        )}
-
-        {PRIMARY_NAV.map((item) => (
-          <NavLink
-            key={item.href}
-            item={item}
-            collapsed={sidebarCollapsed}
-            isActive={pathname === item.href || pathname.startsWith(item.href + "/")}
-          />
-        ))}
+      {/* Nav */}
+      <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+        {NAV.map(({ href, label, icon: Icon }) => {
+          const active = pathname === href || pathname.startsWith(href + "/");
+          return (
+            <Link
+              key={href}
+              href={href}
+              className={cn(
+                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                active
+                  ? "bg-gold/10 text-gold"
+                  : "text-muted hover:bg-white/5 hover:text-foreground"
+              )}
+            >
+              <Icon className="h-4 w-4 flex-shrink-0" />
+              {label}
+            </Link>
+          );
+        })}
       </nav>
-
-      {/* ── Bottom Section ─────────────────────────────────────────── */}
-      <div
-        className={cn(
-          "border-t border-border py-3 space-y-0.5 shrink-0",
-          sidebarCollapsed ? "px-1" : "px-2"
-        )}
-      >
-        {BOTTOM_NAV.map((item) => (
-          <NavLink
-            key={item.href}
-            item={item}
-            collapsed={sidebarCollapsed}
-            isActive={pathname === item.href || pathname.startsWith(item.href + "/")}
-          />
-        ))}
-
-        {/* Theme Toggle */}
-        <button
-          onClick={toggleTheme}
-          title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
-          className={cn(
-            "flex items-center gap-3 w-full rounded-xl transition-all duration-200",
-            "text-sm font-medium text-text-sub hover:bg-card hover:text-text",
-            sidebarCollapsed ? "justify-center px-0 py-2.5 mx-1 w-auto" : "px-3 py-2.5"
-          )}
-        >
-          {isDark ? (
-            <Sun size={17} className="text-muted shrink-0" />
-          ) : (
-            <Moon size={17} className="text-muted shrink-0" />
-          )}
-          {!sidebarCollapsed && (
-            <span className="animate-fade-in">
-              {isDark ? "Light Mode" : "Dark Mode"}
-            </span>
-          )}
-        </button>
-
-        {/* Collapse / Expand Toggle */}
-        <button
-          onClick={toggleSidebar}
-          title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-          className={cn(
-            "flex items-center gap-3 w-full rounded-xl transition-all duration-200",
-            "text-sm font-medium text-muted hover:bg-card hover:text-text-sub",
-            sidebarCollapsed ? "justify-center px-0 py-2.5 mx-1 w-auto" : "px-3 py-2.5"
-          )}
-        >
-          {sidebarCollapsed ? (
-            <ChevronRight size={17} className="shrink-0" />
-          ) : (
-            <ChevronLeft size={17} className="shrink-0" />
-          )}
-          {!sidebarCollapsed && (
-            <span className="animate-fade-in">Collapse</span>
-          )}
-        </button>
-      </div>
     </aside>
   );
 }

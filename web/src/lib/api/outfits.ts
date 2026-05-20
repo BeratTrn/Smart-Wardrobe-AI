@@ -1,78 +1,49 @@
 import api from "./axios";
 import type {
+  OutfitsResponse,
   Outfit,
   OutfitRecommendation,
-  OutfitsResponse,
+  OutfitGeneratePayload,
+  SaveOutfitPayload,
 } from "@/types";
 
-// ── Payloads ──────────────────────────────────────────────────────────
-
-export interface RecommendPayload {
-  etkinlik: string;
-  sehir?: string;
-  enlem?: number;
-  boylam?: number;
+export interface OutfitsQuery {
+  sayfa?: number;
+  limit?: number;
 }
 
-export interface FeedbackPayload {
-  begeniyor: boolean;
-}
-
-// ── Response shapes ───────────────────────────────────────────────────
-
-export interface RecommendResponse {
-  mesaj: string;
-  kombin: OutfitRecommendation;
-}
-
-export interface FeedbackResponse {
-  mesaj: string;
-}
-
-// ── API calls ─────────────────────────────────────────────────────────
-
-/**
- * POST /api/outfits/recommend
- * Sends event + optional city to Claude AI; returns a fresh recommendation.
- * NOTE: response shape differs from stored Outfit docs (uses `id`/`aciklama`).
- */
-export async function recommendOutfit(
-  payload: RecommendPayload
-): Promise<RecommendResponse> {
-  const res = await api.post<RecommendResponse>("/outfits/recommend", payload);
+export async function getOutfits(query: OutfitsQuery = {}): Promise<OutfitsResponse> {
+  const res = await api.get<OutfitsResponse>("/outfits", { params: query });
   return res.data;
 }
 
-/**
- * GET /api/outfits — paginated outfit history
- * Returns stored Outfit documents with kiyafetler populated.
- */
-export async function getOutfits(
-  sayfa = 1,
-  limit = 10
-): Promise<OutfitsResponse> {
-  const res = await api.get<OutfitsResponse>("/outfits", {
-    params: { sayfa, limit },
-  });
-  return res.data;
-}
-
-/**
- * PUT /api/outfits/:id/feedback
- * Records a thumbs-up or thumbs-down for a generated outfit.
- */
-export async function submitFeedback(
-  id: string,
-  payload: FeedbackPayload
-): Promise<FeedbackResponse> {
-  const res = await api.put<FeedbackResponse>(
-    `/outfits/${id}/feedback`,
+export async function generateOutfit(
+  payload: OutfitGeneratePayload
+): Promise<{ mesaj: string; kombinler: OutfitRecommendation[] }> {
+  const res = await api.post<{ mesaj: string; kombinler: OutfitRecommendation[] }>(
+    "/outfits/generate",
     payload
   );
   return res.data;
 }
 
-/** DELETE /api/outfits/:id */
+export async function saveOutfit(
+  payload: SaveOutfitPayload
+): Promise<{ mesaj: string; kombin: Outfit }> {
+  const res = await api.post<{ mesaj: string; kombin: Outfit }>("/outfits", payload);
+  return res.data;
+}
+
+export async function rateOutfit(
+  id: string,
+  begeniyor: boolean
+): Promise<{ mesaj: string; kombin: Outfit }> {
+  const res = await api.patch<{ mesaj: string; kombin: Outfit }>(`/outfits/${id}/feedback`, {
+    begeniyor,
+  });
+  return res.data;
+}
+
 export async function deleteOutfit(id: string): Promise<void> {
   await api.delete(`/outfits/${id}`);
 }

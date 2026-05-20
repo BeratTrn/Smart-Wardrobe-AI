@@ -1,90 +1,119 @@
-import type { Metadata } from "next";
+"use client";
 
-export const metadata: Metadata = { title: "Dashboard" };
+import { useWardrobeStats } from "@/lib/hooks/useStats";
+import { useItems } from "@/lib/hooks/useItems";
+import { WeatherBanner } from "@/components/dashboard/WeatherBanner";
+import { StatCard } from "@/components/dashboard/StatCard";
+import { CategoryDonutChart } from "@/components/dashboard/CategoryDonutChart";
+import { SeasonBarChart } from "@/components/dashboard/SeasonBarChart";
+import { StyleRadarChart } from "@/components/dashboard/StyleRadarChart";
+import { RecentOutfits } from "@/components/dashboard/RecentOutfits";
 
-/**
- * Dashboard Page — Phase 1 Placeholder
- *
- * Renders the skeleton layout that demonstrates the theme system and
- * grid proportions. Real data (charts, stat cards) are wired in Phase 4.
- */
-export default function DashboardPage() {
+// ── Colour swatch for "Top Colour" stat card ──────────────────────────
+
+function ColourSwatch({ hex }: { hex: string }) {
+  const isValidHex = /^#[0-9A-Fa-f]{6}$/.test(hex);
+  if (!isValidHex) return null;
   return (
-    <div className="space-y-8 animate-slide-up">
-      {/* ── Page Header ──────────────────────────────────────────── */}
+    <span
+      title={hex}
+      className="w-5 h-5 rounded-full border border-border shrink-0 ring-1 ring-offset-1 ring-offset-card ring-border"
+      style={{ backgroundColor: hex }}
+    />
+  );
+}
+
+// ── Page ──────────────────────────────────────────────────────────────
+
+export default function DashboardPage() {
+  const { data: statsData, isLoading: statsLoading } = useWardrobeStats();
+  const { data: favData, isLoading: favLoading } = useItems({ favori: true, limit: 1 });
+
+  const stats = statsData?.istatistikler;
+  const ozet  = stats?.ozet;
+
+  return (
+    <div className="space-y-6 animate-slide-up">
+
+      {/* ── Page header ──────────────────────────────────────────── */}
       <div>
         <p className="text-[11px] font-semibold tracking-[0.3em] text-gold uppercase mb-1.5">
           Overview
         </p>
         <h2 className="text-2xl font-semibold text-text tracking-tight">
-          Good morning
+          Analytics
         </h2>
         <p className="text-sm text-text-sub mt-1">
-          Your wardrobe analytics and AI insights are ready.
+          A real-time view of your wardrobe and AI activity.
         </p>
       </div>
 
-      {/* ── Stat Cards (4-column) ─────────────────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        {(
-          [
-            { label: "Total Items",        value: "—" },
-            { label: "AI Outfits",         value: "—" },
-            { label: "Favourites",         value: "—" },
-            { label: "AI Uses This Month", value: "—" },
-          ] as const
-        ).map(({ label, value }) => (
-          <div
-            key={label}
-            className="rounded-2xl bg-card border border-border p-5 h-28 flex flex-col justify-between shadow-card"
-          >
-            <p className="text-xs text-muted font-medium tracking-wide">{label}</p>
-            <p className="text-3xl font-semibold text-text-sub">{value}</p>
-          </div>
-        ))}
+      {/* ── Weather banner ───────────────────────────────────────── */}
+      <WeatherBanner />
+
+      {/* ── Stat cards (4-col) ───────────────────────────────────── */}
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+        <StatCard
+          label="Total Items"
+          value={ozet?.toplamKiyafet ?? "—"}
+          sub="in your wardrobe"
+          isLoading={statsLoading}
+        />
+        <StatCard
+          label="Favourites"
+          value={favData?.toplam ?? "—"}
+          sub="items saved"
+          isLoading={favLoading}
+          gold
+        />
+        <StatCard
+          label="AI Outfits"
+          value={ozet?.toplamKombin ?? "—"}
+          sub="generated"
+          isLoading={statsLoading}
+        />
+        <StatCard
+          label="Top Colour"
+          value={ozet?.enCokRenk ?? "—"}
+          sub={ozet?.enCokKategori ? `Most worn: ${ozet.enCokKategori}` : undefined}
+          isLoading={statsLoading}
+          accent={ozet?.enCokRenk ? <ColourSwatch hex={ozet.enCokRenk} /> : undefined}
+        />
       </div>
 
-      {/* ── Charts Row ────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Category Donut — 2/3 width */}
-        <div className="lg:col-span-2 rounded-2xl bg-card border border-border p-6 h-64 flex flex-col">
-          <p className="text-xs font-semibold tracking-[0.2em] text-muted uppercase mb-4">
-            Category Distribution
-          </p>
-          <div className="flex-1 skeleton rounded-xl" />
+      {/* ── Charts row: Donut + Bar ───────────────────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4" style={{ minHeight: 280 }}>
+        {/* Category donut — 3/5 */}
+        <div className="lg:col-span-3">
+          <CategoryDonutChart
+            data={stats?.kategoriDagilimi ?? []}
+            isLoading={statsLoading}
+          />
         </div>
+        {/* Season bar — 2/5 */}
+        <div className="lg:col-span-2">
+          <SeasonBarChart
+            data={stats?.mevsimDagilimi ?? []}
+            isLoading={statsLoading}
+          />
+        </div>
+      </div>
 
-        {/* Season Bar — 1/3 width */}
-        <div className="rounded-2xl bg-card border border-border p-6 h-64 flex flex-col">
-          <p className="text-xs font-semibold tracking-[0.2em] text-muted uppercase mb-4">
-            By Season
-          </p>
-          <div className="flex-1 skeleton rounded-xl" />
+      {/* ── Bottom row: Radar + Recent outfits ───────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4" style={{ minHeight: 280 }}>
+        {/* Style radar — 2/5 */}
+        <div className="lg:col-span-2">
+          <StyleRadarChart
+            data={stats?.stilDagilimi ?? []}
+            isLoading={statsLoading}
+          />
+        </div>
+        {/* Recent outfits — 3/5 */}
+        <div className="lg:col-span-3">
+          <RecentOutfits />
         </div>
       </div>
 
-      {/* ── Style Radar + Recent Outfits Row ─────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Style Radar */}
-        <div className="rounded-2xl bg-card border border-border p-6 h-60 flex flex-col">
-          <p className="text-xs font-semibold tracking-[0.2em] text-muted uppercase mb-4">
-            Style Profile
-          </p>
-          <div className="flex-1 skeleton rounded-xl" />
-        </div>
-
-        {/* Recent AI Outfits */}
-        <div className="lg:col-span-2 rounded-2xl bg-card border border-border p-6 h-60 flex flex-col">
-          <p className="text-xs font-semibold tracking-[0.2em] text-muted uppercase mb-4">
-            Recent AI Outfits
-          </p>
-          <div className="flex gap-3 flex-1">
-            {[0, 1, 2].map((i) => (
-              <div key={i} className="flex-1 skeleton rounded-xl" />
-            ))}
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
