@@ -8,7 +8,6 @@ import 'dart:ui' as ui;
 import 'package:calendar_date_picker2/calendar_date_picker2.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:smart_wardrobe_ai/core/constants/app_colors.dart';
 import 'package:smart_wardrobe_ai/core/theme/app_theme_extension.dart';
 import 'package:smart_wardrobe_ai/core/utils/nav_transitions.dart';
@@ -457,7 +456,7 @@ class _SavedOutfitsScreenState extends State<SavedOutfitsScreen>
 
                 // ── Custom Gold TabBar ─────────────────────────────────────────
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(22, 14, 22, 0),
+                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
                   child: Container(
                     padding: const EdgeInsets.all(3),
                     decoration: BoxDecoration(
@@ -480,12 +479,12 @@ class _SavedOutfitsScreenState extends State<SavedOutfitsScreen>
                       labelColor: Colors.black,
                       unselectedLabelColor: AppColors.muted,
                       labelStyle: const TextStyle(
-                        fontSize: 12,
+                        fontSize: 11,
                         fontWeight: FontWeight.w700,
-                        letterSpacing: .2,
+                        letterSpacing: .1,
                       ),
                       unselectedLabelStyle: const TextStyle(
-                        fontSize: 12,
+                        fontSize: 11,
                         fontWeight: FontWeight.w500,
                       ),
                       tabs: [
@@ -1793,79 +1792,81 @@ class _SuitcaseCardState extends State<_SuitcaseCard> {
                                 letterSpacing: .1,
                               ),
                             ),
-                            const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppColors.gold.withValues(alpha: .1),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                '${s.gunSayisi} ' + 'saved_outfits.days'.tr(),
-                                style: AppTextStyles.label.copyWith(
-                                  color: AppColors.goldLight,
-                                  fontSize: 10,
-                                ),
-                              ),
-                            ),
                           ],
+                        ),
+                        const SizedBox(height: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.gold.withValues(alpha: .1),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            '${s.gunSayisi - 1} ' + 'saved_outfits.days'.tr(),
+                            style: AppTextStyles.label.copyWith(
+                              color: AppColors.goldLight,
+                              fontSize: 10,
+                            ),
+                          ),
                         ),
                       ],
                     ),
                   ),
                   // Weather chip
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.surface,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: AppColors.border),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (s.havaSicakligi != null)
+                  Flexible(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.surface,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: AppColors.border),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (s.havaSicakligi != null)
+                                Text(
+                                  '${s.havaSicakligi!.round()}°C',
+                                  style: const TextStyle(
+                                    color: AppColors.text,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              if (s.havaSicakligi != null)
+                                const SizedBox(width: 6),
                               Text(
-                                '${s.havaSicakligi!.round()}°C',
+                                s.havaDurumuOzeti,
                                 style: const TextStyle(
-                                  color: AppColors.text,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.textSub,
+                                  fontSize: 11,
                                 ),
                               ),
-                            if (s.havaSicakligi != null)
-                              const SizedBox(width: 6),
-                            Text(
-                              s.havaDurumuOzeti,
-                              style: const TextStyle(
-                                color: AppColors.textSub,
-                                fontSize: 11,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      if (s.tahminiHava) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          'saved_outfits.estimated_weather'.tr(),
-                          style: TextStyle(
-                            color: AppColors.muted.withValues(alpha: .6),
-                            fontSize: 9,
-                            letterSpacing: .3,
+                            ],
                           ),
                         ),
+                        if (s.tahminiHava) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            'saved_outfits.estimated_weather'.tr(),
+                            style: TextStyle(
+                              color: AppColors.muted.withValues(alpha: .6),
+                              fontSize: 9,
+                              letterSpacing: .3,
+                            ),
+                          ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
                   const SizedBox(width: 10),
                   GestureDetector(

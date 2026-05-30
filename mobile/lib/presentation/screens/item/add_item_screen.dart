@@ -34,7 +34,7 @@ class _AddItemScreenState extends State<AddItemScreen>
 
   // ─── Form değerleri ──────────────────────────────────────────────────────
   String _selectedCategory = '';
-  String _selectedSeason = 'add_item.all'.tr();
+  String _selectedSeason = 'add_item.all_seasons'.tr();
   String _selectedStyle = 'add_item.casual'.tr();
 
   final List<String> _categories = [
@@ -50,7 +50,7 @@ class _AddItemScreenState extends State<AddItemScreen>
     'add_item.summer'.tr(),
     'add_item.autumn'.tr(),
     'add_item.winter'.tr(),
-    'add_item.all'.tr(),
+    'add_item.all_seasons'.tr(),
   ];
   final List<String> _styles = [
     'add_item.casual'.tr(),

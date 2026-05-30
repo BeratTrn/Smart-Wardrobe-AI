@@ -15,6 +15,7 @@ import 'package:smart_wardrobe_ai/data/models/generated_outfit.dart';
 import 'package:smart_wardrobe_ai/data/services/api_service.dart';
 import 'package:smart_wardrobe_ai/data/services/saved_outfits_store.dart';
 import 'package:smart_wardrobe_ai/presentation/screens/main/home_screen.dart';
+import 'package:smart_wardrobe_ai/presentation/screens/main/wardrobe_screen.dart';
 import 'package:smart_wardrobe_ai/presentation/screens/main/saved_outfits_screen.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/shared/app_background.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/shared/app_text_styles.dart';
@@ -187,15 +188,17 @@ class _TryOnScreenState extends State<TryOnScreen>
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Row(
-            children: [
-              Text('✨', style: TextStyle(fontSize: 14)),
-              SizedBox(width: 8),
-              Text(
-                'Stil kombinlerinize kaydedildi!',
-                style: TextStyle(fontWeight: FontWeight.w500),
-              ),
-            ],
+          content: Expanded(
+            child: Row(
+              children: [
+                Text('✨', style: TextStyle(fontSize: 14)),
+                SizedBox(width: 8),
+                Text(
+                  'Stil kombinlerinize kaydedildi!',
+                  style: TextStyle(fontWeight: FontWeight.w500),
+                ),
+              ],
+            ),
           ),
           backgroundColor: AppColors.success,
           behavior: SnackBarBehavior.floating,
@@ -235,19 +238,6 @@ class _TryOnScreenState extends State<TryOnScreen>
     }
   }
 
-  // ── Paylaş (stub — share_plus ile genişletilebilir) ───────────────────────
-
-  void _shareOutfit() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Paylaşma özelliği yakında aktif olacak.'),
-        backgroundColor: AppColors.surface,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    );
-  }
-
   // ── Build ─────────────────────────────────────────────────────────────────
 
   @override
@@ -267,12 +257,13 @@ class _TryOnScreenState extends State<TryOnScreen>
     }
 
     return PopScope(
-      canPop: Navigator.canPop(context),
+      canPop: false,
       onPopInvoked: (didPop) {
         if (!didPop) {
-          Navigator.pushReplacement(
+          Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (_) => const HomeScreen()),
+            MaterialPageRoute(builder: (_) => const WardrobeScreen()),
+            (route) => false,
           );
         }
       },
@@ -288,14 +279,11 @@ class _TryOnScreenState extends State<TryOnScreen>
                   // ── Header ──────────────────────────────────────────────────
                   _LookbookHeader(
                     onBack: () {
-                      if (Navigator.canPop(context)) {
-                        Navigator.pop(context);
-                      } else {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (_) => const HomeScreen()),
-                        );
-                      }
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (_) => const WardrobeScreen()),
+                        (route) => false,
+                      );
                     },
                   ),
 
@@ -350,7 +338,6 @@ class _TryOnScreenState extends State<TryOnScreen>
                       saved: _saved,
                       saving: _saving,
                       onSave: _saveOutfit,
-                      onShare: _shareOutfit,
                     ),
                   ),
                 ],
@@ -405,34 +392,32 @@ class _LookbookHeader extends StatelessWidget {
             ),
           ),
 
-          const Spacer(),
-
-          // Başlık
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const Text(
-                'LOOKBOOK',
-                style: TextStyle(
-                  fontFamily: 'Cormorant',
-                  fontSize: 21,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.text,
-                  letterSpacing: 4,
+          // Başlık (ortada)
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  'LOOKBOOK',
+                  style: TextStyle(
+                    fontFamily: 'Cormorant',
+                    fontSize: 21,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.text,
+                    letterSpacing: 4,
+                  ),
                 ),
-              ),
-              Text(
-                'KİŞİSEL STİL YAYINI',
-                style: AppTextStyles.label.copyWith(
-                  fontSize: 8,
-                  letterSpacing: 2.5,
-                  color: AppColors.muted,
+                Text(
+                  'KİŞİSEL STİL YAYINI',
+                  style: TextStyle(
+                    fontSize: 8,
+                    letterSpacing: 2.5,
+                    color: AppColors.muted,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-
-          const Spacer(),
 
           // AI Engine badge
           _AiEngineBadge(),
@@ -532,46 +517,6 @@ class _UserPhotoPanel extends StatelessWidget {
                 child: hasPhoto
                     ? Image.memory(photoBytes!, fit: BoxFit.cover)
                     : _PhotoPlaceholder(onTap: onTap),
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 8),
-
-          // ── Değiştir / Ekle butonu
-          GestureDetector(
-            onTap: onTap,
-            child: Container(
-              height: 32,
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(9),
-                border: Border.all(
-                  color: hasPhoto
-                      ? AppColors.border
-                      : AppColors.gold.withValues(alpha: .35),
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    hasPhoto
-                        ? Icons.edit_outlined
-                        : Icons.add_photo_alternate_outlined,
-                    color: hasPhoto ? AppColors.muted : AppColors.gold,
-                    size: 13,
-                  ),
-                  const SizedBox(width: 5),
-                  Text(
-                    hasPhoto ? 'Değiştir' : 'Fotoğraf Ekle',
-                    style: TextStyle(
-                      color: hasPhoto ? AppColors.muted : AppColors.gold,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
               ),
             ),
           ),
@@ -1205,13 +1150,11 @@ class _ActionRow extends StatelessWidget {
   final bool saved;
   final bool saving;
   final VoidCallback onSave;
-  final VoidCallback onShare;
 
   const _ActionRow({
     required this.saved,
     required this.saving,
     required this.onSave,
-    required this.onShare,
   });
 
   @override
@@ -1281,27 +1224,6 @@ class _ActionRow extends StatelessWidget {
                         ],
                       ),
               ),
-            ),
-          ),
-        ),
-
-        const SizedBox(width: 10),
-
-        // ── Paylaş (ikon buton)
-        GestureDetector(
-          onTap: onShare,
-          child: Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.border),
-            ),
-            child: const Icon(
-              Icons.ios_share_rounded,
-              color: AppColors.textSub,
-              size: 20,
             ),
           ),
         ),
