@@ -9,3 +9,6 @@ dist/
 
 # Google
 smart-wardrobe-ai-firebase-service-account.json
+
+
+test_api_timing.ps1
