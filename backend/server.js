@@ -31,6 +31,9 @@ if (process.env.NODE_ENV !== 'test') {
 
 const app = express();
 
+// Render.com ve proxy arkasındaki deploylar için trust proxy
+app.set('trust proxy', 1);
+
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
 
@@ -110,6 +113,7 @@ app.use('/api/travel', travelRoutes);
 // ========================
 // SWAGGER HANDLER
 // ========================
+app.get('/api-docs.json', (req, res) => res.json(swaggerSpec));
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // ========================
@@ -118,12 +122,12 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 /**
  * @swagger
  * /api/health:
- *   get:
- *     summary: Sunucu durumunu kontrol eder
- *     tags: [Health]
- *     responses:
- *       200:
- *         description: Sunucu çalışıyor
+ * get:
+ * summary: Sunucu durumunu kontrol eder
+ * tags: [Health]
+ * responses:
+ * 200:
+ * description: Sunucu çalışıyor
  */
 app.get('/api/health', (req, res) => {
     res.status(200).json({
@@ -158,8 +162,9 @@ const PORT = process.env.PORT || 3000;
 
 let server;
 if (process.env.NODE_ENV !== 'test') {
-    server = app.listen(PORT, () => {
-        console.log(`🚀 Sunucu ${PORT} portunda çalışıyor | Ortam: ${process.env.NODE_ENV || 'development'}`);
+    // FİZİKSEL CİHAZ BAĞLANTISI İÇİN '0.0.0.0' EKLENDİ
+    server = app.listen(PORT, '0.0.0.0', () => {
+        console.log(`🚀 Sunucu ${PORT} portunda çalışıyor | Ortam: ${process.env.NODE_ENV || 'development'} | Dış bağlantılara açık (0.0.0.0)`);
     });
 } else {
     server = app.listen(0); // Test için rastgele port
