@@ -329,4 +329,30 @@ YALNIZCA geçerli bir JSON nesnesi döndür. Markdown ve ek metin yasak.
     return parsed;
 };
 
-module.exports = { analyzeItem, wardrobeOnKontrol, generateOutfitSuggestion, generateSuitcaseSuggestion };
+/**
+ * Günlük push bildirimi için hava durumu + dolap bazlı kısa metin üretir.
+ * @param {Array}  items  - wardrobe items (kategori, renk)
+ * @param {Object} hava   - { sicaklik, durum, konum }
+ * @param {string} sehir  - city name
+ * @returns {string} notification body text
+ */
+const generateWeatherNotificationText = async (items, hava, sehir) => {
+    const sicaklik = hava.sicaklik ?? 20;
+    const durum    = hava.durum    ?? 'güneşli';
+
+    const response = await groq.chat.completions.create({
+        messages: [{
+            role: 'user',
+            content: `${sehir}'de bugün ${sicaklik}°C ve ${durum}. ` +
+                     `${items.length} parçalık dolabım var. ` +
+                     `Kısa, samimi Türkçe bir kombin önerisi push bildirimi yaz (en fazla 2 cümle).`
+        }],
+        model:       'llama-3.3-70b-versatile',
+        temperature: 0.7,
+        max_tokens:  100,
+    });
+
+    return response.choices[0].message.content.trim();
+};
+
+module.exports = { analyzeItem, wardrobeOnKontrol, generateOutfitSuggestion, generateSuitcaseSuggestion, generateWeatherNotificationText };

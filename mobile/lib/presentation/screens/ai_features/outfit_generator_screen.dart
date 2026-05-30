@@ -269,28 +269,31 @@ class _Header extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(22, 16, 22, 0),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'outfit_generator.outfit_upper'.tr(),
-                style: AppTextStyles.label.copyWith(letterSpacing: 2),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                'outfit_generator.outfit_generator'.tr(),
-                style: TextStyle(
-                  fontFamily: 'Cormorant',
-                  fontSize: 28,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.text,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'outfit_generator.outfit_upper'.tr(),
+                  style: AppTextStyles.label.copyWith(letterSpacing: 2),
                 ),
-              ),
-            ],
+                const SizedBox(height: 2),
+                Text(
+                  'outfit_generator.outfit_generator'.tr(),
+                  style: const TextStyle(
+                    fontFamily: 'Cormorant',
+                    fontSize: 28,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.text,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                _AiBadge(),
+              ],
+            ),
           ),
-          const Spacer(),
-          _AiBadge(),
           const SizedBox(width: 10),
           GestureDetector(
             onTap: onBack,
@@ -589,27 +592,6 @@ class _OutfitCard extends StatelessWidget {
                         ),
                       ],
                     ],
-                  ),
-                ),
-                const SizedBox(width: 12),
-                // Kaydet butonu
-                GestureDetector(
-                  onTap: onSave,
-                  child: Container(
-                    width: 38,
-                    height: 38,
-                    decoration: BoxDecoration(
-                      color: AppColors.gold.withValues(alpha: .12),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: AppColors.gold.withValues(alpha: .3),
-                      ),
-                    ),
-                    child: const Icon(
-                      Icons.bookmark_border_rounded,
-                      color: AppColors.gold,
-                      size: 19,
-                    ),
                   ),
                 ),
               ],

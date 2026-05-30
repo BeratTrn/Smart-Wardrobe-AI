@@ -4,12 +4,24 @@ const initFirebase = () => {
     if (process.env.NODE_ENV === 'test') return;
 
     if (!admin.apps.length) {
-        // Lazy-require so the file is never touched in test/CI environments
-        const serviceAccount = require('../smart-wardrobe-ai-firebase-service-account.json');
-        admin.initializeApp({
-            credential: admin.credential.cert(serviceAccount)
-        });
-        console.log('🔥 Firebase Admin başarıyla başlatıldı!');
+        try {
+            let credential;
+
+            if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+                // Render.com: env variable olarak JSON string
+                const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+                credential = admin.credential.cert(serviceAccount);
+            } else {
+                // Local geliştirme: dosyadan oku
+                const serviceAccount = require('../smart-wardrobe-ai-firebase-service-account.json');
+                credential = admin.credential.cert(serviceAccount);
+            }
+
+            admin.initializeApp({ credential });
+            console.log('🔥 Firebase Admin başarıyla başlatıldı!');
+        } catch (err) {
+            console.warn('⚠️ Firebase başlatılamadı (push bildirimleri devre dışı):', err.message);
+        }
     }
 };
 

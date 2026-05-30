@@ -162,7 +162,7 @@ class _FormView extends StatelessWidget {
         ),
         const SizedBox(height: 24),
         AuthPrimaryButton(
-          label: ' forgot_password.send_reset_link'.tr(),
+          label: 'forgot_password.send_reset_link'.tr(),
           onTap: onSend,
           loading: loading,
         ),

@@ -957,26 +957,21 @@ class _StyleScorecardCard extends StatelessWidget {
     return _stilCounts.entries.reduce((a, b) => a.value >= b.value ? a : b).key;
   }
 
-  List<Color> get _topColors {
-    final map = <String, int>{};
-    for (final i in items) {
-      final c = i.color?.toLowerCase().trim();
-      if (c?.isNotEmpty == true) map[c!] = (map[c] ?? 0) + 1;
-    }
-    return (map.entries.toList()..sort((a, b) => b.value.compareTo(a.value)))
-        .take(5)
-        .map((e) => _nameToColor(e.key))
-        .toList();
-  }
-
-  static const _stilColors = <String, Color>{
-    'Casual': AppColors.gold,
-    'Formal': Color(0xFF9E9E9E),
-    'Spor': Color(0xFF4FC3F7),
-    'Elegant': Color(0xFFCE93D8),
-    'Bohemian': Color(0xFFFFB74D),
+static const _stilColors = <String, Color>{
+    // Türkçe
+    'Casual':     Color(0xFFD4A853),
+    'Günlük':     Color(0xFFD4A853),
+    'Spor':       Color(0xFF4FC3F7),
+    'Klasik':     Color(0xFF9E9E9E),
+    'Formal':     Color(0xFF9E9E9E),
+    'Sokak':      Color(0xFF80CBC4),
     'Streetwear': Color(0xFF80CBC4),
-    'Diğer': Color(0xFF455A64),
+    'Şık':        Color(0xFFCE93D8),
+    'Elegant':    Color(0xFFCE93D8),
+    'Resmi':      Color(0xFF90A4AE),
+    'Bohemian':   Color(0xFFFFB74D),
+    'Minimal':    Color(0xFFB0BEC5),
+    'Diğer':      Color(0xFF546E7A),
   };
 
   @override
@@ -984,7 +979,6 @@ class _StyleScorecardCard extends StatelessWidget {
     final counts = _stilCounts;
     final total = items.length;
     final dominant = _dominantStil;
-    final topColors = _topColors;
     final slices = counts.entries
         .map(
           (e) => _DonutSlice(
@@ -1074,23 +1068,20 @@ class _StyleScorecardCard extends StatelessWidget {
               const Divider(color: Color(0xFF272720), height: 1),
               const SizedBox(height: 18),
 
-              // ── Stats row
+              // ── Donut + özet satırı
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   // Donut chart
                   SizedBox(
-                    width: 96,
-                    height: 96,
+                    width: 90,
+                    height: 90,
                     child: Stack(
                       alignment: Alignment.center,
                       children: [
                         CustomPaint(
-                          size: const Size(96, 96),
-                          painter: _DoughnutPainter(
-                            slices: slices,
-                            total: total,
-                          ),
+                          size: const Size(90, 90),
+                          painter: _DoughnutPainter(slices: slices, total: total),
                         ),
                         Column(
                           mainAxisSize: MainAxisSize.min,
@@ -1099,7 +1090,7 @@ class _StyleScorecardCard extends StatelessWidget {
                               '$total',
                               style: const TextStyle(
                                 color: AppColors.text,
-                                fontSize: 20,
+                                fontSize: 22,
                                 fontWeight: FontWeight.w700,
                                 fontFamily: 'Cormorant',
                               ),
@@ -1118,9 +1109,9 @@ class _StyleScorecardCard extends StatelessWidget {
                     ),
                   ),
 
-                  const SizedBox(width: 20),
+                  const SizedBox(width: 18),
 
-                  // Right stats
+                  // Baskın stil + toplam
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1129,7 +1120,7 @@ class _StyleScorecardCard extends StatelessWidget {
                           icon: Icons.style_outlined,
                           label: 'home.dominant_style'.tr(),
                           value: dominant,
-                          valueColor: AppColors.goldLight,
+                          valueColor: _stilColors[dominant] ?? AppColors.goldLight,
                         ),
                         const SizedBox(height: 10),
                         _StatRow(
@@ -1140,108 +1131,103 @@ class _StyleScorecardCard extends StatelessWidget {
                           ),
                           valueColor: AppColors.text,
                         ),
-                        if (topColors.isNotEmpty) ...[
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.palette_outlined,
-                                color: AppColors.muted,
-                                size: 13,
-                              ),
-                              const SizedBox(width: 5),
-                              Text(
-                                'home.color_palette'.tr(),
-                                style: const TextStyle(
-                                  color: AppColors.muted,
-                                  fontSize: 10,
-                                  letterSpacing: .5,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 6),
-                          Row(
-                            children: topColors
-                                .map(
-                                  (c) => Container(
-                                    width: 20,
-                                    height: 20,
-                                    margin: const EdgeInsets.only(right: 5),
-                                    decoration: BoxDecoration(
-                                      color: c,
-                                      shape: BoxShape.circle,
-                                      border: Border.all(
-                                        color: Colors.white.withValues(
-                                          alpha: .12,
-                                        ),
-                                        width: 1.5,
-                                      ),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: c.withValues(alpha: .5),
-                                          blurRadius: 5,
-                                          spreadRadius: 1,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                )
-                                .toList(),
-                          ),
-                        ],
                       ],
                     ),
                   ),
                 ],
               ),
 
-              // ── Legend chips
+              // ── Stil dağılımı — progress bar'lı liste
               if (slices.isNotEmpty) ...[
+                const SizedBox(height: 20),
+                const Divider(color: Color(0xFF272720), height: 1),
                 const SizedBox(height: 16),
-                Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  children: slices.take(4).map((s) {
-                    final pct = total > 0 ? (s.count / total * 100).round() : 0;
-                    return Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: s.color.withValues(alpha: .1),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: s.color.withValues(alpha: .25),
-                          width: .8,
+                ...slices.take(4).map((s) {
+                  final pct = total > 0 ? s.count / total : 0.0;
+                  final pctLabel = '${(pct * 100).round()}%';
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                color: s.color,
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: s.color.withValues(alpha: .5),
+                                    blurRadius: 4,
+                                    spreadRadius: 1,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                s.label,
+                                style: TextStyle(
+                                  color: s.color,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: .2,
+                                ),
+                              ),
+                            ),
+                            Text(
+                              pctLabel,
+                              style: TextStyle(
+                                color: s.color.withValues(alpha: .85),
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: 6,
-                            height: 6,
-                            decoration: BoxDecoration(
-                              color: s.color,
-                              shape: BoxShape.circle,
-                            ),
+                        const SizedBox(height: 5),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: Stack(
+                            children: [
+                              Container(
+                                height: 4,
+                                width: double.infinity,
+                                color: s.color.withValues(alpha: .1),
+                              ),
+                              FractionallySizedBox(
+                                widthFactor: pct.toDouble(),
+                                child: Container(
+                                  height: 4,
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        s.color.withValues(alpha: .6),
+                                        s.color,
+                                      ],
+                                    ),
+                                    borderRadius: BorderRadius.circular(4),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: s.color.withValues(alpha: .4),
+                                        blurRadius: 4,
+                                        offset: const Offset(0, 1),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 5),
-                          Text(
-                            '${s.label}  $pct%',
-                            style: TextStyle(
-                              color: s.color,
-                              fontSize: 10,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }).toList(),
-                ),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
               ],
             ],
           ),
