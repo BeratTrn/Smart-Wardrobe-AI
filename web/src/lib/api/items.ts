@@ -29,8 +29,8 @@ export interface AnalyzeOnlyResponse {
 }
 
 export interface AddItemPayload {
-  resimUrl: string;
-  cloudinaryId: string;
+  file: File;
+  ad?: string;
   kategori: ItemCategory;
   renk: string;
   mevsim: ItemSeason;
@@ -76,9 +76,21 @@ export async function analyzeItem(file: File): Promise<AnalyzeOnlyResponse> {
   return res.data;
 }
 
-/** POST /api/items/add — save confirmed item data to wardrobe */
+/** POST /api/items/add — multipart/form-data (mobil ile aynı akış) */
 export async function addItem(payload: AddItemPayload): Promise<AddItemResponse> {
-  const res = await api.post<AddItemResponse>("/items/add", payload);
+  const form = new FormData();
+  form.append("resim", payload.file);
+  if (payload.ad) form.append("ad", payload.ad);
+  form.append("kategori", payload.kategori);
+  form.append("renk", payload.renk);
+  form.append("mevsim", payload.mevsim);
+  form.append("stil", payload.stil);
+  if (payload.marka)  form.append("marka",  payload.marka);
+  if (payload.notlar) form.append("notlar", payload.notlar);
+
+  const res = await api.post<AddItemResponse>("/items/add", form, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
   return res.data;
 }
 

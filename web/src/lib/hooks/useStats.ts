@@ -5,6 +5,6 @@ export function useWardrobeStats() {
   return useQuery({
     queryKey: ["stats", "wardrobe"],
     queryFn: getWardrobeStats,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0,
   });
 }

@@ -1,5 +1,13 @@
 import api from "./axios";
-import type { OutfitsResponse, Outfit, OutfitRecommendation, OutfitGeneratePayload, SaveOutfitPayload } from "@/types";
+import type { OutfitsResponse, Outfit, OutfitRecommendation, OutfitGeneratePayload, SavedOutfit } from "@/types";
+
+export interface SaveToArchivePayload {
+  baslik: string;
+  aciklama: string;
+  ipucu?: string;
+  havaDurumu?: Record<string, unknown>;
+  kiyafetler: string[];
+}
 
 export interface OutfitsQuery { sayfa?: number; limit?: number; }
 
@@ -8,13 +16,13 @@ export async function getOutfits(query: OutfitsQuery = {}): Promise<OutfitsRespo
   return res.data;
 }
 
-export async function generateOutfit(payload: OutfitGeneratePayload): Promise<{ mesaj: string; kombinler: OutfitRecommendation[] }> {
-  const res = await api.post<{ mesaj: string; kombinler: OutfitRecommendation[] }>("/outfits/generate", payload);
+export async function generateOutfit(payload: OutfitGeneratePayload): Promise<{ mesaj: string; kombin: OutfitRecommendation }> {
+  const res = await api.post<{ mesaj: string; kombin: OutfitRecommendation }>("/outfits/recommend", payload);
   return res.data;
 }
 
-export async function saveOutfit(payload: SaveOutfitPayload): Promise<{ mesaj: string; kombin: Outfit }> {
-  const res = await api.post<{ mesaj: string; kombin: Outfit }>("/outfits", payload);
+export async function saveOutfitToArchive(payload: SaveToArchivePayload): Promise<{ mesaj: string; kombin: SavedOutfit }> {
+  const res = await api.post<{ mesaj: string; kombin: SavedOutfit }>("/saved-outfits", payload);
   return res.data;
 }
 

@@ -2,20 +2,24 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Plane, Loader2, Luggage } from "lucide-react";
+import { Plane, Loader2, Luggage, Sparkles } from "lucide-react";
 import { suitcaseSchema, type SuitcaseFormData } from "@/lib/validations/settings";
-import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
+
+const S  = "#111110";
+const C  = "#161614";
+const B  = "1px solid #1E1E18";
+const GB = "1px solid rgba(201,168,76,0.4)";
 
 interface SuitcaseFormProps {
   onGenerate: (data: SuitcaseFormData) => void;
   isLoading: boolean;
 }
 
-// Today's date as yyyy-mm-dd for the min attribute
 function today() {
   return new Date().toISOString().slice(0, 10);
 }
+
+const DATE_INPUT_STYLE = `w-full rounded-xl border px-4 py-3 text-sm bg-transparent outline-none transition-colors focus:border-gold text-text`;
 
 export function SuitcaseForm({ onGenerate, isLoading }: SuitcaseFormProps) {
   const {
@@ -25,85 +29,99 @@ export function SuitcaseForm({ onGenerate, isLoading }: SuitcaseFormProps) {
     formState: { errors },
   } = useForm<SuitcaseFormData>({
     resolver: zodResolver(suitcaseSchema),
-    defaultValues: {
-      sehir: "",
-      baslangicTarihi: today(),
-      bitisTarihi: today(),
-    },
+    defaultValues: { sehir: "", baslangicTarihi: today(), bitisTarihi: today() },
   });
 
   const startDate = watch("baslangicTarihi");
 
   return (
-    <div className="glass rounded-2xl p-6 space-y-5">
+    <div className="rounded-[20px] p-6 space-y-6" style={{ background: S, border: B }}>
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <div className="h-9 w-9 rounded-xl bg-gold/10 border border-gold/20 flex items-center justify-center">
-          <Luggage className="h-4.5 w-4.5 text-gold" />
+      <div>
+        <div className="flex items-center gap-2 mb-1">
+          <div
+            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold"
+            style={{ background: "rgba(201,168,76,0.12)", border: "1px solid rgba(201,168,76,0.25)", color: "var(--color-gold)" }}
+          >
+            <Sparkles className="h-3 w-3" /> AI SEYAHAT
+          </div>
         </div>
-        <div>
-          <h2 className="font-semibold text-sm">Pack My Suitcase</h2>
-          <p className="text-[11px] text-muted mt-0.5">
-            AI picks the best items from your wardrobe
-          </p>
-        </div>
+        <h2 className="text-xl font-black text-text leading-tight">Bavulumu Hazırla</h2>
+        <p className="text-[12px] mt-1" style={{ color: "var(--color-muted)" }}>
+          AI dolabından en uygun kıyafetleri seçer
+        </p>
       </div>
 
-      <form onSubmit={handleSubmit(onGenerate)} className="space-y-4">
-        {/* Destination */}
-        <Input
-          label="Destination City"
-          placeholder="e.g. Paris, Tokyo, New York"
-          error={errors.sehir?.message}
-          {...register("sehir")}
-        />
-
-        {/* Date row */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1.5">
-            <label className="text-[12px] text-muted block">Start Date</label>
+      <form onSubmit={handleSubmit(onGenerate)} className="space-y-5">
+        {/* City */}
+        <div className="space-y-1.5">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: "var(--color-muted)" }}>
+            GİDİLECEK ŞEHİR
+          </p>
+          <div className="flex items-center gap-3 px-4 py-3 rounded-xl" style={{ background: C, border: B }}>
+            <Plane className="h-4 w-4 flex-shrink-0" style={{ color: "var(--color-muted)" }} />
             <input
-              type="date"
-              min={today()}
-              className={`w-full rounded-lg border px-3 py-2 text-sm bg-white/5 outline-none transition-colors
-                focus:border-gold focus:ring-1 focus:ring-gold/20
-                ${errors.baslangicTarihi ? "border-danger" : "border-border"}`}
-              {...register("baslangicTarihi")}
+              type="text"
+              placeholder="Paris, Tokyo, New York…"
+              className="flex-1 bg-transparent text-sm text-text placeholder:text-muted outline-none"
+              {...register("sehir")}
             />
-            {errors.baslangicTarihi && (
-              <p className="text-[11px] text-danger">{errors.baslangicTarihi.message}</p>
-            )}
           </div>
+          {errors.sehir && <p className="text-[11px] text-danger pl-1">{errors.sehir.message}</p>}
+        </div>
 
-          <div className="space-y-1.5">
-            <label className="text-[12px] text-muted block">End Date</label>
-            <input
-              type="date"
-              min={startDate || today()}
-              className={`w-full rounded-lg border px-3 py-2 text-sm bg-white/5 outline-none transition-colors
-                focus:border-gold focus:ring-1 focus:ring-gold/20
-                ${errors.bitisTarihi ? "border-danger" : "border-border"}`}
-              {...register("bitisTarihi")}
-            />
-            {errors.bitisTarihi && (
-              <p className="text-[11px] text-danger">{errors.bitisTarihi.message}</p>
-            )}
+        {/* Dates */}
+        <div className="space-y-1.5">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: "var(--color-muted)" }}>
+            SEYAHAT TARİHLERİ
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <p className="text-[11px]" style={{ color: "var(--color-muted)" }}>Başlangıç</p>
+              <input
+                type="date"
+                min={today()}
+                className={`${DATE_INPUT_STYLE} ${errors.baslangicTarihi ? "border-danger" : "border-[#272720]"}`}
+                {...register("baslangicTarihi")}
+              />
+              {errors.baslangicTarihi && (
+                <p className="text-[11px] text-danger">{errors.baslangicTarihi.message}</p>
+              )}
+            </div>
+            <div className="space-y-1">
+              <p className="text-[11px]" style={{ color: "var(--color-muted)" }}>Bitiş</p>
+              <input
+                type="date"
+                min={startDate || today()}
+                className={`${DATE_INPUT_STYLE} ${errors.bitisTarihi ? "border-danger" : "border-[#272720]"}`}
+                {...register("bitisTarihi")}
+              />
+              {errors.bitisTarihi && (
+                <p className="text-[11px] text-danger">{errors.bitisTarihi.message}</p>
+              )}
+            </div>
           </div>
         </div>
 
-        <Button type="submit" fullWidth loading={isLoading} className="gap-2 mt-1">
+        {/* CTA */}
+        <button
+          type="submit"
+          disabled={isLoading}
+          className="w-full py-3.5 rounded-2xl text-black font-bold text-sm hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
+          style={{ background: "linear-gradient(135deg, #C9A84C 0%, #E8C97A 50%, #C9A84C 100%)" }}
+        >
           {isLoading ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
-              AI is packing your suitcase…
+              AI bavul hazırlıyor…
             </>
           ) : (
             <>
-              <Plane className="h-4 w-4" />
-              Generate Packing List
+              <Luggage className="h-4 w-4" />
+              ✦ AI ile Bavulumu Hazırla
             </>
           )}
-        </Button>
+        </button>
       </form>
     </div>
   );

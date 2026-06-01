@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Providers } from "@/components/Providers";
+import { Providers } from "./providers";
 
 export const metadata: Metadata = {
-  title: "Smart Wardrobe AI",
-  description: "Your AI-powered personal wardrobe assistant",
+  title: "StyleX — Smart Wardrobe AI",
+  description: "AI destekli kişisel gardırop asistanın. Kombine öneriler al, dolabını yönet.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

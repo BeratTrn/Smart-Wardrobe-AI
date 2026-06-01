@@ -1,9 +1,15 @@
 "use client";
 
-import { ThumbsUp, ThumbsDown, Bookmark, Trash2 } from "lucide-react";
+import { useState } from "react";
+import Image from "next/image";
+import { Bookmark, ThumbsUp, ThumbsDown, Shirt, Sparkles, Lightbulb } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
-import { OutfitItemThumbnail } from "./OutfitItemThumbnail";
 import type { Outfit, OutfitRecommendation, PopulatedItem, WeatherData } from "@/types";
+
+const BDR = "1px solid #1E1E18";
+const SBG = "#161614";
+const IBG = "rgba(201,168,76,0.12)";
+const ABD = "1px solid rgba(201,168,76,0.25)";
 
 interface NormalizedOutfit {
   id: string; baslik: string; aciklama: string; ipucu: string;
@@ -25,86 +31,204 @@ interface OutfitResultCardProps {
   outfit: Outfit | OutfitRecommendation;
   showActions?: boolean; showRemove?: boolean; isFresh?: boolean; highlight?: boolean;
   onFeedback?: (id: string, begeniyor: boolean) => void;
-  onSave?: (id: string) => void; onRemove?: (id: string) => void;
+  onSave?: (outfit: OutfitRecommendation) => void; onRemove?: (id: string) => void;
+  onTryOn?: (id: string) => void;
   isFeedbackLoading?: boolean; isSaveLoading?: boolean; isRemoveLoading?: boolean;
 }
 
-export function OutfitResultCard({ outfit, showActions = false, showRemove = false,
-  isFresh = false, highlight = false, onFeedback, onSave, onRemove,
+export function OutfitResultCard({ outfit, showActions = false, isFresh = false,
+  highlight = false, onFeedback, onSave, onRemove, onTryOn, showRemove = false,
   isFeedbackLoading, isSaveLoading, isRemoveLoading }: OutfitResultCardProps) {
 
-  const data = "aiAciklama" in outfit
-    ? normalizeOutfit(outfit as Outfit)
-    : normalizeRecommendation(outfit as OutfitRecommendation);
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  if (!outfit) return null;
+
+  const data = "aiAciklama" in outfit ? normalizeOutfit(outfit as Outfit) : normalizeRecommendation(outfit as OutfitRecommendation);
+  const items = data.kiyafetler.slice(0, 3);
 
   return (
-    <article className={cn("glass rounded-2xl overflow-hidden transition-all duration-300",
-      isFresh && "ring-1 ring-gold/40", highlight && "ring-1 ring-gold animate-pulse-slow")}>
+    <article
+      className={cn("rounded-2xl overflow-hidden transition-all duration-300", isFresh && "ring-1 ring-gold/30", highlight && "ring-1 ring-gold")}
+      style={{ background: "#111110", border: BDR }}
+    >
+      {/* Gold top bar on fresh results */}
       {(isFresh || highlight) && <div className="h-0.5 w-full bg-gold-gradient" />}
+
+      {/* ── Lookbook image grid ── */}
+      {items.length > 0 && (
+        <div className={cn("grid gap-0.5", items.length === 1 ? "grid-cols-1" : items.length === 2 ? "grid-cols-2" : "grid-cols-3")}>
+          {items.map((item, idx) => (
+            <div key={item._id} className="relative" style={{ aspectRatio: items.length === 1 ? "16/9" : "1/1" }}>
+              <Image
+                src={item.resimUrl}
+                alt={item.kategori}
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 50vw, 33vw"
+              />
+              {/* Category label */}
+              <div className="absolute bottom-2 left-2">
+                <span
+                  className="text-[9px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full"
+                  style={{ background: "rgba(0,0,0,0.65)", color: "#B0A898", backdropFilter: "blur(6px)" }}
+                >
+                  {item.kategori}
+                </span>
+              </div>
+              {idx === 0 && (
+                <div className="absolute inset-0 bg-gradient-to-b from-black/20 to-transparent pointer-events-none" />
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ── Content ── */}
       <div className="p-5 space-y-4">
+        {/* Title + remove button */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-sm leading-snug">{data.baslik}</h3>
-            {data.etkinlik && (
-              <span className="inline-block mt-1 text-[11px] px-2 py-0.5 rounded-full bg-gold/10 text-gold border border-gold/20">
-                {data.etkinlik}
-              </span>
-            )}
-          </div>
-          {data.havaDurumu && (
-            <div className="flex-shrink-0 text-right">
-              <p className="text-[12px] text-muted">{data.havaDurumu.sehir}</p>
-              <p className="text-[13px] font-semibold text-gold">{data.havaDurumu.sicaklik}°C</p>
+            <div className="flex items-center gap-2 flex-wrap mb-1.5">
+              {(data.etkinlik || data.baslik) && (
+                <span
+                  className="text-[11px] font-semibold px-2.5 py-1 rounded-lg"
+                  style={{ background: "transparent", border: "1px solid rgba(201,168,76,0.3)", color: "var(--color-gold)" }}
+                >
+                  {data.baslik || data.etkinlik}
+                </span>
+              )}
+              {isFresh && (
+                <span
+                  className="inline-flex items-center gap-1 text-[10px] font-semibold px-2.5 py-0.5 rounded-full text-gold"
+                  style={{ background: IBG, border: ABD }}
+                >
+                  <Sparkles className="h-2.5 w-2.5" /> Yeni
+                </span>
+              )}
             </div>
+          </div>
+          
+          {showRemove && !showActions && !onTryOn ? (
+            <button
+              onClick={() => onRemove?.(data.id)}
+              disabled={isRemoveLoading}
+              className="flex-shrink-0 h-8 w-8 rounded-xl flex items-center justify-center transition-colors"
+              style={{ background: "rgba(248,113,113,0.1)", border: "1px solid rgba(248,113,113,0.2)" }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(248,113,113,0.9)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 6h18"></path>
+                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+              </svg>
+            </button>
+          ) : data.havaDurumu ? (
+            <div className="flex-shrink-0 text-right">
+              <p className="text-[11px] text-muted">{data.havaDurumu.sehir}</p>
+              <p className="text-sm font-bold text-gold">{data.havaDurumu.sicaklik}°C</p>
+            </div>
+          ) : null}
+        </div>
+
+        {/* ── Stilistin Notu ── */}
+        <div className={cn("space-y-3", !showRemove && "rounded-xl p-4")} style={!showRemove ? { background: SBG, border: BDR } : {}}>
+          {!showRemove && (
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted flex items-center gap-1.5">
+              <Sparkles className="h-3 w-3 text-gold" /> STİLİSTİN NOTU
+            </p>
+          )}
+          <p
+            onClick={() => setIsExpanded(true)}
+            className={cn("text-[13px] text-text-sub leading-relaxed cursor-pointer", !isExpanded && "line-clamp-4")}
+          >
+            {data.aciklama}
+          </p>
+          {(isExpanded || !showRemove) && data.ipucu && (
+            <div className="flex items-start gap-2.5 rounded-lg px-3 py-2.5" style={{ background: IBG, border: "1px solid rgba(201,168,76,0.15)" }}>
+              <Lightbulb className="h-3.5 w-3.5 text-gold flex-shrink-0 mt-0.5" />
+              <p className="text-[12px] leading-relaxed italic" style={{ color: "var(--color-gold)" }}>
+                {data.ipucu}
+              </p>
+            </div>
+          )}
+          {showRemove && (
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="text-[11px] font-semibold flex items-center gap-1 mt-1 hover:opacity-80 transition"
+              style={{ color: "var(--color-gold)" }}
+            >
+              {isExpanded ? "Daralt ^" : "Devamını Oku ∨"}
+            </button>
           )}
         </div>
 
-        <p className="text-[13px] text-muted leading-relaxed line-clamp-3">{data.aciklama}</p>
-
-        {data.ipucu && (
-          <div className="rounded-xl bg-gold/5 border border-gold/15 px-4 py-3">
-            <p className="text-[12px] text-gold-light leading-relaxed">💡 {data.ipucu}</p>
-          </div>
-        )}
-
+        {/* ── Parça sayısı ── */}
         {data.kiyafetler.length > 0 && (
-          <div className="flex gap-2 flex-wrap">
-            {data.kiyafetler.map((item) => (
-              <OutfitItemThumbnail key={item._id} item={item} size={52} />
-            ))}
+          <div className="flex items-center gap-1.5">
+            <Shirt className="h-3.5 w-3.5 text-muted" />
+            <span className="text-[12px] text-muted">{data.kiyafetler.length} parça</span>
           </div>
         )}
 
-        {(showActions || showRemove) && (
-          <div className="flex items-center gap-2 pt-1 border-t border-white/5">
-            {showActions && (
-              <>
-                <button onClick={() => onFeedback?.(data.id, true)} disabled={isFeedbackLoading}
-                  className={cn("flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] border transition-colors",
-                    data.begeniyor === true ? "border-success bg-success/10 text-success"
-                      : "border-border text-muted hover:border-success/40 hover:text-success")}>
-                  <ThumbsUp className="h-3.5 w-3.5" /> Like
-                </button>
-                <button onClick={() => onFeedback?.(data.id, false)} disabled={isFeedbackLoading}
-                  className={cn("flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] border transition-colors",
-                    data.begeniyor === false ? "border-danger bg-danger/10 text-danger"
-                      : "border-border text-muted hover:border-danger/40 hover:text-danger")}>
-                  <ThumbsDown className="h-3.5 w-3.5" /> Dislike
-                </button>
-                <button onClick={() => onSave?.(data.id)} disabled={isSaveLoading || data.kaydedildi}
-                  className={cn("ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] border transition-colors",
-                    data.kaydedildi ? "border-gold bg-gold/10 text-gold"
-                      : "border-border text-muted hover:border-gold/40 hover:text-gold")}>
-                  <Bookmark className="h-3.5 w-3.5" fill={data.kaydedildi ? "currentColor" : "none"} />
-                  {data.kaydedildi ? "Saved" : "Save"}
-                </button>
-              </>
-            )}
-            {showRemove && (
-              <button onClick={() => onRemove?.(data.id)} disabled={isRemoveLoading}
-                className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] border border-border text-muted hover:border-danger/40 hover:text-danger transition-colors">
-                <Trash2 className="h-3.5 w-3.5" /> Remove
+        {/* ── Actions ── */}
+        {(showActions || onTryOn) && (
+          <div className="pt-2 border-t mt-2" style={{ borderColor: "#1E1E18" }}>
+            {onTryOn && (
+              <button
+                onClick={() => onTryOn(data.id)}
+                className="w-full py-3 rounded-xl bg-gold-gradient text-black font-bold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
+              >
+                👤 Üzerinde Dene
               </button>
+            )}
+            
+            {showActions && !onTryOn && (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => onFeedback?.(data.id, true)}
+                  disabled={isFeedbackLoading}
+                  className={cn(
+                    "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[12px] font-medium transition-colors",
+                    data.begeniyor === true
+                      ? "text-success bg-success/10"
+                      : "text-muted hover:text-success"
+                  )}
+                  style={{ border: data.begeniyor === true ? "1px solid rgba(74,140,92,0.4)" : BDR }}
+                >
+                  <ThumbsUp className="h-3.5 w-3.5" /> Beğen
+                </button>
+                <button
+                  onClick={() => onFeedback?.(data.id, false)}
+                  disabled={isFeedbackLoading}
+                  className={cn(
+                    "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[12px] font-medium transition-colors",
+                    data.begeniyor === false
+                      ? "text-danger bg-danger/10"
+                      : "text-muted hover:text-danger"
+                  )}
+                  style={{ border: data.begeniyor === false ? "1px solid rgba(176,64,64,0.4)" : BDR }}
+                >
+                  <ThumbsDown className="h-3.5 w-3.5" /> Beğenme
+                </button>
+                <button
+                  onClick={() => {
+                    if (onSave && !("aiAciklama" in outfit)) {
+                      onSave(outfit as OutfitRecommendation);
+                    }
+                  }}
+                  disabled={isSaveLoading || data.kaydedildi}
+                  className={cn(
+                    "ml-auto flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-[12px] font-semibold transition-all",
+                    data.kaydedildi
+                      ? "text-gold"
+                      : "bg-gold-gradient text-black hover:opacity-90"
+                  )}
+                  style={data.kaydedildi ? { border: ABD, background: IBG } : {}}
+                >
+                  <Bookmark className="h-3.5 w-3.5" fill={data.kaydedildi ? "currentColor" : "none"} />
+                  {data.kaydedildi ? "Kaydedildi" : "Stilimi Kaydet"}
+                </button>
+              </div>
             )}
           </div>
         )}

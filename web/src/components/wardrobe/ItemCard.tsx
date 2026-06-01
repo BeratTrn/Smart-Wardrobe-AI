@@ -1,53 +1,86 @@
 "use client";
 
 import Image from "next/image";
-import { Heart, Trash2 } from "lucide-react";
-import { cn } from "@/lib/utils/cn";
+import { Trash2 } from "lucide-react";
 import type { Item } from "@/types";
+
+const CAT_COLORS: Record<string, string> = {
+  "Üst Giyim":     "rgba(90,122,156,0.25)",
+  "Alt Giyim":     "rgba(122,90,156,0.25)",
+  "Elbise & Etek": "rgba(156,90,122,0.25)",
+  "Dış Giyim":     "rgba(106,140,106,0.25)",
+  "Ayakkabı":      "rgba(156,122,90,0.25)",
+  "Aksesuar":      "rgba(90,156,122,0.25)",
+};
+const CAT_TEXT: Record<string, string> = {
+  "Üst Giyim":     "#7EB3E0",
+  "Alt Giyim":     "#B07EE0",
+  "Elbise & Etek": "#E07EB0",
+  "Dış Giyim":     "#90C490",
+  "Ayakkabı":      "#E0B07E",
+  "Aksesuar":      "#7EE0B0",
+};
 
 interface ItemCardProps {
   item: Item;
   onFavoriteToggle: (id: string) => void;
   onDelete: (id: string) => void;
+  onClick: () => void;
   isFavoriteLoading?: boolean;
 }
 
-export function ItemCard({ item, onFavoriteToggle, onDelete, isFavoriteLoading }: ItemCardProps) {
+export function ItemCard({ item, onFavoriteToggle, onDelete, onClick, isFavoriteLoading }: ItemCardProps) {
+  const catBg   = CAT_COLORS[item.kategori] ?? "rgba(201,168,76,0.15)";
+  const catText = CAT_TEXT[item.kategori]   ?? "var(--color-gold)";
+
   return (
-    <article className="group relative glass rounded-2xl overflow-hidden hover:ring-1 hover:ring-gold/30 transition-all duration-200">
-      <div className="relative aspect-[3/4] bg-white/5">
-        <Image src={item.resimUrl} alt={item.kategori} fill
+    <article
+      onClick={onClick}
+      className="group relative rounded-[20px] overflow-hidden flex flex-col cursor-pointer"
+      style={{
+        background: "var(--color-surface)",
+        border: "1px solid var(--color-border)",
+      }}
+    >
+      {/* Image Container with light background */}
+      <div className="relative aspect-square" style={{ background: "#F4F4F4" }}>
+        <Image
+          src={item.resimUrl}
+          alt={item.kategori}
+          fill
           className="object-cover transition-transform duration-300 group-hover:scale-105"
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
         />
-        <div className="absolute top-2 right-2 flex flex-col gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button
-            className={cn("h-7 w-7 rounded-full glass flex items-center justify-center transition-all", item.favori ? "text-gold" : "text-muted hover:text-gold")}
-            onClick={(e) => { e.stopPropagation(); onFavoriteToggle(item._id); }}
-            disabled={isFavoriteLoading}
-          >
-            <Heart className="h-3.5 w-3.5" fill={item.favori ? "currentColor" : "none"} />
-          </button>
-          <button
-            className="h-7 w-7 rounded-full glass flex items-center justify-center text-muted hover:text-danger transition-colors"
-            onClick={(e) => { e.stopPropagation(); onDelete(item._id); }}
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </button>
-        </div>
-        {item.favori && (
-          <div className="absolute top-2 left-2 h-5 w-5 rounded-full bg-gold/20 flex items-center justify-center">
-            <Heart className="h-3 w-3 text-gold" fill="currentColor" />
-          </div>
+
+        {/* Color Dot top-left */}
+        {item.renk && (
+          <div 
+            className="absolute top-3 left-3 h-3.5 w-3.5 rounded-full ring-2 ring-white/50 shadow-sm" 
+            style={{ backgroundColor: item.renk.toLowerCase() }} 
+          />
         )}
+
+        {/* Delete / X button top-right */}
+        <button
+          className="absolute top-2.5 right-2.5 h-7 w-7 rounded-full flex items-center justify-center bg-black/40 text-white hover:bg-black/60 transition-colors z-10 backdrop-blur-md"
+          onClick={(e) => { e.stopPropagation(); onDelete(item._id); }}
+          aria-label="Kıyafeti sil"
+        >
+          <Trash2 className="h-4 w-4" /> {/* Or X icon, Trash2 is fine */}
+        </button>
       </div>
-      <div className="p-3 space-y-1">
-        <p className="text-sm font-medium leading-none">{item.kategori}</p>
-        <div className="flex items-center gap-1.5">
-          <span className="h-3 w-3 rounded-full ring-1 ring-white/20 flex-shrink-0" style={{ backgroundColor: item.renk.toLowerCase() }} />
-          <p className="text-[12px] text-muted truncate capitalize">{item.renk}</p>
+
+      {/* Info / Footer */}
+      <div className="p-3.5 flex flex-col justify-center">
+        <p className="text-[14px] font-bold text-text leading-tight mb-1">{item.ad || "Kıyafet"}</p>
+        <div>
+          <span
+            className="inline-block text-[11px] font-semibold px-2 py-0.5 rounded-md"
+            style={{ background: catBg, color: catText }}
+          >
+            {item.kategori}
+          </span>
         </div>
-        {item.marka && <p className="text-[11px] text-muted truncate">{item.marka}</p>}
       </div>
     </article>
   );
