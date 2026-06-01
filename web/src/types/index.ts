@@ -85,13 +85,12 @@ export type ItemSeason = Season;
 
 export type StyleTag =
   | "Günlük"
-  | "Spor"
-  | "Şık"
   | "Klasik"
-  | "Bohem"
-  | "Minimalist"
-  | "Vintage"
-  | "Sokak Stili";
+  | "Spor"
+  | "Sokak"
+  | "Minimal"
+  | "Şık"
+  | "Resmi";
 export type ItemStyle = StyleTag;
 
 export interface AnalysisResult {
@@ -105,6 +104,7 @@ export interface AnalysisResult {
 // ── Item ─────────────────────────────────────────────────────────────────────
 export interface Item {
   _id: string;
+  ad?: string;
   kategori: ItemCategory;
   renk: string;
   mevsim: Season[];
@@ -151,6 +151,7 @@ export interface WeatherData {
   sicaklik: number;
   hissedilen: number;
   nem: number;
+  ruzgar?: number;
   durum: string;
   konum?: string;
 }

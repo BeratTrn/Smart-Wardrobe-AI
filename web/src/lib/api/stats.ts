@@ -4,6 +4,7 @@ import type { Item } from "@/types";
 export interface StatsOzet {
   toplamKiyafet: number;
   toplamKombin: number;
+  toplamFavori: number;
   enCokRenk: string;
   enCokKategori: string;
 }
