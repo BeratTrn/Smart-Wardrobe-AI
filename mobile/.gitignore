@@ -61,3 +61,5 @@ macos/Runner/GoogleService-Info.plist
 
 # web
 web/firebase-messaging-sw.js
+
+devtools_options.yaml
