@@ -1,7 +1,6 @@
 "use client";
 
-export const dynamic = 'force-dynamic';
-
+import { Suspense } from "react";
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -15,7 +14,7 @@ import { OtpInput } from "@/components/ui/OtpInput";
 
 const RESEND_COOLDOWN = 60;
 
-export default function VerifyEmailPage() {
+function VerifyEmailContent() {
   const searchParams = useSearchParams();
   const email = searchParams.get("email") ?? "";
   const [cooldown, setCooldown] = useState(RESEND_COOLDOWN);
@@ -157,5 +156,13 @@ export default function VerifyEmailPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense fallback={<div className="rounded-[28px] p-8" style={{ background: "#111110", border: "1px solid #1E1E18" }} />}>
+      <VerifyEmailContent />
+    </Suspense>
   );
 }
