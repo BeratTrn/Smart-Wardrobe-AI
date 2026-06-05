@@ -22,11 +22,19 @@ CLASS_NAMES = ["aksesuar", "alt_giyim", "ayakkabi", "dis_giyim", "elbise", "ust_
 model = None
 
 # ── STARTUP / SHUTDOWN (lifespan) ────────────────────────────
+# ── KERAS COMPAT: accept quantization_config from newer Keras versions ────────
+class CompatDense(tf.keras.layers.Dense):
+    def __init__(self, *args, quantization_config=None, **kwargs):
+        super().__init__(*args, **kwargs)
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global model
     try:
-        model = tf.keras.models.load_model(MODEL_PATH)
+        model = tf.keras.models.load_model(
+            MODEL_PATH,
+            custom_objects={"Dense": CompatDense},
+        )
         print(f"[OK] Model yuklendi: {MODEL_PATH}")
     except Exception as e:
         print(f"[HATA] Model yuklenemedi: {e}")
