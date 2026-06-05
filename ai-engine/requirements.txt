@@ -1,7 +1,8 @@
 fastapi
 uvicorn[standard]
-tensorflow
-opencv-python
+tensorflow-cpu
+opencv-python-headless
 scikit-learn
 python-multipart
 numpy
+Pillow
