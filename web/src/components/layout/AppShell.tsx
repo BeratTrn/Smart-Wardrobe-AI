@@ -6,19 +6,19 @@ import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const { mobileSidebarOpen, closeMobileSidebar } = useUIStore();
+  const { closeMobileSidebar, activeModal, closeModal } = useUIStore();
 
+  // Close sidebar on route change
   useEffect(() => { closeMobileSidebar(); }, []); // eslint-disable-line
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
-      {mobileSidebarOpen && (
-        <div className="fixed inset-0 z-20 bg-black/40 backdrop-blur-sm lg:hidden" onClick={closeMobileSidebar} />
-      )}
+    <div className="flex h-screen overflow-hidden" style={{ background: "#0A0A0A" }}>
       <Sidebar />
-      <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="flex flex-1 flex-col overflow-hidden" style={{ background: "#0F0F0F" }}>
         <Topbar />
-        <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">{children}</main>
+        <main className="flex-1 overflow-y-auto scrollbar-thin p-4 md:p-6 lg:p-8">
+          {children}
+        </main>
       </div>
     </div>
   );

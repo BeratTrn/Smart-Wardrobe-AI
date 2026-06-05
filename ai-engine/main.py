@@ -107,8 +107,8 @@ def get_dominant_color(image_bytes: bytes, category_name: str, k: int = 4) -> st
     S = pixels_hsv[:, 1]   # saturation [0, 255]
     V = pixels_hsv[:, 2]   # brightness [0, 255]
 
-    not_shadow     = V > 35                    # keep: not a heavy shadow / black BG
-    not_pure_white = ~((V > 245) & (S < 20))  # keep: not a near-perfect white (studio BG)
+    not_shadow     = V > 15                    # keep: not a heavy shadow / black BG
+    not_pure_white = ~((V > 200) & (S < 25))  # keep: not a near-perfect white (studio BG)
                                                # white GARMENTS have texture → V ≤ 245
     valid_mask = not_shadow & not_pure_white
     if valid_mask.sum() < k:
@@ -152,7 +152,7 @@ def get_dominant_color(image_bytes: bytes, category_name: str, k: int = 4) -> st
         best = int(np.argmax(scored))
     else:
         # White shirt, beige, grey → return the brightest neutral cluster
-        best = int(np.argmax(brightnesses))
+        best = int(np.argmax(counts))
 
     rgb = np.clip(centers[best], 0, 255).astype(int)
     return "#{:02X}{:02X}{:02X}".format(*rgb)
@@ -169,12 +169,12 @@ def predict_category(image_bytes: bytes) -> tuple[str, str]:
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     img = cv2.resize(img, IMG_SIZE)
 
-    # CRITICAL: Use MobileNetV2's own preprocess_input (scales to [-1, 1]).
+    # CRITICAL: Use EfficientNet's own preprocess_input (scales to [-1, 1]).
     # Training in Colab used preprocess_input → inference MUST use the same
     # transform. Dividing by 255 alone (→ [0,1]) causes systematic misclassification.
     img_array = tf.keras.utils.img_to_array(img)
     img_array = np.expand_dims(img_array, axis=0)                          # (1,224,224,3)
-    img_array = tf.keras.applications.mobilenet_v2.preprocess_input(img_array)
+    img_array = tf.keras.applications.efficientnet.preprocess_input(img_array)
 
     predictions = model.predict(img_array, verbose=0)
     idx         = int(np.argmax(predictions[0]))

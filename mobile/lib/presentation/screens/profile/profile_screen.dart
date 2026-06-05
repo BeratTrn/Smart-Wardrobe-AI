@@ -342,17 +342,32 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  /// Seçilen avatarı kaydeder ve API'ye gönderir.
+  /// Seçilen avatarı Cloudinary'e yükler ve API'ye kaydeder.
   Future<void> _handleAvatarSelected(String assetPath) async {
     setState(() {
-      _profilePhoto = assetPath;
       _photoUploading = true;
     });
 
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('pref_profilePhoto', assetPath);
-      await ApiService.instance.updateProfilePhotoAvatar(assetPath);
+      
+      // Asset dosyasını byte array olarak oku
+      final byteData = await rootBundle.load(assetPath);
+      final bytes = byteData.buffer.asUint8List();
+      final filename = assetPath.split('/').last;
+
+      // Fotoğrafı Cloudinary'e yükle (ApiService içindeki uploadProfilePhoto)
+      final url = await ApiService.instance.uploadProfilePhoto(
+        imageBytes: bytes,
+        filename: filename,
+      );
+
+      if (url.isEmpty) throw Exception('URL boş döndü.');
+
+      await prefs.setString('pref_profilePhoto', url);
+
+      if (!mounted) return;
+      setState(() => _profilePhoto = url);
     } on ApiException catch (e) {
       if (!mounted) return;
       _showSnackBar(e.message, isError: true);

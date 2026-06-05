@@ -28,7 +28,11 @@ export function useAddItem(onSuccess?: () => void) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (payload: AddItemPayload) => itemsApi.addItem(payload),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: itemKeys.all }); onSuccess?.(); },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: itemKeys.all });
+      qc.invalidateQueries({ queryKey: ["stats"] });
+      onSuccess?.();
+    },
   });
 }
 
@@ -44,6 +48,10 @@ export function useDeleteItem(onSuccess?: () => void) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => itemsApi.deleteItem(id),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: itemKeys.all }); onSuccess?.(); },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: itemKeys.all });
+      qc.invalidateQueries({ queryKey: ["stats"] });
+      onSuccess?.();
+    },
   });
 }

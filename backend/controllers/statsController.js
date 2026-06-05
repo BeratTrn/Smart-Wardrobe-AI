@@ -1,5 +1,6 @@
 const Item = require('../models/Item');
 const Outfit = require('../models/Outfit');
+const SavedOutfit = require('../models/SavedOutfit');
 
 // @route  GET /api/stats/wardrobe
 // @desc   Gardırop istatistiklerini getir (grafik verisi)
@@ -16,6 +17,7 @@ const getWardrobeStats = async (req, res) => {
             mevsimDagilimi,
             stilDagilimi,
             toplamKombin,
+            toplamFavori,
             sonEklenenler
         ] = await Promise.all([
 
@@ -52,13 +54,16 @@ const getWardrobeStats = async (req, res) => {
             ]),
 
             // Toplam kombin sayısı
-            Outfit.countDocuments({ kullanici: userId }),
+            SavedOutfit.countDocuments({ kullanici: userId }),
+
+            // Toplam favori kıyafet sayısı
+            Item.countDocuments({ kullanici: userId, favori: true }),
 
             // Son 5 eklenen kıyafet
             Item.find({ kullanici: userId })
                 .sort({ createdAt: -1 })
                 .limit(5)
-                .select('kategori renk mevsim resimUrl createdAt')
+                .select('ad kategori renk mevsim resimUrl createdAt')
         ]);
 
         // En çok kullanılan renk
@@ -71,6 +76,7 @@ const getWardrobeStats = async (req, res) => {
                 ozet: {
                     toplamKiyafet,
                     toplamKombin,
+                    toplamFavori,
                     enCokRenk,
                     enCokKategori
                 },

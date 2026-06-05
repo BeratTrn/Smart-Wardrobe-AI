@@ -1,166 +1,162 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
-import { Trash2, MapPin, Calendar, Thermometer, Info } from "lucide-react";
+import { Calendar, Info, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import type { TravelSuitcase } from "@/types";
+
+const S  = "#111110";
+const C  = "#161614";
+const B  = "1px solid #1E1E18";
+const IA = "rgba(201,168,76,0.12)";
+const GA = "1px solid rgba(201,168,76,0.25)";
 
 interface SuitcaseCardProps {
   suitcase: TravelSuitcase;
   onDelete?: (id: string) => void;
   isDeleting?: boolean;
-  /** When true renders as the freshly-generated result (gold accent, expanded) */
   isFresh?: boolean;
 }
 
 function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
+  const date = new Date(iso);
+  const day = date.getDate();
+  const months = ["Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara"];
+  return `${day} ${months[date.getMonth()]}`;
 }
 
-function WeatherIcon({ icon, durum }: { icon: string; durum: string }) {
-  if (!icon) return null;
-  return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={`https://openweathermap.org/img/wn/${icon}@2x.png`}
-      alt={durum}
-      width={40}
-      height={40}
-      className="drop-shadow-sm"
-    />
-  );
-}
-
-export function SuitcaseCard({
-  suitcase,
-  onDelete,
-  isDeleting,
-  isFresh = false,
-}: SuitcaseCardProps) {
+export function SuitcaseCard({ suitcase, onDelete, isDeleting, isFresh = false }: SuitcaseCardProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
   const {
-    _id,
-    sehir,
-    baslangicTarihi,
-    bitisTarihi,
-    gunSayisi,
-    havaDurumuOzeti,
-    havaSicakligi,
-    havaIkonu,
-    tahminiHava,
-    onerilenkiyafetler,
-    aiAciklamasi,
-    aiIpucu,
-    createdAt,
+    _id, sehir, baslangicTarihi, bitisTarihi, gunSayisi,
+    havaDurumuOzeti, havaSicakligi, tahminiHava,
+    onerilenkiyafetler, aiAciklamasi, aiIpucu
   } = suitcase;
 
   return (
     <article
       className={cn(
-        "glass rounded-2xl overflow-hidden transition-all duration-300",
-        isFresh && "ring-1 ring-gold/50"
+        "rounded-[20px] overflow-hidden transition-all duration-300",
+        isFresh && "ring-1 ring-gold/40"
       )}
+      style={{ background: S, border: B }}
     >
-      {/* Gold accent bar */}
-      {isFresh && <div className="h-0.5 w-full bg-gold-gradient" />}
+      {/* Gold accent bar for fresh */}
+      {isFresh && (
+        <div
+          className="h-0.5 w-full"
+          style={{ background: "linear-gradient(90deg, #C9A84C, #E8C97A, #C9A84C)" }}
+        />
+      )}
 
       <div className="p-5 space-y-4">
-        {/* Header: city + weather */}
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-1.5 mb-0.5">
-              <MapPin className="h-3.5 w-3.5 text-gold flex-shrink-0" />
-              <h3 className="font-semibold text-base leading-tight truncate">{sehir}</h3>
-            </div>
-            <div className="flex items-center gap-2 text-[12px] text-muted">
-              <Calendar className="h-3 w-3 flex-shrink-0" />
-              <span>
-                {formatDate(baslangicTarihi)} → {formatDate(bitisTarihi)}
-              </span>
-              <span className="px-1.5 py-0.5 rounded-full bg-gold/10 text-gold text-[10px] font-medium">
-                {gunSayisi}d
-              </span>
+        {/* Top Header: Title, Weather, Delete */}
+        <div className="flex justify-between items-start gap-2">
+          <div className="space-y-1">
+            {isFresh && (
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold text-gold" style={{ background: IA, border: GA }}>
+                <Sparkles className="h-2.5 w-2.5" /> Yeni
+              </div>
+            )}
+            <h3 className="text-xl font-black text-text uppercase tracking-wider leading-tight">
+              {sehir}
+            </h3>
+            <div className="flex flex-col gap-1.5 mt-2">
+              <div className="flex items-center gap-2">
+                <Calendar className="h-3.5 w-3.5 flex-shrink-0" style={{ color: "var(--color-muted)" }} />
+                <span className="text-sm font-medium" style={{ color: "var(--color-muted)" }}>
+                  {formatDate(baslangicTarihi)} → {formatDate(bitisTarihi)}
+                </span>
+              </div>
+              <div>
+                <span
+                  className="inline-block text-[11px] font-bold px-2 py-0.5 rounded-md"
+                  style={{ background: "transparent", border: GA, color: "var(--color-gold)" }}
+                >
+                  {gunSayisi} gün
+                </span>
+              </div>
             </div>
           </div>
 
-          {/* Weather badge */}
-          <div className="flex-shrink-0 flex flex-col items-end gap-0.5">
-            <div className="flex items-center gap-1">
-              {havaIkonu && <WeatherIcon icon={havaIkonu} durum={havaDurumuOzeti} />}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {/* Weather pill */}
+            <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl" style={{ background: C, border: B }}>
               {havaSicakligi !== null && (
-                <div className="flex items-center gap-0.5">
-                  <Thermometer className="h-3.5 w-3.5 text-gold" />
-                  <span className="text-sm font-semibold">{havaSicakligi}°C</span>
-                </div>
+                <span className="text-sm font-bold text-text">{havaSicakligi}°C</span>
               )}
+              <span className="text-[12px] capitalize" style={{ color: "var(--color-muted)" }}>
+                {havaDurumuOzeti}
+                {tahminiHava && <span className="opacity-60 ml-1">(tahmini)</span>}
+              </span>
             </div>
-            <span className="text-[11px] text-muted capitalize">{havaDurumuOzeti}</span>
-            {tahminiHava && (
-              <span className="text-[10px] text-muted/60 italic">estimated</span>
+
+            {/* Trash Button */}
+            {onDelete && (
+              <button
+                onClick={() => onDelete(_id)}
+                disabled={isDeleting}
+                className="flex-shrink-0 h-10 w-10 rounded-xl flex items-center justify-center transition-colors"
+                style={{ background: "rgba(248,113,113,0.1)", border: "1px solid rgba(248,113,113,0.2)" }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(248,113,113,0.9)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 6h18"></path>
+                  <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                  <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                </svg>
+              </button>
             )}
           </div>
         </div>
 
-        {/* AI description */}
+        {/* Item thumbnails */}
+        {onerilenkiyafetler.length > 0 && (
+          <div className="flex gap-2.5 flex-wrap pt-2">
+            {onerilenkiyafetler.map((item) => (
+              <div
+                key={item._id}
+                className="relative h-20 w-20 rounded-[14px] overflow-hidden flex-shrink-0 bg-[#F4F4F4]"
+                title={`${item.kategori} · ${item.renk}`}
+              >
+                <Image src={item.resimUrl} alt={item.kategori} fill className="object-cover" sizes="80px" />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* AI Description */}
         {aiAciklamasi && (
-          <p className="text-[13px] text-muted leading-relaxed line-clamp-3">
+          <p
+            onClick={() => setIsExpanded(true)}
+            className={cn("text-[13px] leading-relaxed italic text-text-sub cursor-pointer pt-1", !isExpanded && "line-clamp-3")}
+          >
             {aiAciklamasi}
           </p>
         )}
 
-        {/* AI tip */}
-        {aiIpucu && (
-          <div className="rounded-xl bg-gold/5 border border-gold/15 px-4 py-3 flex gap-2">
-            <Info className="h-3.5 w-3.5 text-gold flex-shrink-0 mt-0.5" />
-            <p className="text-[12px] text-gold-light leading-relaxed">{aiIpucu}</p>
-          </div>
-        )}
-
-        {/* Item thumbnails */}
-        {onerilenkiyafetler.length > 0 && (
-          <div>
-            <p className="text-[11px] text-muted uppercase tracking-wide mb-2">
-              {onerilenkiyafetler.length} items packed
+        {/* AI Tip */}
+        {(isExpanded || !aiAciklamasi) && aiIpucu && (
+          <div
+            className="rounded-xl px-4 py-3.5 flex items-start gap-2.5 mt-2"
+            style={{ background: "transparent", border: "1px solid rgba(201,168,76,0.3)" }}
+          >
+            <Info className="h-4 w-4 flex-shrink-0 mt-0.5" style={{ color: "var(--color-gold)" }} />
+            <p className="text-[13px] leading-relaxed italic" style={{ color: "var(--color-gold)" }}>
+              {aiIpucu}
             </p>
-            <div className="flex gap-2 flex-wrap">
-              {onerilenkiyafetler.map((item) => (
-                <div
-                  key={item._id}
-                  className="relative h-12 w-12 rounded-lg overflow-hidden bg-white/5 ring-1 ring-white/10 flex-shrink-0"
-                  title={`${item.kategori} · ${item.renk}`}
-                >
-                  <Image
-                    src={item.resimUrl}
-                    alt={item.kategori}
-                    fill
-                    className="object-cover"
-                    sizes="48px"
-                  />
-                </div>
-              ))}
-            </div>
           </div>
         )}
 
-        {/* Footer: created + delete */}
-        <div className="flex items-center justify-between pt-1 border-t border-white/5">
-          <span className="text-[11px] text-muted">
-            Packed {formatDate(createdAt)}
-          </span>
-          {onDelete && (
-            <button
-              onClick={() => onDelete(_id)}
-              disabled={isDeleting}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-[12px] text-muted hover:border-danger/40 hover:text-danger transition-colors disabled:opacity-50"
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-              Delete
-            </button>
-          )}
-        </div>
+        {/* Expand / Collapse Toggle */}
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="text-[11px] font-semibold flex items-center gap-1 mt-1 hover:opacity-80 transition"
+          style={{ color: "var(--color-gold)" }}
+        >
+          {isExpanded ? "Daralt ^" : "Devamını Oku ∨"}
+        </button>
+
       </div>
     </article>
   );

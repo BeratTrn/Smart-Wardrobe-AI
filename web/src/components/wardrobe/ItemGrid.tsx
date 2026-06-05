@@ -1,56 +1,35 @@
 "use client";
 
+import { useState } from "react";
+import { Shirt } from "lucide-react";
 import { ItemCard } from "./ItemCard";
+import { ItemDetailModal } from "./ItemDetailModal";
 import type { Item } from "@/types";
 
-// ── Skeleton card ─────────────────────────────────────────────────────
-
-function ItemSkeleton({ height }: { height: string }) {
-  return (
-    <div
-      className="rounded-2xl overflow-hidden border border-border mb-4 break-inside-avoid"
-      style={{ height }}
-    >
-      <div className="skeleton w-full h-full" />
-    </div>
-  );
-}
-
-// ── Empty state ───────────────────────────────────────────────────────
+const BDR = "1px solid #1E1E18";
+const CBG = "#161614";
 
 function EmptyWardrobe({ onAdd }: { onAdd: () => void }) {
   return (
-    <div className="col-span-full flex flex-col items-center justify-center py-24 gap-4 text-center">
-      {/* Decorative icon */}
-      <div className="w-20 h-20 rounded-2xl bg-gold/10 border border-gold/20 flex items-center justify-center">
-        <svg
-          viewBox="0 0 48 48"
-          className="w-10 h-10 text-gold/60"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-        >
-          <path d="M24 6 L6 16 L6 40 L42 40 L42 16 Z" strokeLinejoin="round" />
-          <path d="M18 16 Q18 10 24 10 Q30 10 30 16" strokeLinecap="round" />
-        </svg>
+    <div className="col-span-full flex flex-col items-center justify-center py-24 gap-5 text-center">
+      <div className="w-20 h-20 rounded-2xl flex items-center justify-center" style={{ background: "rgba(201,168,76,0.10)", border: "1px solid rgba(201,168,76,0.20)" }}>
+        <Shirt className="w-10 h-10 text-gold/50" />
       </div>
-      <div className="space-y-1">
-        <p className="text-base font-semibold text-text">Your wardrobe is empty</p>
+      <div className="space-y-1.5">
+        <p className="text-base font-semibold text-text">Dolabın boş</p>
         <p className="text-sm text-muted max-w-xs">
-          Add your first item and let the AI analyse its category, colour, and style.
+          İlk kıyafetini ekle, AI kategori ve rengi otomatik tanısın.
         </p>
       </div>
       <button
         onClick={onAdd}
-        className="mt-2 h-10 px-5 rounded-xl bg-gold-gradient text-black text-sm font-semibold shadow-card hover:opacity-90 transition-opacity"
+        className="mt-1 h-10 px-6 rounded-xl bg-gold-gradient text-black text-sm font-semibold hover:opacity-90 transition-opacity"
       >
-        Add first item
+        + İlk Parçayı Ekle
       </button>
     </div>
   );
 }
-
-// ── Props ─────────────────────────────────────────────────────────────
 
 interface ItemGridProps {
   items: Item[];
@@ -61,29 +40,20 @@ interface ItemGridProps {
   pendingFavoriteId?: string | null;
 }
 
-// ── Skeleton heights for varied masonry feel ──────────────────────────
+export function ItemGrid({ items, isLoading, onFavoriteToggle, onDelete, onAdd, pendingFavoriteId }: ItemGridProps) {
+  const [selectedItem, setSelectedItem] = useState<Item | null>(null);
 
-const SKELETON_HEIGHTS = ["280px", "220px", "320px", "260px", "300px", "240px", "350px", "210px"];
-
-// ── Component ─────────────────────────────────────────────────────────
-
-export function ItemGrid({
-  items,
-  isLoading,
-  onFavoriteToggle,
-  onDelete,
-  onAdd,
-  pendingFavoriteId,
-}: ItemGridProps) {
   if (isLoading) {
     return (
-      <div
-        className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4"
-        aria-busy="true"
-        aria-label="Loading wardrobe items"
-      >
-        {SKELETON_HEIGHTS.map((h, i) => (
-          <ItemSkeleton key={i} height={h} />
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        {Array.from({ length: 10 }).map((_, i) => (
+          <div key={i} className="rounded-2xl overflow-hidden" style={{ border: BDR }}>
+            <div className="skeleton aspect-[3/4] w-full" />
+            <div className="p-3 space-y-2" style={{ background: CBG }}>
+              <div className="skeleton h-3 w-20 rounded" />
+              <div className="skeleton h-3 w-14 rounded" />
+            </div>
+          </div>
         ))}
       </div>
     );
@@ -94,21 +64,26 @@ export function ItemGrid({
   }
 
   return (
-    <div
-      className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4"
-      role="list"
-      aria-label="Wardrobe items"
-    >
-      {items.map((item) => (
-        <div key={item._id} className="break-inside-avoid mb-4" role="listitem">
+    <>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        {items.map((item) => (
           <ItemCard
+            key={item._id}
             item={item}
             onFavoriteToggle={onFavoriteToggle}
             onDelete={onDelete}
             isFavoriteLoading={pendingFavoriteId === item._id}
+            onClick={() => setSelectedItem(item)}
           />
-        </div>
-      ))}
-    </div>
+        ))}
+      </div>
+      
+      <ItemDetailModal
+        item={selectedItem}
+        onClose={() => setSelectedItem(null)}
+        onToggleFavorite={onFavoriteToggle}
+        isFavoriteLoading={selectedItem ? pendingFavoriteId === selectedItem._id : false}
+      />
+    </>
   );
 }

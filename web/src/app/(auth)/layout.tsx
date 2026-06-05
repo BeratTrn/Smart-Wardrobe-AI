@@ -2,55 +2,50 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: {
-    template: "%s | Smart Wardrobe AI",
-    default: "Smart Wardrobe AI",
+    template: "%s | StyleX",
+    default: "StyleX — Smart Wardrobe AI",
   },
 };
 
 /**
- * Auth layout — full-screen centred card with ambient gold orbs.
- * No AppShell here; the sidebar/topbar live only in (dashboard).
+ * Auth layout — full-screen split with ambient gold orbs.
+ * No AppShell — sidebar/topbar live only in (dashboard).
  */
-export default function AuthLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="relative min-h-screen flex items-center justify-center overflow-hidden bg-bg px-4 py-12">
-      {/* ── Decorative ambient orbs ───────────────────────────────── */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none select-none absolute inset-0"
-      >
+    <div
+      className="relative min-h-screen flex items-center justify-center overflow-hidden px-4 py-12"
+      style={{ background: "#0A0A0A" }}
+    >
+      {/* ── Ambient gold orbs ── */}
+      <div aria-hidden className="pointer-events-none select-none absolute inset-0">
         {/* Top-left large orb */}
         <div
-          className="absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full opacity-[0.07]"
+          className="absolute -top-60 -left-60 w-[700px] h-[700px] rounded-full"
           style={{
-            background:
-              "radial-gradient(circle, var(--color-gold) 0%, transparent 70%)",
+            background: "radial-gradient(circle, rgba(201,168,76,0.10) 0%, transparent 65%)",
           }}
         />
-        {/* Bottom-right medium orb */}
+        {/* Bottom-right orb */}
         <div
-          className="absolute -bottom-32 -right-32 w-[480px] h-[480px] rounded-full opacity-[0.05]"
+          className="absolute -bottom-40 -right-40 w-[550px] h-[550px] rounded-full"
           style={{
-            background:
-              "radial-gradient(circle, var(--color-gold-light) 0%, transparent 70%)",
+            background: "radial-gradient(circle, rgba(201,168,76,0.07) 0%, transparent 65%)",
           }}
         />
         {/* Centre faint glow */}
         <div
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[400px] rounded-full opacity-[0.03]"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] rounded-full"
           style={{
-            background:
-              "radial-gradient(ellipse, var(--color-gold) 0%, transparent 65%)",
+            background: "radial-gradient(ellipse, rgba(201,168,76,0.04) 0%, transparent 65%)",
           }}
         />
       </div>
 
-      {/* ── Card container ───────────────────────────────────────── */}
-      <main className="relative z-10 w-full max-w-md">{children}</main>
+      {/* ── Card container ── */}
+      <main className="relative z-10 w-full max-w-md animate-slide-up">
+        {children}
+      </main>
     </div>
   );
 }

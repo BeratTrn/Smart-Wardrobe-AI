@@ -19,7 +19,7 @@ services:
     env_file:
       - ./backend/.env
     environment:
-      - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8080
+      - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001,http://localhost:8080
     networks:
       - wardrobe-network
     healthcheck:
@@ -28,6 +28,31 @@ services:
       timeout: 5s
       retries: 3
       start_period: 30s
+
+  # ── Web (Next.js 15) ─────────────────────────
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=http://backend:3000/api
+    container_name: smart-wardrobe-web
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://backend:3000/api
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - wardrobe-network
+    healthcheck:
+      test: [ "CMD", "wget", "-qO-", "http://localhost:3001" ]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
 
   # ── MongoDB ──────────────────────────────────
   mongodb:

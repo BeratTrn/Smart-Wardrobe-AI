@@ -3,60 +3,70 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, Sun, Plane, CalendarDays, Building2, Bell, Sparkles } from "lucide-react";
 import { preferencesSchema, type PreferencesFormData } from "@/lib/validations/settings";
 import { useUpdatePreferences } from "@/lib/hooks/useUsers";
 import { useThemeStore } from "@/lib/store/themeStore";
-import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
-import { cn } from "@/lib/utils/cn";
 import { getErrorMessage } from "@/lib/utils/errors";
 import type { UserProfile } from "@/types";
 
-interface PreferencesTabProps {
-  profile: UserProfile;
-}
+const SBG = "#161614";
+const BDR = "1px solid #1E1E18";
+const GBD = "1px solid var(--color-gold)";
+const IBG = "rgba(201,168,76,0.12)";
+const ABD = "1px solid rgba(201,168,76,0.25)";
+
+interface PreferencesTabProps { profile: UserProfile; }
 
 const LANGUAGES = [
-  { value: "tr", label: "Türkçe" },
-  { value: "en", label: "English" },
-  { value: "de", label: "Deutsch" },
-  { value: "fr", label: "Français" },
+  { value: "tr", label: "Türkçe", flag: "🇹🇷" },
+  { value: "en", label: "English", flag: "🇬🇧" },
+  { value: "de", label: "Deutsch", flag: "🇩🇪" },
+  { value: "fr", label: "Français", flag: "🇫🇷" },
 ] as const;
 
-interface ToggleProps {
-  label: string;
-  description: string;
-  checked: boolean;
-  onChange: (v: boolean) => void;
+const NOTIF_ITEMS = [
+  {
+    key: "dailyWeatherAI" as const,
+    Icon: Sun,
+    label: "Hava Durumu & Kombin",
+    desc: "Her sabah 08:00'de dolabına göre AI kombin önerisi",
+    badge: "AI",
+  },
+  {
+    key: "travelReminders" as const,
+    Icon: Plane,
+    label: "Seyahat Hatırlatıcıları",
+    desc: "Yarınki seyahatin için bavulunu kontrol et",
+    badge: null,
+  },
+  {
+    key: "weeklyStyle" as const,
+    Icon: CalendarDays,
+    label: "Haftalık Stil Özeti",
+    desc: "Her Pazar 10:00'da haftanı planla",
+    badge: null,
+  },
+];
+
+function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <button
+      type="button"
+      onClick={() => onChange(!checked)}
+      className="relative h-6 w-11 rounded-full transition-colors flex-shrink-0"
+      style={{ background: checked ? "var(--color-gold)" : "#2A2A22" }}
+    >
+      <span
+        className="absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform"
+        style={{ transform: checked ? "translateX(20px)" : "translateX(2px)" }}
+      />
+    </button>
+  );
 }
 
-function Toggle({ label, description, checked, onChange }: ToggleProps) {
-  return (
-    <div className="flex items-center justify-between gap-4 py-3 border-b border-white/5 last:border-0">
-      <div>
-        <p className="text-sm font-medium">{label}</p>
-        <p className="text-[12px] text-muted">{description}</p>
-      </div>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={checked}
-        onClick={() => onChange(!checked)}
-        className={cn(
-          "relative h-6 w-11 rounded-full transition-colors flex-shrink-0",
-          checked ? "bg-gold" : "bg-white/10"
-        )}
-      >
-        <span
-          className={cn(
-            "absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform",
-            checked ? "translate-x-5" : "translate-x-0.5"
-          )}
-        />
-      </button>
-    </div>
-  );
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted mb-3">{children}</p>;
 }
 
 export function PreferencesTab({ profile }: PreferencesTabProps) {
@@ -78,102 +88,130 @@ export function PreferencesTab({ profile }: PreferencesTabProps) {
     });
 
   const currentTheme = watch("theme");
-  const currentLang = watch("language");
+  const currentLang  = watch("language");
 
   const onSubmit = (data: PreferencesFormData) => {
     setSaved(false);
-    // Sync theme store immediately for live preview
     setTheme(data.theme);
     updatePrefs.mutate({
-      defaultCity: data.defaultCity,
-      theme: data.theme,
-      language: data.language,
-      dailyWeatherAI: data.dailyWeatherAI,
-      travelReminders: data.travelReminders,
-      weeklyStyle: data.weeklyStyle,
+      defaultCity: data.defaultCity, theme: data.theme, language: data.language,
+      dailyWeatherAI: data.dailyWeatherAI, travelReminders: data.travelReminders, weeklyStyle: data.weeklyStyle,
     });
   };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-7">
-      {/* City + Theme + Language */}
-      <div className="space-y-4">
-        <h3 className="text-sm font-semibold">App Preferences</h3>
 
-        <Input
-          label="Default City (for weather)"
-          placeholder="Istanbul"
-          error={errors.defaultCity?.message}
-          {...register("defaultCity")}
-        />
-
-        {/* Theme toggle */}
-        <div className="space-y-1.5">
-          <label className="text-[12px] text-muted block">Theme</label>
-          <div className="flex gap-2">
-            {(["dark", "light"] as const).map((t) => (
-              <button
-                key={t}
-                type="button"
-                onClick={() => setValue("theme", t)}
-                className={cn(
-                  "flex-1 rounded-xl border py-2.5 text-sm font-medium transition-all capitalize",
-                  currentTheme === t
-                    ? "border-gold bg-gold/10 text-gold"
-                    : "border-border text-muted hover:border-gold/40"
-                )}
-              >
-                {t === "dark" ? "🌙 Dark" : "☀️ Light"}
-              </button>
-            ))}
-          </div>
+      {/* Notification Engine banner */}
+      <div className="rounded-xl p-4 flex items-start gap-4" style={{ background: IBG, border: ABD }}>
+        <div className="h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "rgba(201,168,76,0.2)" }}>
+          <Bell className="h-5 w-5 text-gold" />
         </div>
+        <div>
+          <p className="text-sm font-bold text-text">AI Bildirim Motoru</p>
+          <p className="text-[12px] text-muted leading-relaxed mt-0.5">
+            Gerçek dolabın ve hava durumuna göre kişiselleştirilmiş öneriler alırsın.
+          </p>
+        </div>
+      </div>
 
-        {/* Language */}
-        <div className="space-y-1.5">
-          <label className="text-[12px] text-muted block">Language</label>
-          <div className="grid grid-cols-2 gap-2">
-            {LANGUAGES.map((lang) => (
+      {/* Bildirim türleri */}
+      <div>
+        <SectionLabel>BİLDİRİM TÜRLERİ</SectionLabel>
+        <div className="space-y-2">
+          {NOTIF_ITEMS.map(({ key, Icon, label, desc, badge }) => (
+            <div key={key} className="flex items-center gap-4 rounded-xl p-4" style={{ background: SBG, border: BDR }}>
+              <div className="h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: IBG }}>
+                <Icon className="h-4 w-4 text-gold" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-semibold text-text">{label}</p>
+                  {badge && (
+                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded text-black" style={{ background: "var(--color-gold)" }}>
+                      {badge}
+                    </span>
+                  )}
+                </div>
+                <p className="text-[11px] text-muted leading-relaxed mt-0.5">{desc}</p>
+              </div>
+              <Toggle checked={watch(key)} onChange={(v) => setValue(key, v)} />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Hava durumu şehri */}
+      <div>
+        <SectionLabel>HAVA DURUMU ŞEHRİ</SectionLabel>
+        <div className="flex items-center gap-3 rounded-xl p-3 pr-3" style={{ background: SBG, border: BDR }}>
+          <Building2 className="h-4 w-4 text-muted flex-shrink-0" />
+          <input
+            placeholder="Istanbul"
+            {...register("defaultCity")}
+            className="flex-1 bg-transparent text-sm text-text outline-none placeholder:text-muted"
+          />
+          <button
+            type="submit"
+            className="px-4 py-1.5 rounded-lg bg-gold-gradient text-black text-xs font-bold hover:opacity-90 transition-opacity flex-shrink-0"
+          >
+            Kaydet
+          </button>
+        </div>
+        {errors.defaultCity && (
+          <p className="text-[11px] text-danger mt-1">{errors.defaultCity.message}</p>
+        )}
+        <p className="text-[11px] text-muted mt-2">Sabah hava durumu bildirimleri bu şehre göre gönderilir.</p>
+      </div>
+
+      {/* Tema */}
+      <div>
+        <SectionLabel>GÖRÜNÜM</SectionLabel>
+        <div className="flex gap-2">
+          {(["dark","light"] as const).map((t) => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => setValue("theme", t)}
+              className="flex-1 rounded-xl py-2.5 text-sm font-medium transition-all"
+              style={
+                currentTheme === t
+                  ? { background: IBG, border: GBD, color: "var(--color-gold)" }
+                  : { background: SBG, border: BDR, color: "var(--color-muted)" }
+              }
+            >
+              {t === "dark" ? "🌙 Karanlık" : "☀️ Açık"}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Dil */}
+      <div>
+        <SectionLabel>DİL</SectionLabel>
+        <div className="space-y-2">
+          {LANGUAGES.map((lang) => {
+            const active = currentLang === lang.value;
+            return (
               <button
                 key={lang.value}
                 type="button"
                 onClick={() => setValue("language", lang.value)}
-                className={cn(
-                  "rounded-xl border py-2.5 text-sm font-medium transition-all",
-                  currentLang === lang.value
-                    ? "border-gold bg-gold/10 text-gold"
-                    : "border-border text-muted hover:border-gold/40"
-                )}
+                className="w-full flex items-center gap-3 rounded-xl px-4 py-3 text-left transition-all"
+                style={{ background: SBG, border: active ? GBD : BDR }}
               >
-                {lang.label}
+                <span className="text-lg flex-shrink-0">{lang.flag}</span>
+                <span className="text-sm font-medium" style={{ color: active ? "var(--color-gold)" : "var(--color-text)" }}>
+                  {lang.label}
+                </span>
+                {active && (
+                  <span className="ml-auto text-gold">
+                    <Sparkles className="h-3.5 w-3.5" />
+                  </span>
+                )}
               </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Notification toggles */}
-      <div>
-        <h3 className="text-sm font-semibold mb-3">Notifications</h3>
-        <div className="glass rounded-xl px-4 divide-y divide-white/5">
-          <Toggle
-            label="Daily Weather + AI Outfit"
-            description="Morning briefing with weather and a suggested outfit"
-            checked={watch("dailyWeatherAI")}
-            onChange={(v) => setValue("dailyWeatherAI", v)}
-          />
-          <Toggle
-            label="Travel Reminders"
-            description="Reminders before your upcoming trips"
-            checked={watch("travelReminders")}
-            onChange={(v) => setValue("travelReminders", v)}
-          />
-          <Toggle
-            label="Weekly Style Digest"
-            description="A weekly summary of your wardrobe trends"
-            checked={watch("weeklyStyle")}
-            onChange={(v) => setValue("weeklyStyle", v)}
-          />
+            );
+          })}
         </div>
       </div>
 
@@ -182,13 +220,16 @@ export function PreferencesTab({ profile }: PreferencesTabProps) {
       )}
 
       <div className="flex items-center gap-3">
-        <Button type="submit" loading={updatePrefs.isPending}>
-          Save Preferences
-        </Button>
+        <button
+          type="submit"
+          disabled={updatePrefs.isPending}
+          className="px-6 py-2.5 rounded-xl bg-gold-gradient text-black font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-40"
+        >
+          {updatePrefs.isPending ? "Kaydediliyor…" : "Tercihleri Kaydet"}
+        </button>
         {saved && !updatePrefs.isPending && (
           <div className="flex items-center gap-1.5 text-success text-sm">
-            <CheckCircle className="h-4 w-4" />
-            Saved
+            <CheckCircle className="h-4 w-4" /> Kaydedildi
           </div>
         )}
       </div>

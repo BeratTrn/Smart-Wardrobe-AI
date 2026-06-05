@@ -1,26 +1,34 @@
 "use client";
 
 import { useState } from "react";
+import { Sparkles, Bookmark } from "lucide-react";
 import { OutfitGeneratorPanel } from "@/components/outfits/OutfitGeneratorPanel";
 import { OutfitResultCard }     from "@/components/outfits/OutfitResultCard";
-import { OutfitHistoryGrid }    from "@/components/outfits/OutfitHistoryGrid";
-import { useGenerateOutfit, useOutfits, useRateOutfit, useSaveOutfit } from "@/lib/hooks/useOutfits";
+import { LookbookModal }        from "@/components/outfits/LookbookModal";
+import { useGenerateOutfit, useRateOutfit, useSaveOutfit } from "@/lib/hooks/useOutfits";
 import { useWeather }           from "@/lib/hooks/useWeather";
-import type { OutfitGeneratePayload, OutfitRecommendation, SaveOutfitPayload } from "@/types";
+import type { OutfitGeneratePayload, OutfitRecommendation } from "@/types";
+import type { SaveToArchivePayload } from "@/lib/api/outfits";
+
+const BG  = "#111110";
+const SBG = "#161614";
+const BDR = "1px solid #1E1E18";
+const IBG = "rgba(201,168,76,0.12)";
+const ABD = "1px solid rgba(201,168,76,0.25)";
 
 export default function OutfitsPage() {
   const { weather } = useWeather();
   const generateOutfit = useGenerateOutfit();
-  const { data: outfitsData, isPending: historyLoading } = useOutfits(1, 30);
   const rateOutfit = useRateOutfit();
   const saveOutfit = useSaveOutfit();
 
-  const [freshResults, setFreshResults]     = useState<OutfitRecommendation[]>([]);
-  const [pendingFeedbackId, setPendingFeedbackId] = useState<string | null>(null);
-  const [pendingSaveId, setPendingSaveId]   = useState<string | null>(null);
+  const [freshResults,       setFreshResults]       = useState<OutfitRecommendation[]>([]);
+  const [pendingFeedbackId,  setPendingFeedbackId]  = useState<string | null>(null);
+  const [pendingSaveId,      setPendingSaveId]      = useState<string | null>(null);
+  const [lookbookOutfitId,   setLookbookOutfitId]   = useState<string | null>(null);
 
   const handleGenerate = (payload: OutfitGeneratePayload) => {
-    generateOutfit.mutate(payload, { onSuccess: (d) => setFreshResults(d.kombinler) });
+    generateOutfit.mutate(payload, { onSuccess: (d) => setFreshResults(d.kombin ? [d.kombin] : []) });
   };
 
   const handleFeedback = (id: string, begeniyor: boolean) => {
@@ -28,68 +36,90 @@ export default function OutfitsPage() {
     rateOutfit.mutate({ id, begeniyor }, { onSettled: () => setPendingFeedbackId(null) });
   };
 
-  const handleSave = (id: string) => {
-    const fresh   = freshResults.find((r) => r.id === id);
-    const historic = outfitsData?.kombinler.find((o) => o._id === id);
-    let payload: SaveOutfitPayload;
-    if (fresh) {
-      payload = { baslik: fresh.baslik, aiAciklama: fresh.aciklama,
-        kiyafetler: fresh.kiyafetler.map((k) => k._id), havaDurumu: fresh.havaDurumu, etkinlik: fresh.etkinlik };
-    } else if (historic) {
-      payload = { baslik: historic.baslik, aiAciklama: historic.aiAciklama,
-        kiyafetler: historic.kiyafetler.map((k) => k._id), havaDurumu: historic.havaDurumu, etkinlik: historic.etkinlik };
-    } else return;
-    setPendingSaveId(id);
+  const handleSave = (outfit: OutfitRecommendation) => {
+    const payload: SaveToArchivePayload = {
+      baslik: outfit.baslik,
+      aciklama: outfit.aciklama,
+      ipucu: outfit.ipucu,
+      havaDurumu: outfit.havaDurumu as unknown as Record<string, unknown>,
+      kiyafetler: outfit.kiyafetler.map((k) => k._id),
+    };
+    setPendingSaveId(outfit.id);
     saveOutfit.mutate(payload, { onSettled: () => setPendingSaveId(null) });
   };
 
-  const outfits = outfitsData?.kombinler ?? [];
-
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 animate-fade-in pb-10">
+      {/* ── Header ── */}
       <div>
-        <h1 className="text-2xl font-bold">AI Outfits</h1>
-        <p className="text-sm text-muted mt-1">Let Claude style you based on your wardrobe</p>
+        <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-muted mb-1">AI STİL</p>
+        <h1 className="text-2xl font-black text-text leading-none">AI Kombin Üretici</h1>
+        <p className="text-sm text-muted mt-1">Durum, hava ve stilini seç, AI dolabından senin için en uygun kombini seçsin.</p>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6 items-start">
-        <OutfitGeneratorPanel onGenerate={handleGenerate} isLoading={generateOutfit.isPending} weather={weather} />
+      <div className="grid lg:grid-cols-[380px_1fr] xl:grid-cols-[420px_1fr] gap-8 items-start">
+        {/* ── Left: Sticky Generator ── */}
+        <div className="sticky top-6">
+          <OutfitGeneratorPanel onGenerate={handleGenerate} isLoading={generateOutfit.isPending} weather={weather} />
+        </div>
+
+        {/* ── Right: Results ── */}
         <div className="space-y-4">
           {generateOutfit.isPending && (
-            <div className="glass rounded-2xl overflow-hidden">
-              <div className="h-0.5 w-full bg-gold-gradient animate-pulse" />
-              <div className="p-5 space-y-4">
-                <div className="skeleton h-5 w-3/4 rounded" />
+            <div className="rounded-[32px] overflow-hidden" style={{ background: SBG, border: BDR }}>
+              <div className="h-1 w-full bg-gold-gradient animate-pulse" />
+              <div className="p-6 space-y-5">
+                <div className="grid grid-cols-3 gap-2 rounded-2xl overflow-hidden">
+                  {[1,2,3].map((i) => <div key={i} className="skeleton aspect-[3/4] rounded-2xl" />)}
+                </div>
+                <div className="skeleton h-5 w-2/3 rounded" />
                 <div className="skeleton h-4 w-full rounded" />
                 <div className="skeleton h-4 w-5/6 rounded" />
-                <div className="flex gap-2">{[1,2,3].map((i) => <div key={i} className="skeleton h-14 w-14 rounded-lg" />)}</div>
               </div>
             </div>
           )}
-          {!generateOutfit.isPending && freshResults.map((r) => (
-            <OutfitResultCard key={r.id} outfit={r} isFresh showActions
-              onFeedback={handleFeedback} onSave={handleSave}
-              isFeedbackLoading={pendingFeedbackId === r.id} isSaveLoading={pendingSaveId === r.id} />
-          ))}
+
+          {!generateOutfit.isPending && freshResults.length > 0 && (
+            <div className="space-y-4 animate-slide-up">
+              <div className="flex items-center justify-between">
+                <p className="text-[18px] font-bold text-text">Önerilen kombin</p>
+                <span className="text-[13px] font-semibold text-muted">{freshResults.length} kombin</span>
+              </div>
+              
+              {freshResults.map((r) => (
+                <OutfitResultCard
+                  key={r.id} outfit={r} isFresh
+                  onFeedback={handleFeedback} onSave={handleSave} onTryOn={setLookbookOutfitId}
+                  isFeedbackLoading={pendingFeedbackId === r.id}
+                  isSaveLoading={pendingSaveId === r.id}
+                />
+              ))}
+            </div>
+          )}
+
           {!generateOutfit.isPending && freshResults.length === 0 && (
-            <div className="glass rounded-2xl p-10 text-center text-muted">
-              <p className="text-sm">Your styled outfit will appear here</p>
+            <div
+              className="rounded-[32px] p-12 flex flex-col items-center justify-center text-center gap-4 min-h-[400px]"
+              style={{ background: SBG, border: BDR }}
+            >
+              <div className="h-16 w-16 rounded-full flex items-center justify-center mb-2" style={{ background: IBG, border: ABD }}>
+                <Sparkles className="h-7 w-7 text-gold" />
+              </div>
+              <div>
+                <p className="text-[17px] font-bold text-text mb-1.5">Kombin burada belirecek</p>
+                <p className="text-sm text-muted">Soldaki panelden durum, hava ve stili seç, AI kombini hazırlasın</p>
+              </div>
             </div>
           )}
         </div>
       </div>
-
-      <div className="space-y-4">
-        <h2 className="text-lg font-semibold">Outfit History</h2>
-        {historyLoading ? (
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {[1,2,3].map((i) => <div key={i} className="glass rounded-2xl p-5 space-y-3"><div className="skeleton h-4 w-2/3 rounded" /><div className="skeleton h-3 w-full rounded" /></div>)}
-          </div>
-        ) : (
-          <OutfitHistoryGrid outfits={outfits} onFeedback={handleFeedback} onSave={handleSave}
-            pendingFeedbackId={pendingFeedbackId} pendingSaveId={pendingSaveId} />
-        )}
-      </div>
+      
+      <LookbookModal
+        outfit={freshResults.find((r) => r.id === lookbookOutfitId) || null}
+        onClose={() => setLookbookOutfitId(null)}
+        onSave={(outfit) => { handleSave(outfit); setLookbookOutfitId(null); }}
+        isSaveLoading={pendingSaveId === lookbookOutfitId}
+      />
     </div>
   );
 }

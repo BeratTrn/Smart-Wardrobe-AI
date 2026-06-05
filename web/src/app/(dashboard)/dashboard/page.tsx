@@ -1,63 +1,125 @@
 "use client";
 
+import Link from "next/link";
+import Image from "next/image";
+import { ChevronRight, Shirt } from "lucide-react";
 import { WeatherBanner }      from "@/components/dashboard/WeatherBanner";
-import { StatCard }           from "@/components/dashboard/StatCard";
-import { CategoryDonutChart } from "@/components/dashboard/CategoryDonutChart";
-import { SeasonBarChart }     from "@/components/dashboard/SeasonBarChart";
-import { StyleRadarChart }    from "@/components/dashboard/StyleRadarChart";
+import { StilProfilin }       from "@/components/dashboard/StilProfilin";
 import { RecentOutfits }      from "@/components/dashboard/RecentOutfits";
 import { useWardrobeStats }   from "@/lib/hooks/useStats";
 import { useItems }           from "@/lib/hooks/useItems";
 
+const S = "#111110";
+const C = "#161614";
+const B = "1px solid #1E1E18";
+const A = "1px solid rgba(201,168,76,0.25)";
+
+const CAT_TEXT: Record<string, string> = {
+  "Üst Giyim":     "#7EB3E0",
+  "Alt Giyim":     "#B07EE0",
+  "Elbise & Etek": "#E07EB0",
+  "Dış Giyim":     "#90C490",
+  "Ayakkabı":      "#E0B07E",
+  "Aksesuar":      "#7EE0B0",
+};
+
 function ColourSwatch({ hex }: { hex: string }) {
   if (!/^#[0-9A-Fa-f]{6}$/.test(hex)) return null;
-  return <span className="h-8 w-8 rounded-full ring-2 ring-white/20 block flex-shrink-0" style={{ backgroundColor: hex }} />;
+  return (
+    <span
+      className="h-7 w-7 rounded-full ring-2 ring-white/15 block flex-shrink-0"
+      style={{ backgroundColor: hex, boxShadow: `${hex}55 0 0 10px 0` }}
+    />
+  );
+}
+
+function SonEklenenler() {
+  const { data, isPending } = useItems({ limit: 6 } as any);
+  const items = (data?.kiyafetler ?? []) as any[];
+
+  return (
+    <div className="pt-4">
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-base font-bold text-text">Son Eklenenler</p>
+        <Link
+          href="/wardrobe"
+          className="flex items-center gap-1 text-[12px] font-semibold px-3 py-1.5 rounded-full hover:opacity-80 transition-opacity"
+          style={{ color: "var(--color-gold)", border: "1px solid rgba(201,168,76,0.3)" }}
+        >
+          Tümünü Gör <ChevronRight className="h-3.5 w-3.5" />
+        </Link>
+      </div>
+
+      {isPending ? (
+        <div className="flex gap-4 overflow-hidden">
+          {[1,2,3,4,5].map((i) => <div key={i} className="skeleton h-56 w-40 rounded-2xl flex-shrink-0" />)}
+        </div>
+      ) : items.length === 0 ? (
+        <div className="rounded-2xl p-8 text-center" style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}>
+          <Shirt className="h-8 w-8 text-muted/40 mx-auto mb-3" />
+          <p className="text-sm text-muted mb-1">Dolabın boş.</p>
+          <Link href="/wardrobe" className="text-[12px] text-gold hover:underline">Kıyafet ekle →</Link>
+        </div>
+      ) : (
+        <div className="flex gap-4 overflow-x-auto scrollbar-thin pb-4 snap-x">
+          {items.map((item: any) => (
+            <Link
+              key={item._id}
+              href="/wardrobe"
+              className="group relative flex-shrink-0 w-[140px] rounded-[20px] overflow-hidden cursor-pointer snap-start"
+              style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}
+            >
+              {/* Image container */}
+              <div className="relative aspect-square" style={{ background: "#F4F4F4" }}>
+                <Image
+                  src={item.resimUrl}
+                  alt={item.kategori}
+                  fill
+                  className="object-cover transition-transform duration-300 group-hover:scale-105"
+                  sizes="140px"
+                />
+                {/* Color Dot top-left */}
+                {item.renk && (
+                  <div className="absolute top-2 left-2 h-3 w-3 rounded-full ring-2 ring-white/50" style={{ backgroundColor: item.renk.toLowerCase() }} />
+                )}
+              </div>
+              
+              {/* Content below image */}
+              <div className="p-3">
+                <p className="text-[13px] font-bold text-text leading-tight mb-0.5 truncate">{item.ad || 'Kıyafet'}</p>
+                <p className="text-[11px]" style={{ color: CAT_TEXT[item.kategori] ?? "var(--color-gold)" }}>{item.kategori}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function DashboardPage() {
   const { data: stats, isPending: statsLoading } = useWardrobeStats();
   const { data: favData, isPending: favLoading } = useItems({ favori: true, limit: 1 });
 
-  const ozet = stats?.istatistikler?.ozet;
+  const ozet    = stats?.istatistikler?.ozet;
   const loading = statsLoading || favLoading;
 
   return (
-    <div className="space-y-6">
-      <div>
-        <p className="text-[11px] font-semibold tracking-[0.3em] text-gold uppercase mb-1">Overview</p>
-        <h1 className="text-2xl font-bold">Analytics</h1>
+    <div className="space-y-5 animate-fade-in">
+
+      {/* Weather - Keeping it for now but simplified or we let the topbar handle it. Actually mobile has it in topbar. Let's remove WeatherBanner from here if we move it to Topbar, but for now let's just remove StatCards */}
+
+      {/* AI Recommended Outfits */}
+      <RecentOutfits />
+
+      {/* Style profile */}
+      <div className="max-w-2xl mx-auto">
+        <StilProfilin data={stats?.istatistikler?.stilDagilimi ?? []} isLoading={loading} />
       </div>
 
-      <WeatherBanner />
+      {/* Recently added items */}
+      <SonEklenenler />
 
-      {/* Stat cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Total Items"  value={ozet?.toplamKiyafet ?? 0} sub="in your wardrobe" isLoading={loading} />
-        <StatCard label="Favourites"   value={favData?.toplam ?? 0}    sub="marked as fav"    isLoading={loading} />
-        <StatCard label="AI Outfits"   value={ozet?.toplamKombin ?? 0} sub="generated"        isLoading={loading} />
-        <StatCard label="Top Colour"   value={ozet?.enCokRenk ?? "—"}  isLoading={loading} gold
-          accent={ozet?.enCokRenk ? <ColourSwatch hex={ozet.enCokRenk} /> : undefined} />
-      </div>
-
-      {/* Charts row 1 */}
-      <div className="grid lg:grid-cols-5 gap-4">
-        <div className="lg:col-span-3">
-          <CategoryDonutChart data={stats?.istatistikler?.kategoriDagilimi ?? []} isLoading={loading} />
-        </div>
-        <div className="lg:col-span-2">
-          <SeasonBarChart data={stats?.istatistikler?.mevsimDagilimi ?? []} isLoading={loading} />
-        </div>
-      </div>
-
-      {/* Charts row 2 */}
-      <div className="grid lg:grid-cols-5 gap-4">
-        <div className="lg:col-span-2">
-          <StyleRadarChart data={stats?.istatistikler?.stilDagilimi ?? []} isLoading={loading} />
-        </div>
-        <div className="lg:col-span-3">
-          <RecentOutfits />
-        </div>
-      </div>
     </div>
   );
 }

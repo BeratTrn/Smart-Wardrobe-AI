@@ -77,6 +77,7 @@ const analyzeAndAddItem = async (req, res) => {
         // Bu, Flutter "review" ekranından gönderilen düzeltmeleri destekler.
         const newItem = await Item.create({
             kullanici:    req.user._id,
+            ad:           req.body.ad       || '',
             resimUrl:     resimUrl || 'placeholder_url',
             cloudinaryId,
             kategori:     req.body.kategori || aiData.kategori,
@@ -104,13 +105,15 @@ const analyzeAndAddItem = async (req, res) => {
 // @access Private
 const getItems = async (req, res) => {
     try {
-        const { kategori, mevsim, renk, stil, sayfa = 1, limit = 20 } = req.query;
+        const { kategori, mevsim, renk, stil, favori, sayfa = 1, limit = 20 } = req.query;
 
         const filtre = { kullanici: req.user._id };
         if (kategori) filtre.kategori = kategori;
         if (mevsim)   filtre.mevsim   = mevsim;
         if (renk)     filtre.renk     = new RegExp(renk, 'i');
         if (stil)     filtre.stil     = stil;
+        if (favori === 'true')  filtre.favori = true;
+        if (favori === 'false') filtre.favori = false;
 
         const skip = (parseInt(sayfa) - 1) * parseInt(limit);
 

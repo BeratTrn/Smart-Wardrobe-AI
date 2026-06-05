@@ -6,6 +6,11 @@ const itemSchema = new mongoose.Schema({
         ref: 'User',
         required: true
     },
+    ad: {
+        type: String,
+        trim: true,
+        default: ''
+    },
     resimUrl: {
         type: String,
         required: [true, 'Resim URL zorunludur']

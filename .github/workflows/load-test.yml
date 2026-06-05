@@ -1,0 +1,43 @@
+name: Yük Testi (k6)
+
+on:
+  workflow_dispatch:   # Manuel tetikleme
+  schedule:
+    - cron: '0 3 * * 1' # Her Pazartesi 03:00 UTC otomatik çalışır
+
+jobs:
+  load-test:
+    name: 🔥 k6 Yük Testi — Render Prod
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Kodu al
+        uses: actions/checkout@v4
+
+      - name: 🔧 k6 Kur
+        run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring \
+            --keyring /usr/share/keyrings/k6-archive-keyring.gpg \
+            --keyserver hkp://keyserver.ubuntu.com:80 \
+            --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" \
+            | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6 -y
+
+      - name: 🔥 Yük Testini Çalıştır
+        run: |
+          k6 run backend/load-tests/load-test.js \
+            --env BASE_URL=https://smart-wardrobe-ai-2nwd.onrender.com/api \
+            --env TEST_EMAIL=${{ secrets.LOAD_TEST_EMAIL }} \
+            --env TEST_PASSWORD=${{ secrets.LOAD_TEST_PASSWORD }} \
+            --out json=load-test-results.json
+        continue-on-error: true
+
+      - name: 📊 Sonuçları Artifact Olarak Kaydet
+        uses: actions/upload-artifact@v4
+        with:
+          name: load-test-results
+          path: load-test-results.json
+          retention-days: 30

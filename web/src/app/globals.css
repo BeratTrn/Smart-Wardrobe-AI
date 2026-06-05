@@ -1,37 +1,22 @@
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap");
 @import "tailwindcss";
 
 /* ═══════════════════════════════════════════════════════════════════════
-   SMART WARDROBE AI — Design Token System
-   Tailwind CSS v4  |  CSS-first configuration  |  No tailwind.config.ts
-
-   TOKEN NAMING → UTILITY MAPPING
-     --color-bg           → bg-bg / text-bg
-     --color-surface      → bg-surface
-     --color-card         → bg-card
-     --color-border       → border-border
-     --color-gold         → bg-gold / text-gold / border-gold
-     --color-gold-light   → text-gold-light
-     --color-gold-dim     → bg-gold-dim
-     --color-text         → text-text
-     --color-text-sub     → text-text-sub
-     --color-muted        → text-muted
-     --color-success      → text-success / bg-success
-     --color-danger       → text-danger / bg-danger
-     --color-info         → text-info / bg-info
+   STYLEX — Smart Wardrobe AI  |  Design Token System
+   Tailwind CSS v4  |  CSS-first configuration
    ═══════════════════════════════════════════════════════════════════════ */
 
-/* ── Dark Theme Design Tokens (default) ─────────────────────────────── */
 @theme {
   /* ▸ Background layers */
-  --color-bg:             #0A0A0A;
-  --color-surface:        #141414;
-  --color-card:           #1A1A17;
-  --color-border:         #272720;
+  --color-bg:             #121211;
+  --color-surface:        #181816;
+  --color-card:           #1D1D1B;
+  --color-border:         #2A2A26;
 
   /* ▸ Gold accent — brand constant */
   --color-gold:           #C9A84C;
   --color-gold-light:     #E8C97A;
-  --color-gold-dim:       #6B5820;
+  --color-gold-dim:       rgba(201,168,76,0.12);
 
   /* ▸ Text hierarchy */
   --color-text:           #F5F0E8;
@@ -43,48 +28,37 @@
   --color-danger:         #B04040;
   --color-info:           #3A6EA8;
 
-  /* ▸ Category palette (mirrors Flutter AppColors exactly) */
+  /* ▸ Category palette */
   --color-cat-tops:       #5A7A9C;
   --color-cat-bottoms:    #7A5A9C;
   --color-cat-shoes:      #9C7A5A;
   --color-cat-accessory:  #5A9C7A;
   --color-cat-onepiece:   #9C5A7A;
   --color-cat-outer:      #6A8C6A;
+
+  /* ▸ Typography */
+  --font-outfit: 'Outfit', system-ui, -apple-system, sans-serif;
 }
 
 /* ── Light Theme Token Overrides ─────────────────────────────────────── */
 [data-theme="light"] {
-  --color-bg:             #F8F6F0;
+  --color-bg:             #F5F3EE;
   --color-surface:        #FFFFFF;
   --color-card:           #FAF9F6;
   --color-border:         #E0DED7;
-
-  --color-gold:           #C9A84C;
-  --color-gold-light:     #B8942A;
-  --color-gold-dim:       #EDD9A0;
-
+  --color-gold:           #B8860B;
+  --color-gold-light:     #DAA520;
+  --color-gold-dim:       rgba(184,134,11,0.10);
   --color-text:           #1A1A1A;
-  --color-text-sub:       #757575;
-  --color-muted:          #AAAAAA;
-
-  --color-success:        #3A7A4C;
-  --color-danger:         #9A3030;
-  --color-info:           #2A5E98;
-
-  --color-cat-tops:       #4A6A8C;
-  --color-cat-bottoms:    #6A4A8C;
-  --color-cat-shoes:      #8C6A4A;
-  --color-cat-accessory:  #4A8C6A;
-  --color-cat-onepiece:   #8C4A6A;
-  --color-cat-outer:      #5A7C5A;
+  --color-text-sub:       #555555;
+  --color-muted:          #999999;
+  --color-success:        #2E7D32;
+  --color-danger:         #C62828;
+  --color-info:           #1565C0;
 }
 
 /* ── Base Reset & Foundations ────────────────────────────────────────── */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
+*, *::before, *::after { box-sizing: border-box; }
 
 html {
   height: 100%;
@@ -97,135 +71,181 @@ body {
   height: 100%;
   background-color: var(--color-bg);
   color: var(--color-text);
-  font-family: var(--font-inter, 'Inter', system-ui, -apple-system, sans-serif);
+  font-family: 'Outfit', system-ui, -apple-system, sans-serif;
   transition: background-color 250ms ease, color 250ms ease;
 }
 
-/* Custom focus ring using gold accent */
 :focus-visible {
   outline: 2px solid var(--color-gold);
   outline-offset: 2px;
-  border-radius: 6px;
+  border-radius: 8px;
 }
 
 /* ── Custom Utility Classes ──────────────────────────────────────────── */
 @layer utilities {
 
-  /* ▸ Glassmorphism — primary (topbar, modals, floating panels) */
+  /* ▸ Glassmorphism — primary */
   .glass {
-    background: color-mix(in srgb, var(--color-card) 78%, transparent);
-    backdrop-filter: blur(16px) saturate(160%);
-    -webkit-backdrop-filter: blur(16px) saturate(160%);
-    border: 1px solid color-mix(in srgb, var(--color-gold) 10%, transparent);
+    background: color-mix(in srgb, var(--color-card) 82%, transparent);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid color-mix(in srgb, var(--color-gold) 12%, transparent);
   }
 
-  /* ▸ Glassmorphism — surface variant (lighter, for secondary elements) */
+  /* ▸ Glassmorphism — surface */
   .glass-surface {
-    background: color-mix(in srgb, var(--color-surface) 85%, transparent);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    background: color-mix(in srgb, var(--color-surface) 88%, transparent);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border: 1px solid color-mix(in srgb, var(--color-border) 60%, transparent);
   }
 
-  /* ▸ Gold gradient fills (buttons, avatars, active marks) */
+  /* ▸ Premium card */
+  .premium-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 20px;
+    transition: transform 250ms cubic-bezier(0.34,1.56,0.64,1),
+                box-shadow 250ms ease;
+  }
+  .premium-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.4),
+                0 0 0 1px rgba(201,168,76,0.18);
+  }
+
+  /* ▸ Gold gradient fills */
   .bg-gold-gradient {
-    background: linear-gradient(135deg, var(--color-gold) 0%, var(--color-gold-light) 100%);
+    background: linear-gradient(135deg, #C9A84C 0%, #E8C97A 50%, #C9A84C 100%);
   }
 
   /* ▸ Gold gradient text */
   .text-gold-gradient {
-    background: linear-gradient(
-      135deg,
-      var(--color-gold) 0%,
-      var(--color-gold-light) 50%,
-      var(--color-gold) 100%
-    );
+    background: linear-gradient(135deg, #C9A84C 0%, #E8C97A 50%, #C9A84C 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
-  /* ▸ Subtle inset gold glow ring */
+  /* ▸ Chip styles (mobil ile birebir) */
+  .chip-active {
+    background: var(--color-gold);
+    color: #000;
+    font-weight: 700;
+    border: none;
+  }
+  .chip-idle {
+    background: var(--color-card);
+    color: var(--color-text-sub);
+    border: 1px solid var(--color-border);
+  }
+  .chip-outline-active {
+    background: var(--color-gold-dim);
+    color: var(--color-gold);
+    border: 1px solid rgba(201,168,76,0.35);
+    font-weight: 600;
+  }
+
+  /* ▸ Gold glow ring */
   .ring-gold {
     box-shadow:
       0 0 0 1px color-mix(in srgb, var(--color-gold) 35%, transparent),
-      0 0 20px color-mix(in srgb, var(--color-gold) 10%, transparent);
+      0 0 24px color-mix(in srgb, var(--color-gold) 12%, transparent);
   }
 
-  /* ▸ Premium elevation shadows */
+  /* ▸ Gold ambient glow */
+  .gold-glow {
+    box-shadow: 0 0 40px rgba(201,168,76,0.15), 0 0 0 1px rgba(201,168,76,0.2);
+  }
+
+  /* ▸ Premium card shadows */
   .shadow-card {
-    box-shadow:
-      0 1px 2px color-mix(in srgb, #000 20%, transparent),
-      0 4px 12px color-mix(in srgb, #000 10%, transparent);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.25), 0 8px 16px rgba(0,0,0,0.15);
   }
-
   .shadow-card-lg {
-    box-shadow:
-      0 4px 16px color-mix(in srgb, #000 22%, transparent),
-      0 16px 48px color-mix(in srgb, #000 14%, transparent);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.35), 0 24px 64px rgba(0,0,0,0.2);
   }
 
-  /* ▸ Sidebar & panel transition */
-  .sidebar-transition {
-    transition:
-      width 280ms cubic-bezier(0.4, 0, 0.2, 1),
-      transform 280ms cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  /* ▸ Smooth entrance animations */
-  .animate-fade-in {
-    animation: swFadeIn 220ms ease-out both;
-  }
-
-  .animate-slide-up {
-    animation: swSlideUp 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
-  }
+  /* ▸ Animations */
+  .animate-fade-in    { animation: swFadeIn 250ms ease-out both; }
+  .animate-slide-up   { animation: swSlideUp 300ms cubic-bezier(0.16,1,0.3,1) both; }
+  .animate-scale-in   { animation: swScaleIn 200ms cubic-bezier(0.34,1.56,0.64,1) both; }
+  .animate-shimmer    { animation: swShimmer 1.8s ease-in-out infinite; }
 
   /* ▸ Branded thin scrollbar */
   .scrollbar-thin {
     scrollbar-width: thin;
     scrollbar-color: var(--color-border) transparent;
   }
-  .scrollbar-thin::-webkit-scrollbar {
-    width: 4px;
-    height: 4px;
-  }
-  .scrollbar-thin::-webkit-scrollbar-track {
-    background: transparent;
-  }
+  .scrollbar-thin::-webkit-scrollbar       { width: 4px; height: 4px; }
+  .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
   .scrollbar-thin::-webkit-scrollbar-thumb {
     background-color: var(--color-border);
     border-radius: 2px;
   }
-  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    background-color: var(--color-muted);
-  }
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover { background-color: var(--color-muted); }
 
-  /* ▸ Skeleton loading shimmer */
+  /* ▸ Skeleton shimmer */
   .skeleton {
     background: linear-gradient(
       90deg,
-      var(--color-surface)  25%,
-      var(--color-card)     50%,
-      var(--color-surface)  75%
+      var(--color-surface) 25%,
+      var(--color-card)    50%,
+      var(--color-surface) 75%
     );
     background-size: 400% 100%;
     animation: swShimmer 1.8s ease-in-out infinite;
+    border-radius: 8px;
+  }
+
+  /* ▸ AI badge */
+  .badge-ai {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(201,168,76,0.12);
+    border: 1px solid rgba(201,168,76,0.25);
+    color: var(--color-gold);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+
+  /* ▸ Section label */
+  .section-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+    margin-bottom: 10px;
   }
 }
 
 /* ── Keyframe Definitions ────────────────────────────────────────────── */
 @keyframes swFadeIn {
-  from { opacity: 0; transform: translateY(6px); }
+  from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0);   }
 }
 
 @keyframes swSlideUp {
-  from { opacity: 0; transform: translateY(14px); }
+  from { opacity: 0; transform: translateY(16px); }
   to   { opacity: 1; transform: translateY(0);    }
+}
+
+@keyframes swScaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1);    }
 }
 
 @keyframes swShimmer {
   0%   { background-position:  200% 0; }
   100% { background-position: -200% 0; }
+}
+
+@keyframes pulse-gold {
+  0%, 100% { opacity: 0.6; }
+  50%       { opacity: 1;   }
 }
