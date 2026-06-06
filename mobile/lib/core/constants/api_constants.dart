@@ -7,12 +7,16 @@ class ApiConstants {
 
   // ─── 🚀 GELİŞTİRİCİ AYARLARI ──────────────────────────────────────────────
 
+  /// Production URL — Render.com'da Docker ile deploy edilmiş backend
+  static const String _productionUrl =
+      'https://smart-wardrobe-ai-2nwd.onrender.com/api';
+
   static const bool _kIsEmulator = false;
-  static const String _physicalDeviceIp = '192.168.1.102';
+  static const String _physicalDeviceIp = '10.50.0.180'; // local test için
 
   static String get baseUrl {
     if (kIsWeb) {
-      return 'http://localhost:3000/api';
+      return _productionUrl;
     }
     if (_kIsEmulator) {
       if (Platform.isAndroid) {
@@ -21,7 +25,8 @@ class ApiConstants {
         return 'http://localhost:3000/api';
       }
     }
-    return 'http://$_physicalDeviceIp:3000/api';
+    // Fiziksel cihaz: Production (Render.com)
+    return _productionUrl;
   }
 
   // --- API Anahtarları ve Diğer Sabitler ---
