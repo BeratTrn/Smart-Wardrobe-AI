@@ -11,6 +11,7 @@ import 'package:smart_wardrobe_ai/presentation/screens/main/home_screen.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/shared/app_background.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/shared/app_text_styles.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/wardrobe/app_filter_chip.dart';
+import 'package:smart_wardrobe_ai/presentation/screens/item/camera_extract_screen.dart';
 
 class AddItemScreen extends StatefulWidget {
   const AddItemScreen({super.key});
@@ -99,6 +100,23 @@ class _AddItemScreenState extends State<AddItemScreen>
       _step = 'analyzing';
     });
     await _getAiPreview(bytes, _imageName);
+  }
+
+  /// Kamera: canlı önizleme + dokunarak kıyafet/aksesuar seçimi
+  /// (segmentasyon ile şeffaf arka planlı kesim) ekranını açar.
+  Future<void> _openCameraExtract() async {
+    final result = await Navigator.push<CameraExtractResult>(
+      context,
+      MaterialPageRoute(builder: (_) => const CameraExtractScreen()),
+    );
+    if (result == null) return;
+
+    setState(() {
+      _imageBytes = result.bytes;
+      _imageName = result.filename;
+      _step = 'analyzing';
+    });
+    await _getAiPreview(result.bytes, _imageName);
   }
 
   // ─── 2. AI Önizleme (kayıt YOK) ─────────────────────────────────────────
@@ -248,7 +266,7 @@ class _AddItemScreenState extends State<AddItemScreen>
         return _PickStep(
           key: const ValueKey('pick'),
           onBack: () => Navigator.pop(context),
-          onCamera: () => _pick(ImageSource.camera),
+          onCamera: _openCameraExtract,
           onGallery: () => _pick(ImageSource.gallery),
         );
       case 'analyzing':

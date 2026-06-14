@@ -278,7 +278,20 @@
     "added_successfully": "deinem Kleiderschrank hinzugefügt.",
     "go_to_closet": "Zum Kleiderschrank",
     "add_another": "Ein weiteres hinzufügen",
-    "select_category": "Kategorie auswählen..."
+    "select_category": "Kategorie auswählen...",
+    "extract_title": "Kleidungsstück auswählen",
+    "extract_tap_hint": "Tippe auf das Kleidungsstück oder Accessoire, das du ausschneiden möchtest",
+    "extract_loading_model": "Modell wird vorbereitet...",
+    "extract_analyzing": "Kleidungsstück wird extrahiert...",
+    "extract_no_garment": "Hier wurde kein Kleidungsstück oder Accessoire gefunden. Bitte erneut tippen.",
+    "extract_preview_title": "Ausgeschnittenes Kleidungsstück",
+    "extract_use_cutout": "Diesen Ausschnitt verwenden",
+    "extract_retry": "Erneut versuchen",
+    "extract_use_full_photo": "Ganzes Foto verwenden",
+    "extract_retake_photo": "Foto erneut aufnehmen",
+    "camera_permission_denied": "Kamerazugriff verweigert. Bitte erlaube ihn in den Einstellungen.",
+    "camera_init_error": "Kamera konnte nicht gestartet werden.",
+    "capture_photo": "Foto aufnehmen"
   },
   "item_detail": {
     "connection_error": "Keine Verbindung",

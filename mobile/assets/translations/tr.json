@@ -278,7 +278,20 @@
     "added_successfully": "dolabına başarıyla eklendi.",
     "go_to_closet": "Dolabıma Git",
     "add_another": "Bir Tane Daha Ekle",
-    "select_category": "Kategori seç..."
+    "select_category": "Kategori seç...",
+    "extract_title": "Kıyafeti Seç",
+    "extract_tap_hint": "Çıkarmak istediğin kıyafete veya aksesuara dokun",
+    "extract_loading_model": "Model hazırlanıyor...",
+    "extract_analyzing": "Kıyafet ayıklanıyor...",
+    "extract_no_garment": "Burada bir kıyafet veya aksesuar bulunamadı. Lütfen tekrar dokun.",
+    "extract_preview_title": "Kesilen Kıyafet",
+    "extract_use_cutout": "Bu kesimi kullan",
+    "extract_retry": "Tekrar Dene",
+    "extract_use_full_photo": "Tüm fotoğrafı kullan",
+    "extract_retake_photo": "Fotoğrafı Yeniden Çek",
+    "camera_permission_denied": "Kamera izni verilmedi. Lütfen ayarlardan izin ver.",
+    "camera_init_error": "Kamera başlatılamadı.",
+    "capture_photo": "Fotoğraf Çek"
   },
   "item_detail": {
     "connection_error": "Bağlantı hatası",

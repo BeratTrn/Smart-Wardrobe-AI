@@ -278,7 +278,20 @@
     "added_successfully": "successfully added to your wardrobe.",
     "go_to_closet": "My Closet",
     "add_another": "Add Another",
-    "select_category": "Select category..."
+    "select_category": "Select category...",
+    "extract_title": "Select Garment",
+    "extract_tap_hint": "Tap the garment or accessory you want to extract",
+    "extract_loading_model": "Preparing model...",
+    "extract_analyzing": "Extracting garment...",
+    "extract_no_garment": "No garment or accessory found here. Please tap again.",
+    "extract_preview_title": "Extracted Garment",
+    "extract_use_cutout": "Use this cutout",
+    "extract_retry": "Try Again",
+    "extract_use_full_photo": "Use full photo",
+    "extract_retake_photo": "Retake Photo",
+    "camera_permission_denied": "Camera permission denied. Please allow it from settings.",
+    "camera_init_error": "Could not start the camera.",
+    "capture_photo": "Take Photo"
   },
   "item_detail": {
     "connection_error": "Connection Error",
