@@ -10,7 +10,7 @@
  *   - getItems    → mevsim/renk/stil filtreleri
  */
 
-// ─── Mock: emailService ───────────────────────────────────────────────────────
+// Mock: emailService 
 jest.mock('../services/emailService', () => ({
     sendVerificationEmail: jest.fn().mockResolvedValue({
         accepted: ['items-extra@test.com'],
@@ -18,7 +18,7 @@ jest.mock('../services/emailService', () => ({
     })
 }));
 
-// ─── Mock: aiService ─────────────────────────────────────────────────────────
+// Mock: aiService 
 jest.mock('../services/aiService', () => ({
     analyzeItem:              jest.fn(),
     wardrobeOnKontrol:        jest.requireActual('../services/aiService').wardrobeOnKontrol,
@@ -27,7 +27,6 @@ jest.mock('../services/aiService', () => ({
     generateWeatherNotificationText: jest.fn()
 }));
 
-// ─────────────────────────────────────────────────────────────────────────────
 
 const request  = require('supertest');
 const mongoose = require('mongoose');
@@ -42,7 +41,7 @@ let mongoServer;
 let authToken;
 let userId;
 
-// ─── İkinci kullanıcı (yetki testleri için) ──────────────────────────────────
+// İkinci kullanıcı (yetki testleri için)
 let token2;
 
 beforeAll(async () => {
@@ -91,7 +90,7 @@ afterAll(async () => {
     server.close();
 });
 
-// ─── Helper: Test item oluştur ────────────────────────────────────────────────
+// Helper: Test item oluştur 
 const createTestItem = async (overrides = {}) => {
     const user = await User.findOne({ email: 'items-extra@test.com' });
     return Item.create({
@@ -106,9 +105,8 @@ const createTestItem = async (overrides = {}) => {
     });
 };
 
-// =============================================================================
+
 // POST /api/items/analyze-only
-// =============================================================================
 describe('POST /api/items/analyze-only', () => {
 
     test('❌ Dosya gönderilmezse 400 dönmeli', async () => {
@@ -160,9 +158,8 @@ describe('POST /api/items/analyze-only', () => {
     });
 });
 
-// =============================================================================
+
 // PATCH /api/items/:id/favorite — toggleFavori
-// =============================================================================
 describe('PATCH /api/items/:id/favorite — toggleFavori', () => {
 
     test('✅ Favori durumu true → false → true toggle edilebilmeli', async () => {
@@ -213,9 +210,8 @@ describe('PATCH /api/items/:id/favorite — toggleFavori', () => {
     });
 });
 
-// =============================================================================
+
 // GET /api/items/favorites — getFavorites
-// =============================================================================
 describe('GET /api/items/favorites', () => {
 
     test('✅ Favori kıyafetler listelenebilmeli', async () => {
@@ -247,9 +243,8 @@ describe('GET /api/items/favorites', () => {
     });
 });
 
-// =============================================================================
+
 // GET /api/items/:id — 403 yetki testi
-// =============================================================================
 describe('GET /api/items/:id — 403 branch', () => {
 
     test('❌ Başka kullanıcının itemini görüntüleyemez (403)', async () => {
@@ -264,9 +259,8 @@ describe('GET /api/items/:id — 403 branch', () => {
     });
 });
 
-// =============================================================================
+
 // PUT /api/items/:id — 403 yetki testi
-// =============================================================================
 describe('PUT /api/items/:id — 403 branch', () => {
 
     test('❌ Başka kullanıcının itemini güncelleyemez (403)', async () => {
@@ -281,9 +275,8 @@ describe('PUT /api/items/:id — 403 branch', () => {
     });
 });
 
-// =============================================================================
+
 // DELETE /api/items/:id — 403 ve cloudinaryId branch
-// =============================================================================
 describe('DELETE /api/items/:id — 403 ve cloudinary branch', () => {
 
     test('❌ Başka kullanıcının itemini silemez (403)', async () => {
@@ -310,9 +303,8 @@ describe('DELETE /api/items/:id — 403 ve cloudinary branch', () => {
     });
 });
 
-// =============================================================================
+
 // GET /api/items — filtre parametreleri
-// =============================================================================
 describe('GET /api/items — filtreler', () => {
 
     beforeEach(async () => {

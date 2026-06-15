@@ -14,7 +14,7 @@
  *   - User.getOtpCode model metodu
  */
 
-// ─── Mock: emailService ───────────────────────────────────────────────────────
+// Mock: emailService
 jest.mock('../services/emailService', () => ({
     sendVerificationEmail: jest.fn().mockResolvedValue({
         accepted: ['auth-extra@test.com'],
@@ -26,7 +26,7 @@ jest.mock('../services/emailService', () => ({
     })
 }));
 
-// ─── Mock: google-auth-library ────────────────────────────────────────────────
+// Mock: google-auth-library 
 const mockVerifyIdToken = jest.fn();
 
 jest.mock('google-auth-library', () => ({
@@ -35,7 +35,6 @@ jest.mock('google-auth-library', () => ({
     }))
 }));
 
-// ─────────────────────────────────────────────────────────────────────────────
 
 const request    = require('supertest');
 const mongoose   = require('mongoose');
@@ -52,7 +51,7 @@ const { sendVerificationEmail  } = require('../services/emailService');
 
 let mongoServer;
 
-// ─── Helper: Doğrulanmış kullanıcı oluştur ve token al ───────────────────────
+// Helper: Doğrulanmış kullanıcı oluştur ve token al 
 const createVerifiedUser = async (email = 'auth-extra@test.com', pass = 'sifre123') => {
     const hashed = await bcrypt.hash(pass, 10);
     const user   = await User.create({
@@ -88,9 +87,8 @@ afterAll(async () => {
     server.close();
 });
 
-// =============================================================================
+
 // DELETE /api/auth/me — Hesap silme
-// =============================================================================
 describe('DELETE /api/auth/me — deleteAccount', () => {
 
     test('✅ Kullanıcı hesabı ve ilgili veriler kalıcı olarak silinmeli', async () => {
@@ -130,9 +128,8 @@ describe('DELETE /api/auth/me — deleteAccount', () => {
     });
 });
 
-// =============================================================================
+
 // POST /api/auth/google — Google OAuth
-// =============================================================================
 describe('POST /api/auth/google — googleAuth', () => {
 
     test('❌ idToken eksikse 400 dönmeli', async () => {
@@ -232,9 +229,8 @@ describe('POST /api/auth/google — googleAuth', () => {
     });
 });
 
-// =============================================================================
+
 // POST /api/auth/forgot-password — Edge case'ler
-// =============================================================================
 describe('POST /api/auth/forgot-password — edge cases', () => {
 
     test('✅ Var olmayan email için de 200 dönmeli (güvenlik - e-posta ifşa etme)', async () => {
@@ -264,9 +260,8 @@ describe('POST /api/auth/forgot-password — edge cases', () => {
     });
 });
 
-// =============================================================================
+
 // PUT /api/auth/reset-password/:token — Validation
-// =============================================================================
 describe('PUT /api/auth/reset-password/:token — validation', () => {
 
     test('❌ Yeni şifre 6 karakterden kısaysa 400 dönmeli', async () => {
@@ -283,9 +278,8 @@ describe('PUT /api/auth/reset-password/:token — validation', () => {
     });
 });
 
-// =============================================================================
+
 // PUT /api/auth/change-password — Validation
-// =============================================================================
 describe('PUT /api/auth/change-password — validation', () => {
 
     let token;
@@ -316,9 +310,8 @@ describe('PUT /api/auth/change-password — validation', () => {
     });
 });
 
-// =============================================================================
+
 // GET /api/auth/reset-password/:token — HTML Formu
-// =============================================================================
 describe('GET /api/auth/reset-password/:token — HTML form', () => {
 
     test('✅ HTML form sayfası dönmeli', async () => {
@@ -331,9 +324,8 @@ describe('GET /api/auth/reset-password/:token — HTML form', () => {
     });
 });
 
-// =============================================================================
+
 // POST /api/auth/resend-verification — Edge case'ler
-// =============================================================================
 describe('POST /api/auth/resend-verification — edge cases', () => {
 
     test('❌ Email alanı eksikse 400 dönmeli', async () => {
@@ -385,9 +377,8 @@ describe('POST /api/auth/resend-verification — edge cases', () => {
     });
 });
 
-// =============================================================================
+
 // POST /api/auth/verify-email — Edge case'ler
-// =============================================================================
 describe('POST /api/auth/verify-email — edge cases', () => {
 
     test('❌ Email veya otpCode eksikse 400 dönmeli', async () => {
@@ -449,9 +440,8 @@ describe('POST /api/auth/verify-email — edge cases', () => {
     });
 });
 
-// =============================================================================
+
 // POST /api/auth/login — Doğrulanmamış hesap
-// =============================================================================
 describe('POST /api/auth/login — unverified account', () => {
 
     test('❌ Doğrulanmamış hesap ile giriş yapılamamalı (403)', async () => {
@@ -472,9 +462,8 @@ describe('POST /api/auth/login — unverified account', () => {
     });
 });
 
-// =============================================================================
+
 // authMiddleware — Edge case'ler
-// =============================================================================
 describe('authMiddleware — token edge cases', () => {
 
     test('❌ Süresi dolmuş token ile 401 dönmeli', async () => {
@@ -528,9 +517,8 @@ describe('authMiddleware — token edge cases', () => {
     });
 });
 
-// =============================================================================
+
 // User Model — getOtpCode metodu
-// =============================================================================
 describe('User Model — getOtpCode metodu', () => {
 
     test('✅ getOtpCode 6 haneli OTP üretmeli ve hashlenmeli', () => {

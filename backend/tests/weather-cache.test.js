@@ -14,17 +14,17 @@ jest.mock('axios');
 const axios   = require('axios');
 const weather = require('../services/weatherService');
 
-// ─── Test başlamadan önce API key'i ayarla ────────────────────────────────────
+// Test başlamadan önce API key'i ayarla 
 beforeAll(() => {
     process.env.OPENWEATHER_API_KEY = 'test_key';
 });
 
-// ─── Her testten önce axios mock'larını temizle ───────────────────────────────
+// Her testten önce axios mock'larını temizle 
 beforeEach(() => {
     jest.clearAllMocks();
 });
 
-// ─── Yardımcı: sahte OpenWeather yanıtı ──────────────────────────────────────
+// Yardımcı: sahte OpenWeather yanıtı 
 const makeWeatherResponse = (temp, city = 'TestCity') => ({
     data: {
         main:    { temp, feels_like: temp + 1, humidity: 50 },
@@ -35,9 +35,8 @@ const makeWeatherResponse = (temp, city = 'TestCity') => ({
     },
 });
 
-// ══════════════════════════════════════════════════════════════════════════════
+
 // weatherService cache — line 16 false branch (süresi dolmuş cache)
-// ══════════════════════════════════════════════════════════════════════════════
 describe('weatherService cache expiry (line 16 false branch)', () => {
 
     test('süresi dolmuş cache girişi API\'yi yeniden çağırır', async () => {

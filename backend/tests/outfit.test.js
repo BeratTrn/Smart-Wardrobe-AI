@@ -46,9 +46,8 @@ afterAll(async () => {
     server.close();
 });
 
-// =============================================
+
 // KOMBİN ÖNERİSİ TESTLERİ
-// =============================================
 describe('POST /api/outfits/recommend', () => {
 
     test('❌ Token olmadan kombin isteği 401 dönmeli', async () => {
@@ -72,9 +71,8 @@ describe('POST /api/outfits/recommend', () => {
     });
 });
 
-// =============================================
+
 // GEÇMİŞ KOMBİNLER TESTLERİ
-// =============================================
 describe('GET /api/outfits', () => {
 
     test('✅ Token ile geçmiş kombinler listelenebilmeli', async () => {
@@ -101,9 +99,8 @@ describe('GET /api/outfits', () => {
     });
 });
 
-// =============================================
+
 // KOMBİN GERİ BİLDİRİMİ TESTLERİ
-// =============================================
 describe('PUT /api/outfits/:id/feedback', () => {
     test('✅ Mevcut kombine feedback verilebilmeli', async () => {
         const user = await User.findOne({ email: 'outfit@test.com' });
@@ -152,9 +149,8 @@ describe('PUT /api/outfits/:id/feedback', () => {
     });
 });
 
-// =============================================
+
 // KOMBİN SİLME TESTLERİ
-// =============================================
 describe('DELETE /api/outfits/:id', () => {
     test('✅ Kullanici kendi kombinini silebilmeli', async () => {
         const user = await User.findOne({ email: 'outfit@test.com' });
@@ -184,9 +180,8 @@ describe('DELETE /api/outfits/:id', () => {
     });
 });
 
-// =============================================
+
 // İSTATİSTİK TESTLERİ
-// =============================================
 describe('GET /api/stats/wardrobe', () => {
 
     test('✅ Token ile istatistikler alınabilmeli', async () => {

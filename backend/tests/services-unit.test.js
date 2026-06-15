@@ -11,11 +11,11 @@
  *   - models/User.js              (getResetPasswordToken)
  */
 
-// ─── Mock: axios ──────────────────────────────────────────────────────────────
+// Mock: axios 
 jest.mock('axios');
 const axios = require('axios');
 
-// ─── Mock: nodemailer ─────────────────────────────────────────────────────────
+// Mock: nodemailer
 const mockSendMail = jest.fn();
 const mockVerifyFn = jest.fn();
 
@@ -26,7 +26,7 @@ jest.mock('nodemailer', () => ({
     }))
 }));
 
-// ─── Mock: firebase-admin ─────────────────────────────────────────────────────
+// Mock: firebase-admin
 const mockSendEachForMulticast = jest.fn();
 
 jest.mock('firebase-admin', () => ({
@@ -35,7 +35,7 @@ jest.mock('firebase-admin', () => ({
     }))
 }));
 
-// ─── Mock: node-cron ─────────────────────────────────────────────────────────
+// Mock: node-cron 
 const mockCronCallbacks = [];
 
 jest.mock('node-cron', () => ({
@@ -44,7 +44,7 @@ jest.mock('node-cron', () => ({
     })
 }));
 
-// ─── Mock: groq-sdk ───────────────────────────────────────────────────────────
+// Mock: groq-sdk 
 jest.mock('groq-sdk', () => {
     return jest.fn().mockImplementation(() => ({
         chat: {
@@ -65,7 +65,6 @@ jest.mock('groq-sdk', () => {
     }));
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
 
 const mongoose   = require('mongoose');
 const { MongoMemoryServer } = require('mongodb-memory-server');
@@ -116,9 +115,8 @@ afterAll(async () => {
     // Cache temizliği için modül state sıfırla
 });
 
-// =============================================================================
+
 // weatherService — Cache + No API Key
-// =============================================================================
 describe('weatherService', () => {
 
     beforeEach(() => {
@@ -247,9 +245,8 @@ describe('weatherService', () => {
     });
 });
 
-// =============================================================================
+
 // emailService — nodemailer unit tests
-// =============================================================================
 describe('emailService', () => {
 
     test('✅ verifySmtpConnection — başarılı bağlantı', async () => {
@@ -312,9 +309,8 @@ describe('emailService', () => {
     });
 });
 
-// =============================================================================
+
 // notificationService
-// =============================================================================
 describe('notificationService', () => {
 
     const origEnv = process.env.NODE_ENV;
@@ -405,9 +401,8 @@ describe('notificationService', () => {
     });
 });
 
-// =============================================================================
+
 // aiService — wardrobeOnKontrol tüm dallar
-// =============================================================================
 describe('aiService — wardrobeOnKontrol', () => {
 
     test('✅ Üst + Alt + Ayakkabı → geçerli (Yapı A)', () => {
@@ -419,9 +414,9 @@ describe('aiService — wardrobeOnKontrol', () => {
         expect(wardrobeOnKontrol(items).gecerli).toBe(true);
     });
 
-    test('✅ Elbise & Etek + Ayakkabı → geçerli (Yapı B)', () => {
+    test('✅ Elbise + Ayakkabı → geçerli (Yapı B)', () => {
         const items = [
-            { kategori: 'Elbise & Etek' },
+            { kategori: 'Elbise' },
             { kategori: 'Ayakkabı' }
         ];
         expect(wardrobeOnKontrol(items).gecerli).toBe(true);
@@ -465,9 +460,8 @@ describe('aiService — wardrobeOnKontrol', () => {
     });
 });
 
-// =============================================================================
+
 // aiService — generateOutfitSuggestion wardrobe failure (lines 125-127)
-// =============================================================================
 describe('aiService — generateOutfitSuggestion wardrobe failure', () => {
 
     test('❌ Yetersiz dolap → statusCode 400 fırlatmalı', async () => {
@@ -479,9 +473,8 @@ describe('aiService — generateOutfitSuggestion wardrobe failure', () => {
     });
 });
 
-// =============================================================================
+
 // aiService — analyzeItem (URL path + Buffer path + edge cases)
-// =============================================================================
 describe('aiService — analyzeItem', () => {
 
     test('✅ URL ile gönderildiğinde önce indirilip analiz edilmeli', async () => {
@@ -535,9 +528,8 @@ describe('aiService — analyzeItem', () => {
     });
 });
 
-// =============================================================================
+
 // aiService — generateSuitcaseSuggestion
-// =============================================================================
 describe('aiService — generateSuitcaseSuggestion', () => {
 
     const kiyafetler = [
@@ -620,9 +612,8 @@ describe('aiService — generateSuitcaseSuggestion', () => {
     });
 });
 
-// =============================================================================
+
 // cronService — startCronJobs & callback invocation
-// =============================================================================
 describe('cronService', () => {
     const cron = require('node-cron');
 
@@ -668,7 +659,7 @@ describe('cronService', () => {
         await expect(mockCronCallbacks[2]()).resolves.not.toThrow();
     });
 
-    // ── Lines 24-33: weather callback body with user + items ────────────────
+    // Lines 24-33: weather callback body with user + items 
     test('✅ Hava durumu callback — kullanıcı ve dolap varken satırları kaplamalı', async () => {
         const user = await User.create({
             kullaniciAdi: 'CronWeatherUser',
@@ -694,7 +685,7 @@ describe('cronService', () => {
         await expect(mockCronCallbacks[0]()).resolves.not.toThrow();
     });
 
-    // ── Lines 66-79: travel callback body with suitcase tomorrow ────────────
+    // Lines 66-79: travel callback body with suitcase tomorrow 
     test('✅ Seyahat callback — yarınki seyahat varsa satırları kaplamalı', async () => {
         const user = await User.create({
             kullaniciAdi: 'CronTravelUser',
@@ -728,7 +719,7 @@ describe('cronService', () => {
         await expect(mockCronCallbacks[1]()).resolves.not.toThrow();
     });
 
-    // ── Lines 99-111: weekly summary callback with user + items ─────────────
+    // Lines 99-111: weekly summary callback with user + items 
     test('✅ Haftalık özet callback — kullanıcı ve dolap varken satırları kaplamalı', async () => {
         const user = await User.create({
             kullaniciAdi: 'CronWeeklyUser',
@@ -748,7 +739,7 @@ describe('cronService', () => {
         await expect(mockCronCallbacks[2]()).resolves.not.toThrow();
     });
 
-    // ── Line 40: weather callback CATCH (sehirHavaDurumu throws) ────────────
+    // Line 40: weather callback CATCH (sehirHavaDurumu throws)
     test('✅ Hava durumu callback — axios hatası catch dalını kaplamalı (line 40)', async () => {
         await User.create({
             kullaniciAdi: 'CronWeatherCatch',
@@ -764,7 +755,7 @@ describe('cronService', () => {
         await expect(mockCronCallbacks[0]()).resolves.not.toThrow();
     });
 
-    // ── Line 29 true: items empty → continue ────────────────────────────────
+    // Line 29 true: items empty → continue 
     test('✅ Hava durumu callback — item yoksa continue dalı (line 29 true)', async () => {
         await User.create({
             kullaniciAdi: 'CronNoItems',
@@ -781,7 +772,7 @@ describe('cronService', () => {
         await expect(mockCronCallbacks[0]()).resolves.not.toThrow();
     });
 
-    // ── Line 21 || false: user.defaultCity is undefined ──────────────────────
+    // Line 21 || false: user.defaultCity is undefined 
     test('✅ Hava durumu callback — defaultCity yoksa Istanbul fallback dalı', async () => {
         await User.create({
             kullaniciAdi: 'CronNoCity',
@@ -802,7 +793,7 @@ describe('cronService', () => {
         await expect(mockCronCallbacks[0]()).resolves.not.toThrow();
     });
 
-    // ── Line 67 true: travelReminders false → continue ───────────────────────
+    // Line 67 true: travelReminders false → continue 
     test('✅ Seyahat callback — travelReminders=false → continue dalı (line 67)', async () => {
         const user = await User.create({
             kullaniciAdi: 'CronNoReminder',
@@ -825,7 +816,7 @@ describe('cronService', () => {
         await expect(mockCronCallbacks[1]()).resolves.not.toThrow();
     });
 
-    // ── Line 68 true: fcmTokens empty → continue ─────────────────────────────
+    // Line 68 true: fcmTokens empty → continue 
     test('✅ Seyahat callback — fcmTokens boş → continue dalı (line 68)', async () => {
         const user = await User.create({
             kullaniciAdi: 'CronNoToken',
@@ -848,7 +839,7 @@ describe('cronService', () => {
         await expect(mockCronCallbacks[1]()).resolves.not.toThrow();
     });
 
-    // ── Line 79: travel callback CATCH (NODE_ENV=production, firebase throws) ─
+    // Line 79: travel callback CATCH (NODE_ENV=production, firebase throws) 
     test('✅ Seyahat callback — firebase hatası catch dalını kaplamalı (line 79)', async () => {
         const origEnv = process.env.NODE_ENV;
         process.env.NODE_ENV = 'production';
@@ -879,7 +870,7 @@ describe('cronService', () => {
         process.env.NODE_ENV = origEnv;
     });
 
-    // ── Line 101 true: itemCount===0 → continue ──────────────────────────────
+    //  Line 101 true: itemCount===0 → continue
     test('✅ Haftalık özet callback — item yoksa continue dalı (line 101)', async () => {
         await User.create({
             kullaniciAdi: 'CronWeeklyNoItems',
@@ -894,7 +885,7 @@ describe('cronService', () => {
         await expect(mockCronCallbacks[2]()).resolves.not.toThrow();
     });
 
-    // ── Line 111: weekly callback CATCH (NODE_ENV=production, firebase throws) ─
+    // Line 111: weekly callback CATCH (NODE_ENV=production, firebase throws) 
     test('✅ Haftalık özet callback — firebase hatası catch dalını kaplamalı (line 111)', async () => {
         const origEnv = process.env.NODE_ENV;
         process.env.NODE_ENV = 'production';
@@ -921,9 +912,8 @@ describe('cronService', () => {
     });
 });
 
-// =============================================================================
+
 // errorMiddleware — DuplicateKey, Multer, dev stack
-// =============================================================================
 describe('errorMiddleware', () => {
 
     const mockReq  = {};
@@ -993,9 +983,8 @@ describe('errorMiddleware', () => {
     });
 });
 
-// =============================================================================
+
 // aiService — JSON parse fallback branches (lines 210-211, 321-322)
-// =============================================================================
 describe('aiService — JSON parse fallback', () => {
 
     const validItems = [
@@ -1033,9 +1022,8 @@ describe('aiService — JSON parse fallback', () => {
     });
 });
 
-// =============================================================================
+
 // emailService — module-level branch coverage (lines 5-10)
-// =============================================================================
 describe('emailService — module-level branch coverage', () => {
 
     test('✅ EMAIL_SECURE="true" → isSecure true branch (line 5-6)', () => {
@@ -1084,11 +1072,10 @@ describe('emailService — module-level branch coverage', () => {
     });
 });
 
-// =============================================================================
+
 // aiService — generateOutfitSuggestion sıcaklık & etkinlik dalları
 // Bu testler groqCreateMock'a BAĞIMLI DEĞİL — varsayılan mock yeterli.
 // Amaç: lines 120,140-216 branch coverage'ını tamamlamak.
-// =============================================================================
 describe('aiService — generateOutfitSuggestion sıcaklık & etkinlik dalları', () => {
 
     // Geçerli dolap: wardrobeOnKontrol'den geçebilmesi için Üst+Alt+Ayakkabı
@@ -1151,10 +1138,9 @@ describe('aiService — generateOutfitSuggestion sıcaklık & etkinlik dalları'
     });
 });
 
-// =============================================================================
+
 // aiService — generateSuitcaseSuggestion sıcaklık & null dalları
 // Amaç: lines 240,264-265,267 branch coverage'ını tamamlamak.
-// =============================================================================
 describe('aiService — generateSuitcaseSuggestion ek dallar', () => {
 
     const kiyafetler = [
@@ -1198,9 +1184,8 @@ describe('aiService — generateSuitcaseSuggestion ek dallar', () => {
     });
 });
 
-// =============================================================================
+
 // User Model — getResetPasswordToken
-// =============================================================================
 describe('User Model — getResetPasswordToken', () => {
 
     test('✅ Reset token üretilmeli ve hashlenmeli', () => {
