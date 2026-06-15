@@ -1,8 +1,6 @@
-# ============================================================
 #  Smart Wardrobe AI — FastAPI Microservice
 #  Endpoints : POST /analyze-item/
-#  Features  : TF Classification + Category-Aware Color Extraction
-# ============================================================
+#  Features  : TF Classification + Category-Aware Color Extrac
 
 import numpy as np
 import cv2
@@ -12,17 +10,13 @@ from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
 
-# ── CONSTANTS ────────────────────────────────────────────────
+
 MODEL_PATH  = "wardrobe_model.h5"
 IMG_SIZE    = (224, 224)
-# Alphabetical order matches tf.keras directory scan output
 CLASS_NAMES = ["aksesuar", "alt_giyim", "ayakkabi", "dis_giyim", "elbise", "ust_giyim"]
 
-# ── GLOBAL MODEL HANDLE ──────────────────────────────────────
 model = None
 
-# ── STARTUP / SHUTDOWN (lifespan) ────────────────────────────
-# ── KERAS COMPAT: accept quantization_config from newer Keras versions ────────
 class CompatDense(tf.keras.layers.Dense):
     def __init__(self, *args, quantization_config=None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -48,7 +42,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# ── CROP MAP: category → (y_start_ratio, y_end_ratio, x_start_ratio, x_end_ratio)
+# CROP MAP: category → (y_start_ratio, y_end_ratio, x_start_ratio, x_end_ratio)
 # Ratios are fractions of the full image dimensions [0.0 – 1.0].
 # Clothing items are typically centered horizontally, so x stays at [0.15, 0.85]
 # to shave off edge shadows while keeping the full garment width.
@@ -62,7 +56,7 @@ CROP_MAP = {
 }
 
 
-# ── HELPER: CATEGORY-AWARE DOMINANT COLOR (KMeans + spatial weighting) ───────
+# CATEGORY-AWARE DOMINANT COLOR (KMeans + spatial weighting)
 def get_dominant_color(image_bytes: bytes, category_name: str, k: int = 4) -> str:
     """
     Returns the dominant HEX color of the clothing item in the image.
@@ -82,13 +76,13 @@ def get_dominant_color(image_bytes: bytes, category_name: str, k: int = 4) -> st
          preferred; if everything is neutral (white/grey/beige garment)
          the brightest cluster is returned instead.
     """
-    # ── 1. Decode raw bytes → RGB ──────────────────────────────────────────────
+    # 1. Decode raw bytes → RGB
     arr = np.frombuffer(image_bytes, dtype=np.uint8)
     img = cv2.imdecode(arr, cv2.IMREAD_COLOR)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     h, w = img.shape[:2]
 
-    # ── 2. Category-aware primary crop ────────────────────────────────────────
+    # 2. Category-aware primary crop
     y0_r, y1_r, x0_r, x1_r = CROP_MAP.get(category_name, (0.05, 0.95, 0.05, 0.95))
     y0, y1 = int(h * y0_r), int(h * y1_r)
     x0, x1 = int(w * x0_r), int(w * x1_r)
@@ -96,11 +90,11 @@ def get_dominant_color(image_bytes: bytes, category_name: str, k: int = 4) -> st
     if region.size == 0:
         region = img
 
-    # ── 3. Resize to fixed canvas for consistent weight geometry ──────────────
+    # 3. Resize to fixed canvas for consistent weight geometry
     CANVAS = 120
     region = cv2.resize(region, (CANVAS, CANVAS))
 
-    # ── 4. Gaussian spatial weight map (σ = 30% of canvas width) ─────────────
+    # 4. Gaussian spatial weight map (σ = 30% of canvas width) 
     cx, cy = CANVAS / 2.0, CANVAS / 2.0
     sigma  = CANVAS * 0.30
     Y, X   = np.ogrid[:CANVAS, :CANVAS]
@@ -109,7 +103,7 @@ def get_dominant_color(image_bytes: bytes, category_name: str, k: int = 4) -> st
 
     pixels_rgb = region.reshape(-1, 3).astype(np.float32)  # (14400, 3)
 
-    # ── 5. HSV-based pixel filter ─────────────────────────────────────────────
+    # 5. HSV-based pixel filter 
     hsv        = cv2.cvtColor(region, cv2.COLOR_RGB2HSV)
     pixels_hsv = hsv.reshape(-1, 3).astype(np.float32)
     S = pixels_hsv[:, 1]   # saturation [0, 255]
@@ -127,7 +121,7 @@ def get_dominant_color(image_bytes: bytes, category_name: str, k: int = 4) -> st
     valid_pixels  = pixels_rgb[valid_mask]
     valid_weights = weight_flat[valid_mask]
 
-    # ── 6. Center-biased sampling → KMeans ────────────────────────────────────
+    # 6. Center-biased sampling → KMeans
     total_w = valid_weights.sum()
     probs   = valid_weights / total_w
 
@@ -141,10 +135,10 @@ def get_dominant_color(image_bytes: bytes, category_name: str, k: int = 4) -> st
     km = KMeans(n_clusters=n_clusters, random_state=42, n_init="auto")
     km.fit(sampled)
 
-    centers = km.cluster_centers_                                    # (k, 3) float
+    centers = km.cluster_centers_        # (k, 3) float
     counts  = np.bincount(km.labels_, minlength=n_clusters)
 
-    # ── 7. Cluster selection — colorful > neutral ─────────────────────────────
+    # 7. Cluster selection — colorful > neutral
     centers_u8  = np.clip(centers, 0, 255).astype(np.uint8).reshape(1, n_clusters, 3)
     centers_hsv = cv2.cvtColor(centers_u8, cv2.COLOR_RGB2HSV).reshape(n_clusters, 3).astype(np.float32)
     saturations  = centers_hsv[:, 1]   # [0, 255]
@@ -166,7 +160,7 @@ def get_dominant_color(image_bytes: bytes, category_name: str, k: int = 4) -> st
     return "#{:02X}{:02X}{:02X}".format(*rgb)
 
 
-# ── HELPER: CATEGORY PREDICTION ──────────────────────────────
+# CATEGORY PREDICTION 
 def predict_category(image_bytes: bytes) -> tuple[str, str]:
     """
     Classifies the clothing item using the loaded TF model.
@@ -191,7 +185,7 @@ def predict_category(image_bytes: bytes) -> tuple[str, str]:
     return CLASS_NAMES[idx], f"%{confidence:.1f}"
 
 
-# ── ENDPOINT: POST /analyze-item/ ────────────────────────────
+# POST /analyze-item/ 
 @app.post("/analyze-item/")
 async def analyze_item(file: UploadFile = File(...)):
     """
@@ -225,7 +219,7 @@ async def analyze_item(file: UploadFile = File(...)):
     })
 
 
-# ── HEALTH CHECK ─────────────────────────────────────────────
+# HEALTH CHECK 
 @app.get("/health")
 async def health():
     return {"status": "ok", "model_loaded": model is not None}
