@@ -4,6 +4,7 @@ import type {
   ItemCategory,
   ItemSeason,
   ItemStyle,
+  ItemCinsiyet,
   ItemsResponse,
   AnalysisResult,
 } from "@/types";
@@ -35,6 +36,7 @@ export interface AddItemPayload {
   renk: string;
   mevsim: ItemSeason;
   stil: ItemStyle;
+  cinsiyet?: ItemCinsiyet;
   marka?: string;
   notlar?: string;
 }
@@ -85,6 +87,7 @@ export async function addItem(payload: AddItemPayload): Promise<AddItemResponse>
   form.append("renk", payload.renk);
   form.append("mevsim", payload.mevsim);
   form.append("stil", payload.stil);
+  if (payload.cinsiyet) form.append("cinsiyet", payload.cinsiyet);
   if (payload.marka)  form.append("marka",  payload.marka);
   if (payload.notlar) form.append("notlar", payload.notlar);
 

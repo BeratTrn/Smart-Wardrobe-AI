@@ -11,7 +11,7 @@ const CATEGORIES: { value: ItemCategory | "all"; label: string }[] = [
   { value: "all",           label: "Tümü" },
   { value: "Üst Giyim",    label: "Üst Giyim" },
   { value: "Alt Giyim",    label: "Alt Giyim" },
-  { value: "Elbise & Etek", label: "Elbise & Etek" },
+  { value: "Elbise",        label: "Elbise" },
   { value: "Dış Giyim",    label: "Dış Giyim" },
   { value: "Ayakkabı",     label: "Ayakkabı" },
   { value: "Aksesuar",     label: "Aksesuar" },

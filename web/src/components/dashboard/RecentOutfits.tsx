@@ -2,102 +2,150 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Sparkles, Shirt, ChevronRight } from "lucide-react";
-import { useOutfits } from "@/lib/hooks/useOutfits";
+import { Sparkles, Shirt, ChevronRight, ShoppingBag } from "lucide-react";
+import { useSavedOutfits } from "@/lib/hooks/useSavedOutfits";
 
-const S    = "transparent"; // Parent page should handle background if needed, or use surface
 const C    = "var(--color-surface)";
 const B    = "1px solid var(--color-border)";
 const IA   = "rgba(201,168,76,0.12)";
 const GA   = "1px solid rgba(201,168,76,0.20)";
-const TBGC = "rgba(0,0,0,0.55)";
 const BTNB = "1px solid rgba(201,168,76,0.25)";
 
-function OutfitCard({ outfit }: { outfit: any }) {
-  const items = (outfit.kiyafetler ?? []) as any[];
-  const first = items[0];
-  const rest  = items.slice(1, 3); // next 2 items
+interface CollageImage {
+  src: string;
+  alt: string;
+  isWeb?: boolean;
+}
+
+// Kombinin gardırop parçaları (+ webden seçilen ürünler varsa onlar da) küçük bir
+// kolaj olarak gösterilir. 1-4 görsel için farklı grid düzenleri kullanılır.
+function OutfitCollage({ images }: { images: CollageImage[] }) {
+  if (images.length === 0) {
+    return (
+      <div className="absolute inset-0 flex items-center justify-center bg-[#1A1A14]">
+        <Shirt className="h-8 w-8 text-muted/30" />
+      </div>
+    );
+  }
+
+  if (images.length === 1) {
+    const img = images[0];
+    return (
+      <div className="absolute inset-0">
+        <Image src={img.src} alt={img.alt} fill unoptimized className="object-cover" sizes="140px" />
+        {img.isWeb && <WebBadge />}
+      </div>
+    );
+  }
+
+  if (images.length === 2) {
+    return (
+      <div className="absolute inset-0 grid grid-cols-2 gap-0.5 bg-[#1E1E18]">
+        {images.map((img, idx) => (
+          <div key={idx} className="relative">
+            <Image src={img.src} alt={img.alt} fill unoptimized className="object-cover" sizes="70px" />
+            {img.isWeb && <WebBadge small />}
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (images.length === 3) {
+    return (
+      <div className="absolute inset-0 grid grid-cols-2 grid-rows-2 gap-0.5 bg-[#1E1E18]">
+        <div className="relative row-span-2">
+          <Image src={images[0].src} alt={images[0].alt} fill unoptimized className="object-cover" sizes="70px" />
+          {images[0].isWeb && <WebBadge small />}
+        </div>
+        {images.slice(1, 3).map((img, idx) => (
+          <div key={idx} className="relative">
+            <Image src={img.src} alt={img.alt} fill unoptimized className="object-cover" sizes="70px" />
+            {img.isWeb && <WebBadge small />}
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   return (
-    <div
-      className="rounded-[24px] overflow-hidden flex-shrink-0 w-[280px] h-[340px] cursor-pointer group relative transition-transform duration-300"
-      style={{ border: B }}
-      onMouseEnter={(e) => {
-        (e.currentTarget as HTMLElement).style.transform = "translateY(-4px)";
-      }}
-      onMouseLeave={(e) => {
-        (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
-      }}
-    >
-      {/* Images container */}
-      <div className="absolute inset-0 flex flex-col bg-[#1A1A14]">
-        {/* Top half: main image */}
-        <div className="relative h-1/2 w-full border-b border-[#1E1E18]">
-          {first ? (
-            <Image src={first.resimUrl} alt={first.kategori} fill className="object-cover" sizes="280px" />
-          ) : (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <Shirt className="h-10 w-10 text-muted/30" />
-            </div>
-          )}
+    <div className="absolute inset-0 grid grid-cols-2 grid-rows-2 gap-0.5 bg-[#1E1E18]">
+      {images.slice(0, 4).map((img, idx) => (
+        <div key={idx} className="relative">
+          <Image src={img.src} alt={img.alt} fill unoptimized className="object-cover" sizes="70px" />
+          {img.isWeb && <WebBadge small />}
         </div>
-        
-        {/* Bottom half: split images */}
-        <div className="relative h-1/2 w-full flex">
-          {rest.map((item: any, idx: number) => (
-            <div key={item._id} className="relative h-full flex-1" style={{ borderLeft: idx > 0 ? '1px solid #1E1E18' : 'none' }}>
-              <Image src={item.resimUrl} alt={item.kategori} fill className="object-cover" sizes="140px" />
-            </div>
-          ))}
-          {rest.length === 0 && (
-            <div className="absolute inset-0 bg-[#161614]" />
-          )}
-        </div>
-      </div>
-
-      {/* Gradient Overlay for text readability */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/50 to-transparent pointer-events-none" />
-
-      {/* Top Badges */}
-      <div className="absolute top-3 left-3">
-        <span
-          className="text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full"
-          style={{ background: "rgba(0,0,0,0.4)", color: "#E8E8E8", backdropFilter: "blur(8px)" }}
-        >
-          {outfit.etkinlik ?? "Günlük"}
-        </span>
-      </div>
-      <div className="absolute top-3 right-3">
-        <span
-          className="inline-flex items-center gap-1 text-[10px] font-bold px-3 py-1 rounded-full text-gold"
-          style={{ background: "linear-gradient(135deg, rgba(201,168,76,0.15), rgba(201,168,76,0.05))", border: "1px solid rgba(201,168,76,0.3)", backdropFilter: "blur(8px)" }}
-        >
-          <Sparkles className="h-3 w-3" /> {outfit.kaydedildi ? "KAYITLI" : "AI"}
-        </span>
-      </div>
-
-      {/* Bottom Content */}
-      <div className="absolute bottom-0 left-0 right-0 p-4">
-        <h3 className="text-lg font-bold text-white mb-1 shadow-black drop-shadow-md">{outfit.baslik}</h3>
-        {outfit.aiIpucu && (
-          <p className="text-[11px] leading-tight line-clamp-1 mb-2 shadow-black drop-shadow-md" style={{ color: "var(--color-gold)" }}>
-            <Sparkles className="inline-block h-2.5 w-2.5 mr-0.5" /> {outfit.aiIpucu}
-          </p>
-        )}
-        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg" style={{ background: "rgba(201,168,76,0.15)", border: "1px solid rgba(201,168,76,0.2)" }}>
-          <Shirt className="h-3 w-3 text-gold" />
-          <span className="text-[11px] font-semibold text-gold">
-            {items.length} parça
-          </span>
-        </div>
-      </div>
+      ))}
     </div>
   );
 }
 
+function WebBadge({ small = false }: { small?: boolean }) {
+  return (
+    <div
+      className={`absolute ${small ? "top-1 right-1 h-4 w-4" : "top-2 right-2 h-5 w-5"} rounded-full flex items-center justify-center`}
+      style={{ background: "rgba(201,168,76,0.9)" }}
+      title="Web'den önerildi"
+    >
+      <ShoppingBag className={small ? "h-2 w-2 text-black" : "h-2.5 w-2.5 text-black"} />
+    </div>
+  );
+}
+
+function OutfitCard({ outfit }: { outfit: any }) {
+  const kiyafetler = (outfit.kiyafetler ?? []) as any[];
+  const disUrunler = (outfit.disUrunler ?? []) as any[];
+
+  const images: CollageImage[] = [
+    ...kiyafetler.map((k) => ({ src: k.resimUrl, alt: k.kategori, isWeb: false })),
+    ...disUrunler.map((p) => ({ src: p.resimUrl, alt: p.ad, isWeb: true })),
+  ].filter((img) => !!img.src);
+
+  const toplamParca = kiyafetler.length + disUrunler.length;
+
+  return (
+    <Link
+      href="/saved-outfits"
+      className="group relative flex-shrink-0 w-[140px] rounded-[20px] overflow-hidden cursor-pointer snap-start transition-transform duration-300 hover:-translate-y-0.5"
+      style={{ background: C, border: B }}
+    >
+      {/* Image collage */}
+      <div className="relative aspect-square" style={{ background: "#1A1A14" }}>
+        <OutfitCollage images={images} />
+
+        {/* Top badges */}
+        <div className="absolute top-2 left-2">
+          <span
+            className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full"
+            style={{ background: "rgba(0,0,0,0.5)", color: "#E8E8E8", backdropFilter: "blur(6px)" }}
+          >
+            {outfit.etkinlik ?? "Günlük"}
+          </span>
+        </div>
+      </div>
+
+      {/* Content below image */}
+      <div className="p-3">
+        <p className="text-[12px] font-bold text-text leading-tight mb-1 line-clamp-2">{outfit.baslik}</p>
+        <div className="flex items-center gap-1">
+          <Shirt className="h-3 w-3 text-gold" />
+          <span className="text-[11px] font-semibold text-gold">{toplamParca} parça</span>
+          {outfit.kaydedildi && (
+            <Sparkles className="h-3 w-3 text-gold ml-auto" />
+          )}
+        </div>
+      </div>
+    </Link>
+  );
+}
+
 export function RecentOutfits() {
-  const { data, isPending } = useOutfits(1, 6);
-  const outfits = data?.kombinler ?? [];
+  // "Sana Özel Kombinler" = kullanıcının "Kombinlerim" arşivine kaydettiği kombinler.
+  // Burada AI önerisi tüm geçmiş kombinlerden değil, sadece arşivden gelir —
+  // arşivde 3 kombin varsa burada da 3 kombin gösterilir.
+  const { data, isPending } = useSavedOutfits();
+  const saved = data?.kombinler ?? [];
+  const outfits = saved.map((s: any) => s.kombId ?? s).filter(Boolean);
 
   return (
     <div className="pt-2">
@@ -124,7 +172,9 @@ export function RecentOutfits() {
       </div>
 
       {isPending ? (
-        <div className="skeleton h-72 w-[280px] rounded-[24px]" />
+        <div className="flex gap-4 overflow-hidden">
+          {[1,2,3,4,5].map((i) => <div key={i} className="skeleton h-[200px] w-[140px] rounded-[20px] flex-shrink-0" />)}
+        </div>
       ) : outfits.length === 0 ? (
         <div className="rounded-[20px] p-8 text-center max-w-[280px]" style={{ background: C, border: B }}>
           <div
@@ -139,8 +189,10 @@ export function RecentOutfits() {
           </Link>
         </div>
       ) : (
-        <div className="flex justify-start">
-          <OutfitCard outfit={outfits[0]} />
+        <div className="flex gap-4 overflow-x-auto scrollbar-thin pb-4 snap-x">
+          {outfits.map((outfit: any) => (
+            <OutfitCard key={outfit._id} outfit={outfit} />
+          ))}
         </div>
       )}
     </div>

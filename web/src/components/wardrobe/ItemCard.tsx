@@ -7,7 +7,7 @@ import type { Item } from "@/types";
 const CAT_COLORS: Record<string, string> = {
   "Üst Giyim":     "rgba(90,122,156,0.25)",
   "Alt Giyim":     "rgba(122,90,156,0.25)",
-  "Elbise & Etek": "rgba(156,90,122,0.25)",
+  "Elbise":        "rgba(156,90,122,0.25)",
   "Dış Giyim":     "rgba(106,140,106,0.25)",
   "Ayakkabı":      "rgba(156,122,90,0.25)",
   "Aksesuar":      "rgba(90,156,122,0.25)",
@@ -15,7 +15,7 @@ const CAT_COLORS: Record<string, string> = {
 const CAT_TEXT: Record<string, string> = {
   "Üst Giyim":     "#7EB3E0",
   "Alt Giyim":     "#B07EE0",
-  "Elbise & Etek": "#E07EB0",
+  "Elbise":        "#E07EB0",
   "Dış Giyim":     "#90C490",
   "Ayakkabı":      "#E0B07E",
   "Aksesuar":      "#7EE0B0",

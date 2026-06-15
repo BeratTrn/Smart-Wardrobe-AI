@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { X, Heart, Sparkles, Palette, Sun, Layers, Tag, Loader2 } from "lucide-react";
+import { X, Heart, Sparkles, Palette, Sun, Layers, Loader2 } from "lucide-react";
 import type { Item } from "@/types";
 
 interface ItemDetailModalProps {
@@ -14,7 +14,7 @@ interface ItemDetailModalProps {
 const CAT_COLORS: Record<string, { bg: string; text: string }> = {
   "Üst Giyim":     { bg: "rgba(90,122,156,0.2)",  text: "#7EB3E0" },
   "Alt Giyim":     { bg: "rgba(122,90,156,0.2)",  text: "#B07EE0" },
-  "Elbise & Etek": { bg: "rgba(156,90,122,0.2)",  text: "#E07EB0" },
+  "Elbise":        { bg: "rgba(156,90,122,0.2)",  text: "#E07EB0" },
   "Dış Giyim":     { bg: "rgba(106,140,106,0.2)", text: "#90C490" },
   "Ayakkabı":      { bg: "rgba(156,122,90,0.2)",  text: "#E0B07E" },
   "Aksesuar":      { bg: "rgba(90,156,122,0.2)",  text: "#7EE0B0" },
@@ -127,7 +127,7 @@ export function ItemDetailModal({
               {/* Title + marka */}
               <div>
                 <h2 className="text-2xl font-black text-white leading-tight">
-                  {item.marka || "Kıyafet"}
+                  {item.ad || "Kıyafet"}
                 </h2>
                 {item.aciklama && (
                   <p className="text-[13px] text-muted mt-1 leading-relaxed">{item.aciklama}</p>
@@ -196,20 +196,6 @@ export function ItemDetailModal({
                     ))}
                   </div>
                 </div>
-
-                {/* Marka (if exists) */}
-                {item.marka && (
-                  <div
-                    className="rounded-2xl p-4 space-y-2 col-span-2"
-                    style={{ background: "#161614", border: "1px solid #222218" }}
-                  >
-                    <div className="flex items-center gap-1.5">
-                      <Tag className="h-3.5 w-3.5 text-muted" />
-                      <span className="text-[11px] font-medium text-muted uppercase tracking-wider">Marka</span>
-                    </div>
-                    <p className="text-[14px] font-bold text-white">{item.marka}</p>
-                  </div>
-                )}
               </div>
             </div>
 

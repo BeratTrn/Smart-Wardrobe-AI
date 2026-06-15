@@ -15,12 +15,12 @@ import {
   type SegmentationResult,
   type ExtractResult,
 } from "@/lib/utils/clothingExtractor";
-import type { ItemCategory, ItemSeason, ItemStyle } from "@/types";
+import type { ItemCategory, ItemSeason, ItemStyle, ItemCinsiyet } from "@/types";
 
 const CATEGORIES: { value: ItemCategory; label: string; icon: string }[] = [
   { value: "Üst Giyim",    label: "Üst Giyim",    icon: "👕" },
   { value: "Alt Giyim",    label: "Alt Giyim",     icon: "👖" },
-  { value: "Elbise & Etek",label: "Elbise & Etek", icon: "👗" },
+  { value: "Elbise",       label: "Elbise",        icon: "👗" },
   { value: "Dış Giyim",    label: "Dış Giyim",     icon: "🧥" },
   { value: "Ayakkabı",     label: "Ayakkabı",      icon: "👟" },
   { value: "Aksesuar",     label: "Aksesuar",      icon: "⌚" },
@@ -28,6 +28,11 @@ const CATEGORIES: { value: ItemCategory; label: string; icon: string }[] = [
 
 const SEASONS: ItemSeason[] = ["İlkbahar", "Yaz", "Sonbahar", "Kış", "Tüm Mevsimler"];
 const STYLES: ItemStyle[]   = ["Günlük", "Klasik", "Spor", "Sokak", "Minimal", "Şık", "Resmi"];
+const CINSIYETLER: { value: ItemCinsiyet; label: string }[] = [
+  { value: "Unisex", label: "Unisex" },
+  { value: "Kadın",  label: "Kadın" },
+  { value: "Erkek",  label: "Erkek" },
+];
 
 // Colors
 const BG = "transparent"; 
@@ -75,6 +80,7 @@ export default function AddItemPage() {
   const [renk, setRenk]             = useState("");
   const [mevsimler, setMevsimler]   = useState<ItemSeason[]>(["Tüm Mevsimler"]);
   const [stiller, setStiller]       = useState<ItemStyle[]>(["Günlük"]);
+  const [cinsiyet, setCinsiyet]     = useState<ItemCinsiyet>("Unisex");
   const [marka, setMarka]           = useState("");
 
   const analyzeItem = useAnalyzeItem();
@@ -246,7 +252,7 @@ export default function AddItemPage() {
   const resetState = () => {
     setStep("drop"); setPreview(null); setOriginalFile(null);
     setAd(""); setKategori("Üst Giyim"); setRenk("");
-    setMevsimler(["Tüm Mevsimler"]); setStiller(["Günlük"]); setMarka("");
+    setMevsimler(["Tüm Mevsimler"]); setStiller(["Günlük"]); setCinsiyet("Unisex"); setMarka("");
     resetExtractState();
   };
 
@@ -284,6 +290,7 @@ export default function AddItemPage() {
       renk,
       mevsim: mevsimler[0] ?? "Tüm Mevsimler",
       stil: stiller[0] ?? "Günlük",
+      cinsiyet,
       marka: marka || undefined,
     });
   };
@@ -671,6 +678,16 @@ export default function AddItemPage() {
               <div className="flex flex-wrap gap-3 mt-2">
                 {STYLES.map((s) => (
                   <PillBtn key={s} label={s} active={stiller.includes(s)} onClick={() => toggleStil(s)} />
+                ))}
+              </div>
+            </div>
+
+            {/* Gender pills */}
+            <div>
+              <SectionLabel subtitle="Kombin önerilerinde cinsiyete uygun parçaların seçilmesi için kullanılır.">CİNSİYET</SectionLabel>
+              <div className="flex flex-wrap gap-3 mt-2">
+                {CINSIYETLER.map((c) => (
+                  <PillBtn key={c.value} label={c.label} active={cinsiyet === c.value} onClick={() => setCinsiyet(c.value)} />
                 ))}
               </div>
             </div>

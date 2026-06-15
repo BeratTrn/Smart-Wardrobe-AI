@@ -36,6 +36,7 @@ export interface UserProfile {
   profilFoto: string;
   tercihler: UserTercihler;
   vucut: UserVucut;
+  cinsiyet?: Cinsiyet;
   defaultCity: string;
   theme: "dark" | "light";
   language: "tr" | "en" | "de" | "fr";
@@ -46,6 +47,7 @@ export interface UserProfile {
 export type BodyShape = "kum_saati" | "armut" | "ters_ucgen" | "dikdortgen";
 export type FitPreference = "slim" | "regular" | "oversize";
 export type Language = "tr" | "en" | "de" | "fr";
+export type Cinsiyet = "Erkek" | "Kadın" | "Belirtilmemiş";
 
 // ── Auth ─────────────────────────────────────────────────────────────────────
 export interface LoginPayload {
@@ -75,7 +77,7 @@ export interface OtpVerifyPayload {
 export type ItemCategory =
   | "Üst Giyim"
   | "Alt Giyim"
-  | "Elbise & Etek"
+  | "Elbise"
   | "Dış Giyim"
   | "Ayakkabı"
   | "Aksesuar";
@@ -101,6 +103,10 @@ export interface AnalysisResult {
   confidence?: number;
 }
 
+// Kombin önerilerinde (gardırop + web) cinsiyete uygun olmayan parçaları
+// filtrelemek için kullanılır. 'Unisex' her zaman önerilebilir.
+export type ItemCinsiyet = "Erkek" | "Kadın" | "Unisex";
+
 // ── Item ─────────────────────────────────────────────────────────────────────
 export interface Item {
   _id: string;
@@ -109,6 +115,7 @@ export interface Item {
   renk: string;
   mevsim: Season[];
   stil: StyleTag[];
+  cinsiyet?: ItemCinsiyet;
   marka?: string;
   aciklama?: string;
   resimUrl: string;
@@ -131,6 +138,7 @@ export interface AddItemPayload {
   renk: string;
   mevsim: Season[];
   stil: StyleTag[];
+  cinsiyet?: ItemCinsiyet;
   marka?: string;
   aciklama?: string;
 }
@@ -140,6 +148,7 @@ export interface UpdateItemPayload {
   renk?: string;
   mevsim?: Season[];
   stil?: StyleTag[];
+  cinsiyet?: ItemCinsiyet;
   marka?: string;
   aciklama?: string;
   favori?: boolean;
@@ -159,11 +168,21 @@ export interface WeatherData {
 // ── Outfit ────────────────────────────────────────────────────────────────────
 export interface PopulatedItem extends Item {}
 
+// "Webden Kombin Öner" özelliğinde AI'ın gardırop dışından (web'den) seçtiği ürün
+export interface WebProduct {
+  ad: string;
+  resimUrl: string;
+  link: string;
+  fiyat: number | null;
+  kaynak: string;
+}
+
 export interface Outfit {
   _id: string;
   baslik: string;
   aiAciklama: string;
   kiyafetler: PopulatedItem[];
+  disUrunler?: WebProduct[];
   havaDurumu?: WeatherData;
   etkinlik?: string;
   begeniyor?: boolean | null;
@@ -178,8 +197,11 @@ export interface OutfitRecommendation {
   aciklama: string;
   ipucu: string;
   kiyafetler: PopulatedItem[];
+  disUrunler?: WebProduct[];
   havaDurumu?: WeatherData;
   etkinlik?: string;
+  aramaSorgusu?: string;
+  webUrunSayisi?: number;
 }
 
 export interface OutfitGeneratePayload {
