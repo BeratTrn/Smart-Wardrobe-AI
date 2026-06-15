@@ -1,14 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
-import Link from "next/link";
-import Image from "next/image";
-import { Menu, Sun, Moon, Cloud, CloudRain, Wind, Droplets, Thermometer, MapPin, X } from "lucide-react";
-import { useUIStore } from "@/lib/store/uiStore";
-import { useAuthStore } from "@/lib/store/authStore";
-import { useThemeStore } from "@/lib/store/themeStore";
 import { useProfile } from "@/lib/hooks/useUsers";
 import { useWeather } from "@/lib/hooks/useWeather";
+import { useAuthStore } from "@/lib/store/authStore";
+import { useThemeStore } from "@/lib/store/themeStore";
+import { useUIStore } from "@/lib/store/uiStore";
+import { Cloud, CloudRain, Droplets, MapPin, Menu, Moon, Sun, Thermometer, Wind, X } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import React, { useState } from "react";
 
 function getWeatherIcon(durum: string) {
   const d = durum?.toLowerCase() || "";
