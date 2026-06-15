@@ -55,7 +55,7 @@ export default function OutfitsPage() {
 
   return (
     <div className="space-y-6 animate-fade-in pb-10">
-      {/* ── Header ── */}
+      {/* Header */}
       <div>
         <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-muted mb-1">AI STİL</p>
         <h1 className="text-2xl font-black text-text leading-none">AI Kombin Üretici</h1>
@@ -63,12 +63,12 @@ export default function OutfitsPage() {
       </div>
 
       <div className="grid lg:grid-cols-[380px_1fr] xl:grid-cols-[420px_1fr] gap-8 items-start">
-        {/* ── Left: Sticky Generator ── */}
+        {/* Left: Sticky Generator */}
         <div className="sticky top-6">
           <OutfitGeneratorPanel onGenerate={handleGenerate} isLoading={isGenerating} weather={weather} />
         </div>
 
-        {/* ── Right: Results ── */}
+        {/* Right: Results */}
         <div className="space-y-4">
           {isGenerating && (
             <div className="rounded-[32px] overflow-hidden" style={{ background: SBG, border: BDR }}>

@@ -56,7 +56,7 @@ export function OutfitResultCard({ outfit, showActions = false, isFresh = false,
       {/* Gold top bar on fresh results */}
       {(isFresh || highlight) && <div className="h-0.5 w-full bg-gold-gradient" />}
 
-      {/* ── Lookbook image grid ── */}
+      {/* Lookbook image grid */}
       {items.length > 0 && (
         <div className={cn("grid gap-0.5", items.length === 1 ? "grid-cols-1" : items.length === 2 ? "grid-cols-2" : "grid-cols-3")}>
           {items.map((item, idx) => (
@@ -85,7 +85,7 @@ export function OutfitResultCard({ outfit, showActions = false, isFresh = false,
         </div>
       )}
 
-      {/* ── Content ── */}
+      {/* Content */}
       <div className="p-5 space-y-4">
         {/* Title + remove button */}
         <div className="flex items-start justify-between gap-3">
@@ -131,7 +131,7 @@ export function OutfitResultCard({ outfit, showActions = false, isFresh = false,
           ) : null}
         </div>
 
-        {/* ── Stilistin Notu ── */}
+        {/* Stilistin Notu */}
         <div className={cn("space-y-3", !showRemove && "rounded-xl p-4")} style={!showRemove ? { background: SBG, border: BDR } : {}}>
           {!showRemove && (
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted flex items-center gap-1.5">
@@ -163,7 +163,7 @@ export function OutfitResultCard({ outfit, showActions = false, isFresh = false,
           )}
         </div>
 
-        {/* ── Parça sayısı ── */}
+        {/* Parça sayısı */}
         {data.kiyafetler.length > 0 && (
           <div className="flex items-center gap-1.5">
             <Shirt className="h-3.5 w-3.5 text-muted" />
@@ -171,7 +171,7 @@ export function OutfitResultCard({ outfit, showActions = false, isFresh = false,
           </div>
         )}
 
-        {/* ── Web'den önerilen ürünler ── */}
+        {/* Web'den önerilen ürünler */}
         {data.disUrunler && data.disUrunler.length > 0 && (
           <div className="space-y-2.5">
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted flex items-center gap-1.5">
@@ -185,7 +185,7 @@ export function OutfitResultCard({ outfit, showActions = false, isFresh = false,
           </div>
         )}
 
-        {/* ── Actions ── */}
+        {/* Actions */}
         {(showActions || onTryOn) && (
           <div className="pt-2 border-t mt-2" style={{ borderColor: "#1E1E18" }}>
             {onTryOn && (
