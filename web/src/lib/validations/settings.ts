@@ -6,6 +6,7 @@ export const profileSchema = z.object({
     .string()
     .min(3, { message: "Username must be at least 3 characters" })
     .max(30, { message: "Username must be at most 30 characters" }),
+  cinsiyet: z.enum(["Erkek", "Kadın", "Belirtilmemiş"] as const).optional(),
 });
 export type ProfileFormData = z.infer<typeof profileSchema>;
 

@@ -5,6 +5,7 @@ import type {
   BodyShape,
   FitPreference,
   Language,
+  Cinsiyet,
 } from "@/types";
 
 // ── Response shapes ───────────────────────────────────────────────────────────
@@ -35,6 +36,7 @@ export interface PreferencesResponse {
 export interface UpdateProfilePayload {
   kullaniciAdi?: string;
   tercihler?: Partial<UserTercihler>;
+  cinsiyet?: Cinsiyet;
 }
 
 export interface UpdateBodyPayload {

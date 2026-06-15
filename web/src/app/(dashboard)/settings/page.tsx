@@ -329,9 +329,9 @@ function ProfileSection({ profile }: { profile: UserProfile }) {
   const updateProfile = useUpdateProfile(() => setSaved(true));
   const { register, handleSubmit, formState: { errors, isDirty } } = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
-    defaultValues: { kullaniciAdi: profile.kullaniciAdi },
+    defaultValues: { kullaniciAdi: profile.kullaniciAdi, cinsiyet: profile.cinsiyet ?? "Belirtilmemiş" },
   });
-  const onSubmit = (data: ProfileFormData) => { setSaved(false); updateProfile.mutate({ kullaniciAdi: data.kullaniciAdi }); };
+  const onSubmit = (data: ProfileFormData) => { setSaved(false); updateProfile.mutate({ kullaniciAdi: data.kullaniciAdi, cinsiyet: data.cinsiyet }); };
 
   return (
     <div className="space-y-5 animate-in fade-in duration-300">
@@ -361,6 +361,19 @@ function ProfileSection({ profile }: { profile: UserProfile }) {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <GoldInput label="Kullanıcı Adı" placeholder="ör. fashionlover" {...register("kullaniciAdi")} />
         {errors.kullaniciAdi && <p className="text-[11px] text-red-400">{errors.kullaniciAdi.message}</p>}
+        <div className="space-y-1.5">
+          <label className="text-[11px] font-bold uppercase tracking-wider text-muted">Cinsiyet</label>
+          <select
+            {...register("cinsiyet")}
+            className="w-full rounded-xl px-4 py-3 text-[13.5px] font-medium text-text outline-none transition-all duration-200"
+            style={{ background: S2, border: b }}
+          >
+            <option value="Belirtilmemiş">Belirtilmemiş</option>
+            <option value="Kadın">Kadın</option>
+            <option value="Erkek">Erkek</option>
+          </select>
+          <p className="text-[11px] text-muted">Kombin önerilerinde (dolap ve web) sana uygun olmayan parçaların gösterilmemesi için kullanılır.</p>
+        </div>
         <div className="space-y-1.5">
           <label className="text-[11px] font-bold uppercase tracking-wider text-muted">E-Posta</label>
           <input readOnly value={profile.email}
