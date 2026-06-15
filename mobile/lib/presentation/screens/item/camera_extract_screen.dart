@@ -1,11 +1,9 @@
-// ============================================================
 //  Camera Extract Screen
 //  Web'deki "kamera aç → poz ver → kıyafete dokun → kes" akışının
 //  Flutter karşılığı. Canlı kamera önizlemesi (camera paketi) ve
 //  on-device segmentasyon (ClothingExtractor / tflite_flutter)
 //  kullanılarak dokunulan kıyafet/aksesuar şeffaf arka planlı bir
 //  PNG olarak kesilir.
-// ============================================================
 
 import 'dart:typed_data';
 
@@ -13,7 +11,6 @@ import 'package:camera/camera.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:image/image.dart' as img;
-
 import 'package:smart_wardrobe_ai/core/constants/app_colors.dart';
 import 'package:smart_wardrobe_ai/core/utils/clothing_extractor.dart';
 
@@ -116,7 +113,7 @@ class _CameraExtractScreenState extends State<CameraExtractScreen> {
     super.dispose();
   }
 
-  // ─── Fotoğraf çek ────────────────────────────────────────────────────────
+  // Fotoğraf çek
 
   Future<void> _capture() async {
     final controller = _controller;
@@ -153,7 +150,7 @@ class _CameraExtractScreenState extends State<CameraExtractScreen> {
     }
   }
 
-  // ─── Dokunarak kıyafet seç ──────────────────────────────────────────────
+  // Dokunarak kıyafet seç
 
   Future<void> _onTapImage(double normX, double normY) async {
     final image = _capturedImage;
@@ -234,7 +231,7 @@ class _CameraExtractScreenState extends State<CameraExtractScreen> {
     );
   }
 
-  // ─── Build ───────────────────────────────────────────────────────────────
+  // Build
 
   @override
   Widget build(BuildContext context) {
@@ -634,7 +631,7 @@ class _CameraExtractScreenState extends State<CameraExtractScreen> {
   }
 }
 
-// ─── Yardımcı widget'lar ──────────────────────────────────────────────────
+// Yardımcı widget'lar
 
 class _RoundIconButton extends StatelessWidget {
   final IconData icon;
@@ -669,12 +666,8 @@ class _CheckerboardPainter extends CustomPainter {
 
     for (double y = 0; y < size.height; y += cell) {
       for (double x = 0; x < size.width; x += cell) {
-        final isEven =
-            ((x / cell).floor() + (y / cell).floor()) % 2 == 0;
-        canvas.drawRect(
-          Rect.fromLTWH(x, y, cell, cell),
-          isEven ? light : dark,
-        );
+        final isEven = ((x / cell).floor() + (y / cell).floor()) % 2 == 0;
+        canvas.drawRect(Rect.fromLTWH(x, y, cell, cell), isEven ? light : dark);
       }
     }
   }

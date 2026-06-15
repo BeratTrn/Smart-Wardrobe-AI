@@ -1,11 +1,9 @@
-// ============================================================
 //  Clothing Extractor (Mobile)
 //  Web sürümündeki (web/src/lib/utils/clothingExtractor.ts) ile
 //  AYNI MediaPipe "selfie_multiclass_256x256" segmentasyon modelini
 //  cihaz üzerinde (tflite_flutter) çalıştırır. Kullanıcının dokunduğu
 //  noktadaki kıyafet/aksesuar bölgesini flood-fill ile bulur ve
 //  şeffaf arka planlı bir "cutout" PNG üretir.
-// ============================================================
 
 import 'dart:typed_data';
 import 'dart:math' as math;
