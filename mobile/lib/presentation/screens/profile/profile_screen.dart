@@ -235,6 +235,7 @@ class _ProfileScreenState extends State<ProfileScreen>
             totalItems: itemCount,
             totalOutfits: outfitCount,
             totalFavorites: favCount,
+            cinsiyet: p.cinsiyet,
           );
           if (p.profilePhoto.isNotEmpty) _profilePhoto = p.profilePhoto;
           _loading = false;

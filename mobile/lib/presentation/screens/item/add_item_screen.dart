@@ -37,6 +37,14 @@ class _AddItemScreenState extends State<AddItemScreen>
   String _selectedCategory = '';
   String _selectedSeason = 'add_item.all_seasons'.tr();
   String _selectedStyle = 'add_item.casual'.tr();
+  // Backend enum (Item.cinsiyet): 'Unisex' | 'Kadın' | 'Erkek'
+  String _selectedGender = 'Unisex';
+
+  final List<(String value, String label)> _genders = [
+    ('Unisex', 'add_item.gender_unisex'.tr()),
+    ('Kadın', 'add_item.gender_female'.tr()),
+    ('Erkek', 'add_item.gender_male'.tr()),
+  ];
 
   final List<String> _categories = [
     'add_item.outerwear'.tr(),
@@ -189,6 +197,7 @@ class _AddItemScreenState extends State<AddItemScreen>
         renk: _colorCtrl.text.trim(),
         mevsim: _selectedSeason,
         stil: _selectedStyle,
+        cinsiyet: _selectedGender,
       );
 
       if (!mounted) return;
@@ -224,6 +233,7 @@ class _AddItemScreenState extends State<AddItemScreen>
     _selectedCategory = '';
     _selectedSeason = 'add_item.all_seasons'.tr();
     _selectedStyle = 'add_item.casual'.tr();
+    _selectedGender = 'Unisex';
     _nameCtrl.clear();
     _colorCtrl.clear();
   });
@@ -284,12 +294,15 @@ class _AddItemScreenState extends State<AddItemScreen>
           selectedCategory: _selectedCategory,
           selectedSeason: _selectedSeason,
           selectedStyle: _selectedStyle,
+          selectedGender: _selectedGender,
           categories: _categories,
           seasons: _seasons,
           styles: _styles,
+          genders: _genders,
           onCategoryChange: (v) => setState(() => _selectedCategory = v),
           onSeasonChange: (v) => setState(() => _selectedSeason = v),
           onStyleChange: (v) => setState(() => _selectedStyle = v),
+          onGenderChange: (v) => setState(() => _selectedGender = v),
           onBack: _reset,
           onSave: _save,
         );
@@ -601,9 +614,10 @@ class _AnalyzingStep extends StatelessWidget {
 class _ReviewStep extends StatelessWidget {
   final Uint8List? imageBytes;
   final TextEditingController nameCtrl, colorCtrl;
-  final String selectedCategory, selectedSeason, selectedStyle;
+  final String selectedCategory, selectedSeason, selectedStyle, selectedGender;
   final List<String> categories, seasons, styles;
-  final ValueChanged<String> onCategoryChange, onSeasonChange, onStyleChange;
+  final List<(String value, String label)> genders;
+  final ValueChanged<String> onCategoryChange, onSeasonChange, onStyleChange, onGenderChange;
   final VoidCallback onBack, onSave;
 
   const _ReviewStep({
@@ -614,12 +628,15 @@ class _ReviewStep extends StatelessWidget {
     required this.selectedCategory,
     required this.selectedSeason,
     required this.selectedStyle,
+    required this.selectedGender,
     required this.categories,
     required this.seasons,
     required this.styles,
+    required this.genders,
     required this.onCategoryChange,
     required this.onSeasonChange,
     required this.onStyleChange,
+    required this.onGenderChange,
     required this.onBack,
     required this.onSave,
   });
@@ -800,6 +817,33 @@ class _ReviewStep extends StatelessWidget {
                     label: s,
                     selected: selectedStyle == s,
                     onTap: () => onStyleChange(s),
+                  ),
+                )
+                .toList(),
+          ),
+
+          const SizedBox(height: 18),
+
+          // ── CİNSİYET
+          Text(
+            'add_item.gender'.tr(),
+            style: AppTextStyles.label.copyWith(letterSpacing: 1.2),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'add_item.gender_hint'.tr(),
+            style: AppTextStyles.caption.copyWith(color: AppColors.muted),
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: genders
+                .map(
+                  (g) => AppFilterChip(
+                    label: g.$2,
+                    selected: selectedGender == g.$1,
+                    onTap: () => onGenderChange(g.$1),
                   ),
                 )
                 .toList(),
@@ -1080,7 +1124,7 @@ class _CategoryDropdown extends StatelessWidget {
         return Icons.dry_cleaning_outlined;
       case 'Alt Giyim':
         return Icons.checkroom_outlined;
-      case 'Elbise & Etek':
+      case 'Elbise':
         return Icons.woman_outlined;
       case 'Ayakkabı':
         return Icons.run_circle_outlined;

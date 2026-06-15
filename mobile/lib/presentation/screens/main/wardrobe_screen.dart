@@ -329,7 +329,7 @@ Color _catColor(String cat) {
       return AppColors.catShoes;
     case 'Aksesuar':
       return AppColors.catAccessory;
-    case 'Elbise & Etek':
+    case 'Elbise':
       return AppColors.catOnePiece;
     case 'Dış Giyim':
       return AppColors.catOuterwear;

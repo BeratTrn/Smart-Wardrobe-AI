@@ -6,6 +6,9 @@ class UserProfile {
   final int totalItems;
   final int totalOutfits;
   final int totalFavorites;
+  // Kombin önerilerinde (gardırop + web) cinsiyete uygun olmayan parçaları
+  // filtrelemek için kullanılır. 'Erkek' | 'Kadın' | 'Belirtilmemiş'
+  final String cinsiyet;
 
   const UserProfile({
     required this.id,
@@ -15,6 +18,7 @@ class UserProfile {
     required this.totalItems,
     required this.totalOutfits,
     required this.totalFavorites,
+    this.cinsiyet = 'Belirtilmemiş',
   });
 
   factory UserProfile.fromJson(Map<String, dynamic> j) => UserProfile(
@@ -25,6 +29,7 @@ class UserProfile {
     totalItems: j['toplamKiyafet'] ?? j['totalItems'] ?? 0,
     totalOutfits: j['toplamKombin'] ?? j['totalOutfits'] ?? 0,
     totalFavorites: j['toplamFavori'] ?? j['totalFavorites'] ?? 0,
+    cinsiyet: j['cinsiyet'] ?? 'Belirtilmemiş',
   );
 
   UserProfile copyWith({
@@ -35,6 +40,7 @@ class UserProfile {
     int? totalItems,
     int? totalOutfits,
     int? totalFavorites,
+    String? cinsiyet,
   }) => UserProfile(
     id: id ?? this.id,
     name: name ?? this.name,
@@ -43,5 +49,6 @@ class UserProfile {
     totalItems: totalItems ?? this.totalItems,
     totalOutfits: totalOutfits ?? this.totalOutfits,
     totalFavorites: totalFavorites ?? this.totalFavorites,
+    cinsiyet: cinsiyet ?? this.cinsiyet,
   );
 }

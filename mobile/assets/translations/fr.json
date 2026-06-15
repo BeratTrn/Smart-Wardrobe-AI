@@ -272,6 +272,11 @@
     "ai_prediction_wrong_fill_correct": "Si la prédiction de l'IA est incorrecte, sélectionnez la bonne.",
     "season": "SAISON",
     "style": "STYLE",
+    "gender": "GENRE",
+    "gender_hint": "Utilisé pour proposer des pièces adaptées à votre genre dans les suggestions de tenues.",
+    "gender_unisex": "Unisexe",
+    "gender_female": "Femme",
+    "gender_male": "Homme",
     "add_to_closet": "Ajouter à la garde-robe",
     "adding_to_closet": "Ajout à la garde-robe...",
     "added": "Ajouté!",
@@ -398,6 +403,11 @@
     "edit_profile": "Modifier le profil",
     "change_username": "Vous pouvez changer votre nom d'utilisateur",
     "username": "Nom d'utilisateur",
+    "gender": "Genre",
+    "gender_hint": "Utilisé pour masquer les articles qui ne vous correspondent pas dans les suggestions de tenues (garde-robe et web).",
+    "gender_unspecified": "Non spécifié",
+    "gender_female": "Femme",
+    "gender_male": "Homme",
     "save": "Enregistrer"
   },
   "body_profile": {

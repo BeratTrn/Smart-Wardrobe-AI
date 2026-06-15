@@ -145,6 +145,7 @@ class ApiService {
   /// [renk]        — Kullanıcının onayladığı renk HEX kodu (AI'ya göre öncelikli)
   /// [mevsim]      — Kullanıcının seçtiği mevsim
   /// [stil]        — Kullanıcının seçtiği stil
+  /// [cinsiyet]    — Kullanıcının seçtiği kıyafet cinsiyeti ('Unisex' | 'Kadın' | 'Erkek')
   ///
   /// Başarıda [AiAnalysisResult] döner.
   /// Hata durumunda [ApiException] fırlatır.
@@ -155,6 +156,7 @@ class ApiService {
     String renk = '', // boş → backend AI tahminini kullanır
     String mevsim = 'Tüm Mevsimler',
     String stil = 'Casual',
+    String cinsiyet = 'Unisex',
   }) async {
     final token = await _getToken();
     if (token.isEmpty) {
@@ -169,7 +171,8 @@ class ApiService {
       ..headers['Authorization'] = 'Bearer ${token.trim()}'
       ..headers['Accept'] = 'application/json'
       ..fields['mevsim'] = mevsim
-      ..fields['stil'] = stil;
+      ..fields['stil'] = stil
+      ..fields['cinsiyet'] = cinsiyet;
 
     // Kullanıcının onayladığı değerleri body'e ekle (boşsa gönderme)
     if (kategori.isNotEmpty) req.fields['kategori'] = kategori;
