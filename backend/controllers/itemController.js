@@ -53,7 +53,7 @@ const analyzeAndAddItem = async (req, res) => {
         let resimUrl     = req.file.path     || '';
         let cloudinaryId = req.file.filename || '';
 
-        // ── AI Analysis via FastAPI engine ────────────────────
+        // AI Analysis via FastAPI engine 
         let aiData = {
             kategori:     'Diğer',
             renk:         'Bilinmiyor',
@@ -84,6 +84,7 @@ const analyzeAndAddItem = async (req, res) => {
             renk:         req.body.renk     || aiData.renk,
             mevsim:       req.body.mevsim   || 'Tüm Mevsimler',
             stil:         req.body.stil     || 'Günlük',
+            cinsiyet:     req.body.cinsiyet || 'Unisex',
             marka:        req.body.marka    || '',
             notlar:       req.body.notlar   || '',
             aiDogrulandi: aiData.aiDogrulandi,
@@ -163,11 +164,14 @@ const updateItem = async (req, res) => {
             return res.status(403).json({ mesaj: 'Bu kıyafeti düzenleme yetkiniz yok.' });
         }
 
-        const { kategori, renk, mevsim, stil, marka, notlar } = req.body;
+        const { kategori, renk, mevsim, stil, cinsiyet, marka, notlar } = req.body;
+
+        const update = { kategori, renk, mevsim, stil, marka, notlar };
+        if (cinsiyet !== undefined) update.cinsiyet = cinsiyet;
 
         const updatedItem = await Item.findByIdAndUpdate(
             req.params.id,
-            { kategori, renk, mevsim, stil, marka, notlar },
+            update,
             { new: true, runValidators: true }
         );
 
