@@ -37,9 +37,8 @@ app.set('trust proxy', 1);
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
 
-// ========================
+
 // GÜVENLİK MİDDLEWARE'LERİ
-// ========================
 
 // Helmet: HTTP başlıklarını güvenli hale getirir
 app.use(helmet());
@@ -82,16 +81,14 @@ const authLimiter = rateLimit({
     message: { mesaj: 'Çok fazla giriş denemesi, lütfen 15 dakika sonra tekrar deneyin.' }
 });
 
-// ========================
+
 // GENEL MİDDLEWARE'LER
-// ========================
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(morgan('dev'));
 
-// ========================
+
 // ROUTE'LAR
-// ========================
 const authRoutes        = require('./routes/authRoutes');
 const userRoutes        = require('./routes/userRoutes');
 const itemRoutes        = require('./routes/itemRoutes');
@@ -110,15 +107,13 @@ app.use('/api/weather', weatherRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/travel', travelRoutes);
 
-// ========================
+
 // SWAGGER HANDLER
-// ========================
 app.get('/api-docs.json', (req, res) => res.json(swaggerSpec));
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-// ========================
+
 // SAĞLIK KONTROLÜ (Health Check)
-// ========================
 /**
  * @swagger
  * /api/health:
@@ -137,16 +132,14 @@ app.get('/api/health', (req, res) => {
     });
 });
 
-// ========================
+
 // 404 HANDLER
-// ========================
 app.use('*', (req, res) => {
     res.status(404).json({ mesaj: `${req.originalUrl} endpoint'i bulunamadı.` });
 });
 
-// ========================
+
 // GLOBAL HATA HANDLER
-// ========================
 app.use((err, req, res, next) => {
     console.error('❌ Global Hata:', err.stack);
     res.status(err.status || 500).json({
@@ -155,9 +148,8 @@ app.use((err, req, res, next) => {
     });
 });
 
-// ========================
+
 // SUNUCUYU BAŞLAT
-// ========================
 const PORT = process.env.PORT || 3000;
 
 let server;

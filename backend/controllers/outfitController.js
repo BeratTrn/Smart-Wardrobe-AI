@@ -2,8 +2,9 @@ const Outfit = require('../models/Outfit');
 const Item = require('../models/Item');
 const { generateOutfitSuggestion } = require('../services/aiService');
 const { havaDurumuGetir, sehirHavaDurumu } = require('../services/weatherService');
+const { getGenderItemFilter } = require('../utils/genderFilter');
 
-// ── Shared helper: resolve weather from request body ─────────
+// resolve weather from request body
 const resolveWeather = async ({ enlem, boylam, sehir }) => {
     try {
         if (enlem && boylam) return await havaDurumuGetir(enlem, boylam);
@@ -15,13 +16,16 @@ const resolveWeather = async ({ enlem, boylam, sehir }) => {
 };
 
 // @route  POST /api/outfits/recommend
-// @desc   Hava durumu + etkinliğe göre AI (Gemini) kombin önerisi al
+// @desc   Hava durumu + etkinliğe göre AI kombin önerisi al
 // @access Private
 const kombinOnerisi = async (req, res) => {
     try {
         const { enlem, boylam, sehir, etkinlik = 'Günlük' } = req.body;
 
-        const kiyafetler = await Item.find({ kullanici: req.user._id });
+        const kiyafetler = await Item.find({
+            kullanici: req.user._id,
+            ...getGenderItemFilter(req.user.cinsiyet),
+        });
         if (kiyafetler.length === 0) {
             return res.status(400).json({
                 mesaj: 'Kombin önerisi için önce dolabınıza kıyafet eklemelisiniz. 👗',
@@ -75,77 +79,6 @@ const kombinOnerisi = async (req, res) => {
         const mesaj  = status === 400
             ? error.message
             : 'Kombin önerisi oluşturulamadı. Lütfen tekrar deneyin.';
-        res.status(status).json({ mesaj });
-    }
-};
-
-// @route  POST /api/outfits/daily
-// @desc   Günlük otomatik kombin — konum + etkinlik zorunlu değil
-// @access Private
-const generateDailyOutfit = async (req, res) => {
-    try {
-        const { sehir = 'Istanbul', etkinlik = 'Günlük' } = req.body;
-
-        const kiyafetler = await Item.find({ kullanici: req.user._id });
-        if (kiyafetler.length === 0) {
-            return res.status(400).json({
-                mesaj: 'Günlük kombin için önce dolabınıza kıyafet eklemelisiniz. 👗',
-            });
-        }
-
-        // Mock weather fallback so the endpoint works without a live API key
-        let havaBilgisi;
-        try {
-            havaBilgisi = await sehirHavaDurumu(sehir);
-        } catch {
-            havaBilgisi = { sicaklik: 20, durum: 'Güneşli', nem: 50, konum: sehir };
-        }
-
-        const aiKombin = await generateOutfitSuggestion(kiyafetler, havaBilgisi, etkinlik);
-
-        let onerilen = [];
-        if (aiKombin.secilen_kiyafet_idleri?.length) {
-            onerilen = await Item.find({
-                _id: { $in: aiKombin.secilen_kiyafet_idleri },
-                kullanici: req.user._id,
-            });
-        }
-
-        const outfit = await Outfit.create({
-            kullanici: req.user._id,
-            baslik: `Günlük Kombin - ${havaBilgisi.konum}`,
-            kiyafetler: onerilen.map(k => k._id),
-            aiAciklama: aiKombin.aciklama,
-            baglam: {
-                etkinlik,
-                havaDurumu: {
-                    sicaklik: havaBilgisi.sicaklik,
-                    durum: havaBilgisi.durum,
-                    nem: havaBilgisi.nem,
-                    konum: havaBilgisi.konum,
-                },
-            },
-        });
-
-        res.status(200).json({
-            mesaj: 'Günlük kombiniz hazır! 🌤️',
-            kombin: {
-                id: outfit._id,
-                baslik: outfit.baslik,
-                aciklama: aiKombin.aciklama,
-                ipucu: aiKombin.ipucu || '',
-                kiyafetler: onerilen,
-                havaDurumu: havaBilgisi,
-                etkinlik,
-            },
-        });
-
-    } catch (error) {
-        console.error('Günlük Kombin Hatası:', error);
-        const status = error.statusCode === 400 ? 400 : 500;
-        const mesaj  = status === 400
-            ? error.message
-            : 'Günlük kombin oluşturulamadı. Lütfen tekrar deneyin.';
         res.status(status).json({ mesaj });
     }
 };
@@ -223,4 +156,4 @@ const deleteOutfit = async (req, res) => {
     }
 };
 
-module.exports = { kombinOnerisi, generateDailyOutfit, getOutfits, outfitFeedback, deleteOutfit };
+module.exports = { kombinOnerisi, getOutfits, outfitFeedback, deleteOutfit, resolveWeather };

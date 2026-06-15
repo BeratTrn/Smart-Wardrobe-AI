@@ -10,6 +10,14 @@ const savedOutfitSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Item',
     }],
+    // "Webden Kombin Öner" özelliğinde AI'ın gardırop dışından (web'den search) seçtiği ürünler
+    disUrunler: [{
+        ad:       { type: String, default: '' },
+        resimUrl: { type: String, default: '' },
+        link:     { type: String, default: '' },
+        fiyat:    { type: Number, default: null },
+        kaynak:   { type: String, default: '' },
+    }],
     baslik: {
         type: String,
         default: 'Kaydedilen Kombin',

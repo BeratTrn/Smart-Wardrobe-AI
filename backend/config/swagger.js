@@ -25,7 +25,7 @@ const options = {
       },
       schemas: {
 
-        // ── Ortak hata yanıtı ─────────────────────────────────────────────
+        // Ortak hata yanıtı
         ErrorResponse: {
           type: 'object',
           properties: {
@@ -33,7 +33,7 @@ const options = {
           },
         },
 
-        // ── Kullanıcı tercihleri ──────────────────────────────────────────
+        // Kullanıcı tercihleri
         Tercihler: {
           type: 'object',
           properties: {
@@ -43,7 +43,7 @@ const options = {
           },
         },
 
-        // ── Vücut profili ─────────────────────────────────────────────────
+        // Vücut profili 
         VucutProfili: {
           type: 'object',
           properties: {
@@ -62,7 +62,7 @@ const options = {
           },
         },
 
-        // ── Kullanıcı profili ─────────────────────────────────────────────
+        // Kullanıcı profili 
         UserProfile: {
           type: 'object',
           properties: {
@@ -76,7 +76,7 @@ const options = {
           },
         },
 
-        // ── Kıyafet öğesi ─────────────────────────────────────────────────
+        // Kıyafet öğesi
         ClothingItem: {
           type: 'object',
           properties: {
@@ -105,7 +105,7 @@ const options = {
           },
         },
 
-        // ── AI kombin ────────────────────────────────────────────────────
+        // AI kombin 
         Outfit: {
           type: 'object',
           properties: {
@@ -123,7 +123,7 @@ const options = {
           },
         },
 
-        // ── Hava durumu ───────────────────────────────────────────────────
+        // Hava durumu 
         WeatherData: {
           type: 'object',
           properties: {
@@ -137,7 +137,7 @@ const options = {
           },
         },
 
-        // ── Gardırop istatistikleri ───────────────────────────────────────
+        // Gardırop istatistikleri
         WardrobeStats: {
           type: 'object',
           properties: {
@@ -165,7 +165,7 @@ const options = {
           },
         },
 
-        // ── Kayıtlı kombin (savedOutfitRoutes'tan bağımsız merkezi tanım) ─
+        // Kayıtlı kombin (savedOutfitRoutes'tan bağımsız merkezi tanım)
         HavaDurumu: {
           type: 'object',
           properties: {

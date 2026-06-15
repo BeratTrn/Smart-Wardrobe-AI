@@ -1,5 +1,6 @@
 const express = require('express');
 const { kombinOnerisi, getOutfits, outfitFeedback, deleteOutfit } = require('../controllers/outfitController');
+const { webKombinOnerisi } = require('../controllers/webOutfitController');
 const { protect } = require('../middleware/authMiddleware');
 
 const router = express.Router();
@@ -73,6 +74,51 @@ const router = express.Router();
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.post('/recommend', protect, kombinOnerisi);
+
+/**
+ * @swagger
+ * /api/outfits/web-recommend:
+ *   post:
+ *     summary: Gardırop + web'den bulunan ürünlerle AI destekli kombin önerisi alır
+ *     description: |
+ *       Kullanıcının gardırobundan çıkarılan stil profiline (sık kullanılan stil,
+ *       renk, mevcut sezon, eksik kategoriler) göre web'de ürün araması yapılır.
+ *       Bulunan ürünler ve kullanıcının kendi kıyafetleri birlikte AI'a sunulur;
+ *       AI anatomik kurallara uygun bir kombin seçer. Web'den en fazla 2 parça
+ *       önerilebilir, kombinin temeli kullanıcının gardırobudur.
+ *     tags: [Outfits]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               etkinlik:
+ *                 type: string
+ *                 example: Günlük
+ *               sehir:
+ *                 type: string
+ *                 example: Istanbul
+ *               enlem:
+ *                 type: number
+ *                 example: 41.01
+ *               boylam:
+ *                 type: number
+ *                 example: 28.97
+ *     responses:
+ *       200:
+ *         description: Web destekli kombin önerisi başarıyla oluşturuldu
+ *       400:
+ *         description: Gardırop boş ve web'den de sonuç bulunamadı
+ *       401:
+ *         description: Yetkisiz erişim
+ *       500:
+ *         description: AI servisi hatası
+ */
+router.post('/web-recommend', protect, webKombinOnerisi);
 
 /**
  * @swagger
