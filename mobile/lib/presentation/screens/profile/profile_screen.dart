@@ -8,15 +8,16 @@ import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_wardrobe_ai/core/constants/api_constants.dart';
 import 'package:smart_wardrobe_ai/core/constants/app_colors.dart';
-import 'package:smart_wardrobe_ai/core/theme/app_theme_extension.dart';
 import 'package:smart_wardrobe_ai/core/controllers/app_settings_controller.dart';
-import 'package:smart_wardrobe_ai/core/utils/avatar_manager.dart';
+import 'package:smart_wardrobe_ai/core/theme/app_theme_extension.dart';
+import 'package:smart_wardrobe_ai/data/models/user_profile.dart';
 import 'package:smart_wardrobe_ai/data/services/api_service.dart';
 import 'package:smart_wardrobe_ai/presentation/screens/auth/login_screen.dart';
+import 'package:smart_wardrobe_ai/presentation/screens/profile/body_profile_screen.dart';
 import 'package:smart_wardrobe_ai/presentation/screens/profile/dialogs/about_dialog.dart';
 import 'package:smart_wardrobe_ai/presentation/screens/profile/dialogs/confirm_dialog.dart';
 import 'package:smart_wardrobe_ai/presentation/screens/profile/dialogs/info_dialog.dart';
-import 'package:smart_wardrobe_ai/data/models/user_profile.dart';
+import 'package:smart_wardrobe_ai/presentation/screens/profile/notification_settings_screen.dart';
 import 'package:smart_wardrobe_ai/presentation/screens/profile/sheets/avatar_sheet.dart';
 import 'package:smart_wardrobe_ai/presentation/screens/profile/sheets/change_password_sheet.dart';
 import 'package:smart_wardrobe_ai/presentation/screens/profile/sheets/edit_profile_sheet.dart';
@@ -26,8 +27,6 @@ import 'package:smart_wardrobe_ai/presentation/widgets/profile/profile_header.da
 import 'package:smart_wardrobe_ai/presentation/widgets/profile/profile_settings_tiles.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/profile/profile_shared_widgets.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/profile/profile_stats_row.dart';
-import 'package:smart_wardrobe_ai/presentation/screens/profile/body_profile_screen.dart';
-import 'package:smart_wardrobe_ai/presentation/screens/profile/notification_settings_screen.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/shared/app_background.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -39,29 +38,29 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen>
     with SingleTickerProviderStateMixin {
-  // ── State
+  // State
   UserProfile? _profile;
   bool _loading = true;
 
-  // ── Profil fotoğrafı
+  // Profil fotoğrafı
   String? _profilePhoto;
   bool _photoUploading = false;
 
-  // ── Tercihler
+  // Tercihler
   bool _notifEnabled = true;
   // _darkMode ve _selectedLang artık AppSettingsController / easy_localization
   // tarafından yönetilir — state'te tutulmuyor.
 
-  // ── AI Asistan Ayarları
+  // AI Asistan Ayarları
   String _stilTonu = 'Samimi';
 
-  // ── Animasyon
+  // Animasyon
   late final AnimationController _fadeCtrl;
   late final Animation<double> _fadeAnim;
 
   static const _languages = ['Türkçe', 'English', 'Deutsch', 'Français'];
 
-  // ── Locale yardımcıları ──────────────────────────────────────────────────────
+  // Locale yardımcıları
 
   static String _localeToDisplay(Locale locale) {
     switch (locale.languageCode) {
@@ -102,7 +101,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     }
   }
 
-  // ─────────────────────────────────────── Lifecycle ──
+  // Lifecycle
 
   @override
   void initState() {
@@ -122,7 +121,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     super.dispose();
   }
 
-  // ─────────────────────────────────────── Veri / Tercihler ──
+  // Veri / Tercihler
 
   Future<void> _loadPrefs() async {
     final prefs = await SharedPreferences.getInstance();
@@ -248,7 +247,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     }
   }
 
-  // ─────────────────────────────────────── Profil Fotoğrafı ──
+  // Profil Fotoğrafı
 
   /// Avatar seçim sheet'ini açar.
   void _showAvatarSheet() {
@@ -351,7 +350,7 @@ class _ProfileScreenState extends State<ProfileScreen>
 
     try {
       final prefs = await SharedPreferences.getInstance();
-      
+
       // Asset dosyasını byte array olarak oku
       final byteData = await rootBundle.load(assetPath);
       final bytes = byteData.buffer.asUint8List();
@@ -444,7 +443,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  // ─────────────────────────────────────── Aksiyonlar ──
+  // Aksiyonlar
 
   Future<void> _logout() async {
     final confirmed = await _showConfirm(
@@ -521,7 +520,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     }
   }
 
-  // ─────────────────────────────────────── Sheet / Dialog açıcılar ──
+  // Sheet / Dialog açıcılar
 
   void _showEditProfile() async {
     final updated = await showModalBottomSheet<bool>(
@@ -616,7 +615,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     return result ?? false;
   }
 
-  // ─────────────────────────────────────── Build ──
+  // Build
 
   @override
   Widget build(BuildContext context) {
@@ -644,10 +643,10 @@ class _ProfileScreenState extends State<ProfileScreen>
     return CustomScrollView(
       physics: const BouncingScrollPhysics(),
       slivers: [
-        // ── Geri butonu + başlık
+        // Geri butonu + başlık
         SliverToBoxAdapter(child: _buildTopBar()),
 
-        // ── Profil başlığı
+        // Profil başlığı
         SliverToBoxAdapter(
           child: ProfileHeader(
             profile: _profile,
@@ -658,7 +657,7 @@ class _ProfileScreenState extends State<ProfileScreen>
           ),
         ),
 
-        // ── İstatistik satırı
+        // İstatistik satırı
         if (_profile != null)
           SliverToBoxAdapter(
             child: Padding(
@@ -667,38 +666,38 @@ class _ProfileScreenState extends State<ProfileScreen>
             ),
           ),
 
-        // ── AI Asistan Ayarları
+        // AI Asistan Ayarları
         const SliverToBoxAdapter(child: SizedBox(height: 8)),
         ProfileSectionLabel(label: 'profile.ai_settings'.tr()),
         SliverToBoxAdapter(child: _buildAiCard()),
 
-        // ── Görünüm & Dil
+        // Görünüm & Dil
         const SliverToBoxAdapter(child: SizedBox(height: 8)),
         ProfileSectionLabel(label: 'profile.appearance'.tr()),
         SliverToBoxAdapter(child: _buildAppearanceCard()),
 
-        // ── Bildirimler
+        // Bildirimler
         const SliverToBoxAdapter(child: SizedBox(height: 8)),
         ProfileSectionLabel(label: 'profile.notifications'.tr()),
         SliverToBoxAdapter(child: _buildNotifCard()),
 
-        // ── Hesap
+        // Hesap
         const SliverToBoxAdapter(child: SizedBox(height: 8)),
         ProfileSectionLabel(label: 'profile.account'.tr()),
         SliverToBoxAdapter(child: _buildAccountCard()),
 
-        // ── Oturum
+        // Oturum
         const SliverToBoxAdapter(child: SizedBox(height: 8)),
         ProfileSectionLabel(label: 'profile.session'.tr()),
         SliverToBoxAdapter(child: _buildSessionCard()),
 
-        // ── Footer
+        // Footer
         const SliverToBoxAdapter(child: ProfileFooter()),
       ],
     );
   }
 
-  // ── Üst bar
+  // Üst bar
   Widget _buildTopBar() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 22, 0),
@@ -726,7 +725,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  // ── AI Asistan Ayarları kartı
+  // AI Asistan Ayarları kartı
   Widget _buildAiCard() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(22, 10, 22, 0),
@@ -995,7 +994,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  // ── Görünüm & Dil kartı
+  // Görünüm & Dil kartı
   Widget _buildAppearanceCard() {
     final isDark = AppSettingsController.instance.isDark;
     final currentLang = _localeToDisplay(context.locale);
@@ -1035,7 +1034,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  // ── Bildirimler kartı
+  // Bildirimler kartı
   Widget _buildNotifCard() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(22, 10, 22, 0),
@@ -1088,7 +1087,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  // ── Hesap kartı
+  // Hesap kartı
   Widget _buildAccountCard() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(22, 10, 22, 0),
@@ -1128,7 +1127,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  // ── Oturum kartı
+  // Oturum kartı
   Widget _buildSessionCard() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(22, 10, 22, 0),
@@ -1155,7 +1154,7 @@ class _ProfileScreenState extends State<ProfileScreen>
   }
 }
 
-// ── Fotoğraf kaynağı seçenek satırı ─────────────────────────────────────────
+// Fotoğraf kaynağı seçenek satırı
 
 class _PhotoPickerOption extends StatelessWidget {
   final IconData icon;

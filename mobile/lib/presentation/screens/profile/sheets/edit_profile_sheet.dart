@@ -46,7 +46,7 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
     super.dispose();
   }
 
-  // ── Doğrulama
+  // Doğrulama
   String? _validate(String name) {
     if (name.isEmpty) return 'edit_profile.username_required'.tr();
     if (name.length < 3) return 'edit_profile.username_too_short'.tr();
@@ -147,7 +147,7 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
             style: TextStyle(color: AppColors.muted, fontSize: 12),
           ),
           const SizedBox(height: 20),
-          // ── Kullanıcı adı alanı
+          // Kullanıcı adı alanı
           TextField(
             controller: _nameCtrl,
             style: const TextStyle(color: AppColors.text, fontSize: 14),
@@ -181,7 +181,7 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
             ),
           ),
           const SizedBox(height: 20),
-          // ── Cinsiyet seçici
+          // Cinsiyet seçici
           Text(
             'edit_profile.gender'.tr(),
             style: const TextStyle(

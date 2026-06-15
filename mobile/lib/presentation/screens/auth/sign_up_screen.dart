@@ -233,7 +233,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   isPassword: true,
                 ),
 
-                // — Şifre uyuşmazlık hatası
+                // Şifre uyuşmazlık hatası
                 if (_showMismatchError)
                   Padding(
                     padding: const EdgeInsets.only(top: 8, left: 4),
@@ -259,7 +259,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
                 const SizedBox(height: 20),
 
-                // — terms
+                // terms
                 GestureDetector(
                   onTap: () => setState(() => _termsAccepted = !_termsAccepted),
                   child: Row(
