@@ -22,7 +22,7 @@ const itemSchema = new mongoose.Schema({
     kategori: {
         type: String,
         required: [true, 'Kategori zorunludur'],
-        enum: ['Üst Giyim', 'Alt Giyim', 'Elbise & Etek', 'Dış Giyim', 'Ayakkabı', 'Aksesuar']
+        enum: ['Üst Giyim', 'Alt Giyim', 'Elbise', 'Dış Giyim', 'Ayakkabı', 'Aksesuar']
     },
     renk: {
         type: String,
@@ -39,15 +39,12 @@ const itemSchema = new mongoose.Schema({
         enum: ['Günlük', 'Klasik', 'Spor', 'Sokak', 'Minimal', 'Şık', 'Resmi'],
         default: 'Günlük'
     },
-    marka: {
+    // Kombin önerilerinde (gardırop + web) kullanıcının cinsiyetine uymayan
+    // parçaları filtrelemek için kullanılır. 'Unisex' her zaman önerilebilir.
+    cinsiyet: {
         type: String,
-        trim: true,
-        default: ''
-    },
-    notlar: {
-        type: String,
-        maxlength: [500, 'Not en fazla 500 karakter olabilir'],
-        default: ''
+        enum: ['Erkek', 'Kadın', 'Unisex'],
+        default: 'Unisex'
     },
     aiDogrulandi: {
         type: Boolean,
@@ -57,10 +54,6 @@ const itemSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
-    kullanilmaSayisi: {
-        type: Number,
-        default: 0
-    }
 }, { timestamps: true });
 
 // İndeksleme - hızlı sorgular için
