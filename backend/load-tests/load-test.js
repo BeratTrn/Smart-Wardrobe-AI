@@ -1,21 +1,19 @@
-// ================================================
 // SmartWardrobeAI — k6 Yük Testi
 // Kullanım: k6 run load-test.js
 // Render canlı ortamına karşı çalışır
-// ================================================
 
-import http from 'k6/http';
 import { check, sleep } from 'k6';
+import http from 'k6/http';
 import { Rate, Trend } from 'k6/metrics';
 
-// ── Özel Metrikler ──────────────────────────────
+// Özel Metrikler
 const errorRate = new Rate('error_rate');
 const loginDuration = new Trend('login_duration', true);
 const weatherDuration = new Trend('weather_duration', true);
 const itemsDuration = new Trend('items_duration', true);
 const outfitDuration = new Trend('outfit_duration', true);
 
-// ── Konfigürasyon ───────────────────────────────
+// Konfigürasyon
 const BASE_URL = __ENV.BASE_URL || 'https://smart-wardrobe-ai-2nwd.onrender.com/api';
 
 // Test aşamaları: yavaş yüksel → zirve → düşüş
@@ -37,7 +35,7 @@ export const options = {
   },
 };
 
-// ── Yardımcı: Login ve token al ─────────────────
+// Yardımcı: Login ve token al
 function getToken() {
   const payload = JSON.stringify({
     email: __ENV.TEST_EMAIL || 'loadtest@smartwardrobe.com',
@@ -68,7 +66,7 @@ function getToken() {
   catch { return null; }
 }
 
-// ── Ana Test Senaryosu ───────────────────────────
+// Ana Test Senaryosu
 export default function () {
   // 1. Health Check (auth gerektirmez)
   const healthRes = http.get(`${BASE_URL}/health`, { timeout: '5s' });
@@ -120,7 +118,7 @@ export default function () {
   sleep(1);
 }
 
-// ── Özet Rapor ───────────────────────────────────
+// Özet Rapor 
 export function handleSummary(data) {
   const passed = data.metrics.http_req_failed.values.rate < 0.05;
 
