@@ -46,7 +46,7 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
   final Color catOnePiece;
   final Color catOuterwear;
 
-  // ── Hazır paletler ──────────────────────────────────────────────────────────
+  // Hazır paletler 
 
   /// Mevcut lüks karanlık tema — hiçbir renk kodu değiştirilmedi.
   static const dark = AppColorsExtension(
@@ -95,13 +95,13 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
     catOuterwear: Color(0xFF5A7C5A),
   );
 
-  // ── Kolay erişim ─────────────────────────────────────────────────────────────
 
+  // Kolay erişim 
   /// `Theme.of(context).extension<AppColorsExtension>()!` yerine kısa yol.
   static AppColorsExtension of(BuildContext context) =>
       Theme.of(context).extension<AppColorsExtension>()!;
 
-  // ── ThemeExtension impl ──────────────────────────────────────────────────────
+  // ThemeExtension impl
 
   @override
   AppColorsExtension copyWith({

@@ -23,6 +23,7 @@ class AiAnalysisResult {
 
   /// POST /api/items/analyze-only yanıtı:  { analiz: { kategori, renk, aiDogrulandi } }
   /// POST /api/items/add yanıtı:           { kiyafet: { kategori, renk, aiDogrulandi, ... } }
+  
   factory AiAnalysisResult.fromJson(Map<String, dynamic> json) {
     // analyze-only yanıt yapısı
     if (json.containsKey('analiz')) {
@@ -45,29 +46,26 @@ class AiAnalysisResult {
 
 /// Tüm backend iletişimini yöneten servis sınıfı.
 /// Singleton pattern: `ApiService.instance`.
-///
 /// dart:io'ya bağımlılık yoktur → Flutter Web + Android + iOS'ta çalışır.
+
 class ApiService {
   ApiService._();
   static final ApiService instance = ApiService._();
 
-  // ─── Yardımcı: Token al ──────────────────────────────────────────────────
-
+  // Token al
   Future<String> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('token') ?? '';
   }
 
-  // ─── POST /api/items/analyze-only ────────────────────────────────────────
-
+  //  POST /api/items/analyze-only 
   /// Fotoğrafı yalnızca FastAPI motoruna gönderir; MongoDB veya Cloudinary'e
   /// hiçbir şey kaydedilmez.  Akış: fotoğraf seç → önizle → kullanıcı onayla → kaydet.
-  ///
   /// [imageBytes] — XFile.readAsBytes() ile okunan ham byte'lar
   /// [filename]   — Orijinal dosya adı
-  ///
   /// Başarıda [AiAnalysisResult] (kategori + renk tahmini) döner.
   /// Hata durumunda [ApiException] fırlatır.
+  
   Future<AiAnalysisResult> analyzeItemOnly({
     required Uint8List imageBytes,
     required String filename,
@@ -134,11 +132,9 @@ class ApiService {
     }
   }
 
-  // ─── POST /api/items/add ─────────────────────────────────────────────────
-
+  // POST /api/items/add 
   /// Kıyafet fotoğrafını Cloudinary'e yükler, FastAPI ile analiz eder ve
   /// MongoDB'ye kaydeder.
-  ///
   /// [imageBytes]  — XFile.readAsBytes() ile okunan ham byte'lar (web uyumlu)
   /// [filename]    — Orijinal dosya adı (.jpg / .png vb.)
   /// [kategori]    — Kullanıcının review ekranında onayladığı kategori (AI'ya göre öncelikli)
@@ -146,9 +142,9 @@ class ApiService {
   /// [mevsim]      — Kullanıcının seçtiği mevsim
   /// [stil]        — Kullanıcının seçtiği stil
   /// [cinsiyet]    — Kullanıcının seçtiği kıyafet cinsiyeti ('Unisex' | 'Kadın' | 'Erkek')
-  ///
   /// Başarıda [AiAnalysisResult] döner.
   /// Hata durumunda [ApiException] fırlatır.
+  
   Future<AiAnalysisResult> uploadItem({
     required Uint8List imageBytes,
     required String filename,
@@ -229,10 +225,10 @@ class ApiService {
     }
   }
 
-  // ─── POST /api/outfits/recommend ─────────────────────────────────────────
-
+  // POST /api/outfits/recommend
   /// Kullanıcının seçtiği etkinlik ve şehre göre Claude-powered AI kombin
   /// önerisi alır.
+  
   Future<GeneratedOutfit> generateOutfit({
     required String etkinlik,
     String sehir = 'Istanbul',
@@ -298,10 +294,10 @@ class ApiService {
     }
   }
 
-  // ─── POST /api/saved-outfits ─────────────────────────────────────────────
-
+  // POST /api/saved-outfits 
   /// [outfit]'i sunucuya kaydeder.  Başarıda [SavedOutfit] (MongoDB _id dahil) döner.
   /// [kullaniciFoto] — Lookbook'ta seçilen tam boy fotoğrafın URL'si (opsiyonel).
+  
   Future<SavedOutfit> saveOutfit(
     GeneratedOutfit outfit, {
     String kullaniciFoto = '',
@@ -371,10 +367,10 @@ class ApiService {
     }
   }
 
-  // ─── GET /api/saved-outfits ───────────────────────────────────────────────
-
+  // GET /api/saved-outfits
   /// Giriş yapan kullanıcının tüm kayıtlı kombinlerini döner.
   /// kiyafetler alanı populate edilmiş tam ClothingItem nesneleri içerir.
+  
   Future<List<SavedOutfit>> fetchSavedOutfits() async {
     final token = await _getToken();
     if (token.isEmpty) {
@@ -433,9 +429,9 @@ class ApiService {
     }
   }
 
-  // ─── PUT /api/users/profile/photo (avatar) ───────────────────────────────
-
+  // PUT /api/users/profile/photo (avatar) 
   /// Avatar yolunu (asset string) backend'e kaydeder.
+  
   Future<String> updateProfilePhotoAvatar(String avatarPath) async {
     final token = await _getToken();
     if (token.isEmpty) {
@@ -493,9 +489,9 @@ class ApiService {
     }
   }
 
-  // ─── PUT /api/users/profile/photo/upload (gerçek fotoğraf) ──────────────
-
+  // PUT /api/users/profile/photo/upload (gerçek fotoğraf)
   /// Kullanıcının seçtiği fotoğrafı Cloudinary'e yükler, URL döner.
+  
   Future<String> uploadProfilePhoto({
     required Uint8List imageBytes,
     required String filename,
@@ -559,9 +555,9 @@ class ApiService {
     }
   }
 
-  // ─── PUT /api/users/profile/body ─────────────────────────────────────────
-
+  // PUT /api/users/profile/body 
   /// Kullanıcının vücut şekli ve kalıp tercihini MongoDB'ye kaydeder.
+  
   Future<void> updateBodyProfile({
     required String bodyShape,
     required String fitPreference,
@@ -622,9 +618,9 @@ class ApiService {
     }
   }
 
-  // ─── DELETE /api/saved-outfits/:id ───────────────────────────────────────
-
+  // DELETE /api/saved-outfits/:id 
   /// Verilen [id]'li kaydedilmiş kombini sunucudan siler.
+  
   Future<bool> deleteSavedOutfit(String id) async {
     final token = await _getToken();
     if (token.isEmpty) {
@@ -668,11 +664,11 @@ class ApiService {
     }
   }
 
-  // ─── POST /api/travel/pack ────────────────────────────────────────────────
-
+  // POST /api/travel/pack
   /// Şehir + tarih aralığını backend'e gönderir, AI ile bavul oluşturur ve
   /// [TravelSuitcase] olarak döner. AI işlemi 15-45 sn sürebileceğinden
   /// timeout 90 saniyeye ayarlanmıştır.
+
   Future<TravelSuitcase> generateSuitcase({
     required String sehir,
     required String baslangicTarihi,
@@ -742,9 +738,9 @@ class ApiService {
     }
   }
 
-  // ─── GET /api/travel ─────────────────────────────────────────────────────
-
+  //  GET /api/travel
   /// Giriş yapan kullanıcının kayıtlı tüm seyahat bavullarını döner.
+  
   Future<List<TravelSuitcase>> getSuitcases() async {
     final token = await _getToken();
     if (token.isEmpty) {
@@ -803,9 +799,9 @@ class ApiService {
     }
   }
 
-  // ─── PUT /api/users/notification-preferences ───────────────────────────────
-
+  //  PUT /api/users/notification-preferences 
   /// Kullanıcının bildirim tercihlerini günceller.
+  
   Future<void> updateNotificationPreferences({
     bool? dailyWeatherAI,
     bool? travelReminders,
@@ -875,9 +871,9 @@ class ApiService {
     }
   }
 
-  // ─── POST /api/users/fcm-token ─────────────────────────────────────────────
-
+  //  POST /api/users/fcm-token 
   /// Kullanıcının FCM token'ını backend'e kaydeder.
+  
   Future<void> saveFcmToken(String token) async {
     final authToken = await _getToken();
     if (authToken.isEmpty) {
@@ -912,9 +908,9 @@ class ApiService {
     }
   }
 
-  // ─── DELETE /api/travel/:id ───────────────────────────────────────────────
-
+  // DELETE /api/travel/:id 
   /// Verilen [id]'li seyahat bavulunu sunucudan siler.
+  
   Future<bool> deleteSuitcase(String id) async {
     final token = await _getToken();
     if (token.isEmpty) {
@@ -955,11 +951,12 @@ class ApiService {
       client.close();
     }
   }
-  // ─── GET /api/auth/me (tam kullanıcı profili + ayarlar) ─────────────────────
 
+  //  GET /api/auth/me (tam kullanıcı profili + ayarlar) 
   /// Giriş yapan kullanıcının tam profilini döner; theme ve language dahildir.
   /// Başarıda kullanici map'ini döner, token geçersiz/ağ hatasında null döner.
   /// Giriş sonrası çapraz cihaz senkronizasyonunda kullanılır.
+  
   Future<Map<String, dynamic>?> fetchMe() async {
     final token = await _getToken();
     if (token.isEmpty) return null;
@@ -998,10 +995,10 @@ class ApiService {
     }
   }
 
-  // ─── PUT /api/users/preferences (tema ve dil senkronizasyonu) ───────────────
-
+  //  PUT /api/users/preferences (tema ve dil senkronizasyonu) 
   /// Tema ve/veya dil tercihini backend'e kaydeder.
   /// Fire-and-forget olarak çağrılır; hata sessizce yutulur.
+  
   Future<void> updateAppSettings({String? theme, String? language}) async {
     final token = await _getToken();
     if (token.isEmpty) return;

@@ -2,7 +2,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 /// Converts clothing HEX color codes to human-readable Turkish names.
-///
 /// Algorithm: Euclidean distance in the linear RGB color space.
 /// Using Flutter's Color guarantees the same channel extraction logic
 /// the framework uses, avoiding off-by-one bit-shift errors.
@@ -38,10 +37,8 @@ class ColorHelper {
     'Koyu Kahve': Color(0xFF3E2723), // #3E2723  dark brown
   };
 
-  // ── Public API ──────────────────────────────────────────────────────────────
-
+  //  Public API 
   /// Returns the Turkish name of the closest palette colour to [hexCode].
-  ///
   /// [hexCode] accepts "#RRGGBB" or "RRGGBB" (case-insensitive).
   /// Returns an empty string when the input cannot be parsed.
   static String getNearestTurkishColorName(String hexCode) {
@@ -87,7 +84,7 @@ class ColorHelper {
     return '$name ($formatted)';
   }
 
-  // ── Private ─────────────────────────────────────────────────────────────────
+  // Private 
 
   static Color? _parseHex(String raw) {
     final s = raw.trim().replaceAll('#', '');
