@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Sparkles, Lightbulb } from "lucide-react";
+import { Sparkles, Lightbulb, Globe } from "lucide-react";
 import type { Season, OutfitGeneratePayload, WeatherData } from "@/types";
 
 const EVENTS   = ["Günlük","İş","Parti","Spor","Romantik","Seyahat"];
@@ -22,7 +22,7 @@ const ABD = "1px solid rgba(201,168,76,0.25)";
 const IBG = "rgba(201,168,76,0.12)";
 
 interface OutfitGeneratorPanelProps {
-  onGenerate: (payload: OutfitGeneratePayload) => void;
+  onGenerate: (payload: OutfitGeneratePayload, webdenOner: boolean) => void;
   isLoading: boolean;
   weather?: WeatherData | null;
 }
@@ -53,13 +53,14 @@ export function OutfitGeneratorPanel({ onGenerate, isLoading, weather }: OutfitG
   const [hava,    setHava]    = useState("Ilık");
   const [stil,    setStil]    = useState("Günlük");
   const [useCurrentWeather, setUseCurrentWeather] = useState(!!weather);
+  const [webdenOner, setWebdenOner] = useState(false);
 
   const handleGenerate = () => {
     const payload: OutfitGeneratePayload = {};
     payload.etkinlik = event;
     payload.mevsim   = WEATHER_TO_SEASON[hava];
     if (useCurrentWeather && weather) payload.havaDurumu = weather;
-    onGenerate(payload);
+    onGenerate(payload, webdenOner);
   };
 
   return (
@@ -124,6 +125,30 @@ export function OutfitGeneratorPanel({ onGenerate, isLoading, weather }: OutfitG
             <PillBtn key={s} label={s} active={stil === s} onClick={() => setStil(s)} />
           ))}
         </div>
+      </div>
+
+      {/* WEBDEN ÖNER */}
+      <div className="flex items-center justify-between gap-3 rounded-xl px-4 py-3" style={{ background: SBG, border: BDR }}>
+        <div className="flex items-center gap-2.5">
+          <div className="h-7 w-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: IBG }}>
+            <Globe className="h-3.5 w-3.5 text-gold" />
+          </div>
+          <div>
+            <p className="text-[13px] font-semibold text-text leading-tight">Web'den de öner</p>
+            <p className="text-[11px] text-muted leading-snug">Dolabın yetmezse tarzına uygun ürünler websitelerden önerilsin</p>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={() => setWebdenOner((v) => !v)}
+          className="relative h-5 w-9 rounded-full transition-colors flex-shrink-0"
+          style={{ background: webdenOner ? "var(--color-gold)" : "#2A2A22" }}
+        >
+          <span
+            className="absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform"
+            style={{ transform: webdenOner ? "translateX(16px)" : "translateX(2px)" }}
+          />
+        </button>
       </div>
 
       {/* CTA */}

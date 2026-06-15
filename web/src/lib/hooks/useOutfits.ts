@@ -21,6 +21,10 @@ export function useGenerateOutfit() {
   return useMutation({ mutationFn: (payload: OutfitGeneratePayload) => outfitsApi.generateOutfit(payload) });
 }
 
+export function useGenerateWebOutfit() {
+  return useMutation({ mutationFn: (payload: OutfitGeneratePayload) => outfitsApi.generateWebOutfit(payload) });
+}
+
 export function useSaveOutfit(onSuccess?: () => void) {
   const qc = useQueryClient();
   return useMutation({

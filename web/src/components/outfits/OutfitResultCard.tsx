@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Bookmark, ThumbsUp, ThumbsDown, Shirt, Sparkles, Lightbulb } from "lucide-react";
+import { Bookmark, ThumbsUp, ThumbsDown, Shirt, Sparkles, Lightbulb, ShoppingBag } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
-import type { Outfit, OutfitRecommendation, PopulatedItem, WeatherData } from "@/types";
+import { WebProductCard } from "@/components/outfits/WebProductCard";
+import type { Outfit, OutfitRecommendation, PopulatedItem, WeatherData, WebProduct } from "@/types";
 
 const BDR = "1px solid #1E1E18";
 const SBG = "#161614";
@@ -13,17 +14,17 @@ const ABD = "1px solid rgba(201,168,76,0.25)";
 
 interface NormalizedOutfit {
   id: string; baslik: string; aciklama: string; ipucu: string;
-  kiyafetler: PopulatedItem[]; havaDurumu?: WeatherData; etkinlik?: string;
+  kiyafetler: PopulatedItem[]; disUrunler?: WebProduct[]; havaDurumu?: WeatherData; etkinlik?: string;
   begeniyor?: boolean | null; kaydedildi?: boolean;
 }
 
 function normalizeRecommendation(r: OutfitRecommendation): NormalizedOutfit {
   return { id: r.id, baslik: r.baslik, aciklama: r.aciklama, ipucu: r.ipucu,
-    kiyafetler: r.kiyafetler as PopulatedItem[], havaDurumu: r.havaDurumu, etkinlik: r.etkinlik };
+    kiyafetler: r.kiyafetler as PopulatedItem[], disUrunler: r.disUrunler, havaDurumu: r.havaDurumu, etkinlik: r.etkinlik };
 }
 function normalizeOutfit(o: Outfit): NormalizedOutfit {
   return { id: o._id, baslik: o.baslik, aciklama: o.aiAciklama, ipucu: "",
-    kiyafetler: o.kiyafetler, havaDurumu: o.havaDurumu, etkinlik: o.etkinlik,
+    kiyafetler: o.kiyafetler, disUrunler: o.disUrunler, havaDurumu: o.havaDurumu, etkinlik: o.etkinlik,
     begeniyor: o.begeniyor, kaydedildi: o.kaydedildi };
 }
 
@@ -167,6 +168,20 @@ export function OutfitResultCard({ outfit, showActions = false, isFresh = false,
           <div className="flex items-center gap-1.5">
             <Shirt className="h-3.5 w-3.5 text-muted" />
             <span className="text-[12px] text-muted">{data.kiyafetler.length} parça</span>
+          </div>
+        )}
+
+        {/* ── Web'den önerilen ürünler ── */}
+        {data.disUrunler && data.disUrunler.length > 0 && (
+          <div className="space-y-2.5">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted flex items-center gap-1.5">
+              <ShoppingBag className="h-3 w-3 text-gold" /> WEB'DEN ÖNERİLER
+            </p>
+            <div className="grid grid-cols-2 gap-2.5">
+              {data.disUrunler.map((urun, idx) => (
+                <WebProductCard key={`${urun.link}-${idx}`} product={urun} />
+              ))}
+            </div>
           </div>
         )}
 
