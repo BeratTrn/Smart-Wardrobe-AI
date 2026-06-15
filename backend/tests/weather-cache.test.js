@@ -36,6 +36,28 @@ const makeWeatherResponse = (temp, city = 'TestCity') => ({
 });
 
 
+// weatherService — API anahtarı tanımlı değilse hata fırlatan dallar
+describe('weatherService — OPENWEATHER_API_KEY tanımsız dalları', () => {
+    let originalKey;
+
+    beforeEach(() => {
+        originalKey = process.env.OPENWEATHER_API_KEY;
+        delete process.env.OPENWEATHER_API_KEY;
+    });
+
+    afterEach(() => {
+        process.env.OPENWEATHER_API_KEY = originalKey;
+    });
+
+    test('havaDurumuGetir — API anahtarı yoksa hata fırlatır', async () => {
+        await expect(weather.havaDurumuGetir(41.05, 28.98)).rejects.toThrow(/API anahtarı/);
+    });
+
+    test('sehirHavaDurumu — API anahtarı yoksa hata fırlatır', async () => {
+        await expect(weather.sehirHavaDurumu('Istanbul')).rejects.toThrow(/API anahtarı/);
+    });
+});
+
 // weatherService cache — line 16 false branch (süresi dolmuş cache)
 describe('weatherService cache expiry (line 16 false branch)', () => {
 

@@ -82,6 +82,9 @@ const getBrowser = () => {
 
 // Süreç sonlanırken Chromium'u temiz şekilde kapat (özellikle nodemon yeniden
 // başlatmalarında "hayalet" tarayıcı süreçlerinin birikmesini önler).
+/* istanbul ignore next -- süreç sonlanma (SIGINT/SIGTERM/SIGUSR2) temizlik
+   mantığı; test ortamında tetiklenmesi process'i sonlandıracağı için
+   güvenle birim test edilemez */
 const closeBrowser = async () => {
     if (!browserPromise) return;
     try {
@@ -93,6 +96,7 @@ const closeBrowser = async () => {
         browserPromise = null;
     }
 };
+/* istanbul ignore next -- yukarıdaki closeBrowser ile aynı sebepten test edilemez */
 ['SIGINT', 'SIGTERM', 'SIGUSR2'].forEach((signal) => {
     process.once(signal, () => {
         closeBrowser().finally(() => process.kill(process.pid, signal));

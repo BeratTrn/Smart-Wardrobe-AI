@@ -772,8 +772,8 @@ describe('cronService', () => {
         await expect(mockCronCallbacks[0]()).resolves.not.toThrow();
     });
 
-    // Line 21 || false: user.defaultCity is undefined 
-    test('✅ Hava durumu callback — defaultCity yoksa Istanbul fallback dalı', async () => {
+    // Line 21 || false: user.defaultCity boş string (Mongoose default'u devre dışı bırakır)
+    test('✅ Hava durumu callback — defaultCity boş string ise Istanbul fallback dalı', async () => {
         await User.create({
             kullaniciAdi: 'CronNoCity',
             email:        'cronnocity@test.com',
@@ -781,7 +781,10 @@ describe('cronService', () => {
             isVerified:   true,
             fcmTokens:    ['fcm-no-city'],
             notificationPreferences: { dailyWeatherAI: true, travelReminders: false, weeklyStyle: false },
-            // No defaultCity — triggers `user.defaultCity || 'Istanbul'` false branch
+            // defaultCity'i AÇIKÇA boş string yapıyoruz — Mongoose şema default'u
+            // ('Istanbul') sadece alan undefined ise uygulanır, '' iken devre dışı
+            // kalır ve `user.defaultCity || 'Istanbul'` (line 21) false dalı çalışır.
+            defaultCity: '',
         });
         await Item.create({
             kullanici: (await User.findOne({ email: 'cronnocity@test.com' }))._id,

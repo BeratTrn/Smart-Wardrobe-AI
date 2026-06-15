@@ -108,7 +108,13 @@ const hexToColorName = (hex) => {
     if (h < 200) return 'turkuaz';
     if (h < 255) return 'mavi';
     if (h < 290) return 'lacivert';
+    /* istanbul ignore else -- h değeri burada her zaman [290,345) aralığındadır
+       (önceki dallar [0,290) ve [345,360) aralıklarını tüketir), bu yüzden bu
+       koşul her zaman doğrudur; aşağıdaki 'nötr' fallback'i erişilemez bir
+       güvenlik ağıdır */
     if (h < 345) return 'pembe';
+    /* istanbul ignore next -- h her zaman [0,360) aralığında ve yukarıdaki
+       dallar bu aralığın tamamını kapsar; bu satır erişilemez bir güvenlik ağıdır */
     return 'nötr';
 };
 
@@ -154,10 +160,16 @@ const getStyleProfile = async (userId) => {
 
     for (const item of items) {
         if (item.stil) stilSayac[item.stil] = (stilSayac[item.stil] || 0) + 1;
+
+        /* istanbul ignore else -- Item.renk şemada zorunlu (required) bir alandır;
+           bu dal yalnızca eski/bozuk veri için bir güvenlik ağıdır */
         if (item.renk) {
             const aile = hexToColorName(item.renk);
             renkSayac[aile] = (renkSayac[aile] || 0) + 1;
         }
+
+        /* istanbul ignore else -- Item.kategori şemada zorunlu (required) bir
+           alandır; bu dal yalnızca eski/bozuk veri için bir güvenlik ağıdır */
         if (item.kategori) kategoriSayac[item.kategori] = (kategoriSayac[item.kategori] || 0) + 1;
     }
 
