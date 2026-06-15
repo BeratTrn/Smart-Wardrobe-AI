@@ -1,15 +1,16 @@
 import { z } from "zod";
 
-// ── Profile ────────────────────────────────────────────────────────────────────
+// Profile
 export const profileSchema = z.object({
   kullaniciAdi: z
     .string()
     .min(3, { message: "Username must be at least 3 characters" })
     .max(30, { message: "Username must be at most 30 characters" }),
+  cinsiyet: z.enum(["Erkek", "Kadın", "Belirtilmemiş"] as const).optional(),
 });
 export type ProfileFormData = z.infer<typeof profileSchema>;
 
-// ── Body Profile ───────────────────────────────────────────────────────────────
+// Body Profile
 export const bodySchema = z.object({
   bodyShape: z
     .enum(["kum_saati", "armut", "ters_ucgen", "dikdortgen"] as const)
@@ -20,7 +21,7 @@ export const bodySchema = z.object({
 });
 export type BodyFormData = z.infer<typeof bodySchema>;
 
-// ── Preferences ────────────────────────────────────────────────────────────────
+// Preferences
 export const preferencesSchema = z.object({
   defaultCity: z.string().min(2, { message: "City name too short" }),
   theme: z.enum(["dark", "light"] as const),
@@ -31,7 +32,7 @@ export const preferencesSchema = z.object({
 });
 export type PreferencesFormData = z.infer<typeof preferencesSchema>;
 
-// ── Change Password ────────────────────────────────────────────────────────────
+// Change Password
 export const changePasswordSchema = z
   .object({
     mevcutSifre: z.string().min(6, { message: "Current password is required" }),
@@ -46,7 +47,7 @@ export const changePasswordSchema = z
   });
 export type ChangePasswordFormData = z.infer<typeof changePasswordSchema>;
 
-// ── Suitcase / Travel ─────────────────────────────────────────────────────────
+// Suitcase / Travel
 export const suitcaseSchema = z
   .object({
     sehir: z.string().min(2, { message: "Destination city is required" }),

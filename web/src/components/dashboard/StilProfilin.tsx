@@ -3,7 +3,7 @@
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import type { StilItem } from "@/lib/api/stats";
 
-/* ── Stil renk paleti (mobil ile birebir) ─────────────────────── */
+/* Stil renk paleti (mobil ile birebir) */
 const STIL_COLORS: Record<string, string> = {
   "Sokak":   "#4FD1C5",
   "Spor":    "#63B3ED",

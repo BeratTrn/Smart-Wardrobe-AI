@@ -1,7 +1,5 @@
-// ─────────────────────────────────────────────────────────────────────────────
 //  KOMBİNLERİM — Kaydedilen stil kombinlerinin listesi
 //  BottomNav index 3 — Dark / Gold tema, premium kart tasarımı.
-// ─────────────────────────────────────────────────────────────────────────────
 
 import 'dart:ui' as ui;
 
@@ -378,7 +376,7 @@ class _SavedOutfitsScreenState extends State<SavedOutfitsScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ── Dynamic Header ────────────────────────────────────────────
+                // Dynamic Header
                 Padding(
                   padding: const EdgeInsets.fromLTRB(22, 16, 22, 0),
                   child: Row(
@@ -454,7 +452,7 @@ class _SavedOutfitsScreenState extends State<SavedOutfitsScreen>
                   ),
                 ),
 
-                // ── Custom Gold TabBar ─────────────────────────────────────────
+                // Custom Gold TabBar
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
                   child: Container(
@@ -495,7 +493,7 @@ class _SavedOutfitsScreenState extends State<SavedOutfitsScreen>
                   ),
                 ),
 
-                // ── Tab views ──────────────────────────────────────────────────
+                // Tab views
                 Expanded(
                   child: TabBarView(
                     controller: _tabCtrl,
@@ -511,7 +509,7 @@ class _SavedOutfitsScreenState extends State<SavedOutfitsScreen>
     );
   }
 
-  // ── Tab 1: kombin listesi ──────────────────────────────────────────────────
+  // Tab 1: kombin listesi
 
   Widget _buildKombinim() {
     return AnimatedSwitcher(
@@ -542,7 +540,7 @@ class _SavedOutfitsScreenState extends State<SavedOutfitsScreen>
     );
   }
 
-  // ── Tab 2: seyahat bavulu ──────────────────────────────────────────────────
+  // Tab 2: seyahat bavulu
 
   Widget _buildSeyahat() {
     if (_suitcasesLoading) {
@@ -930,7 +928,7 @@ class _TravelPlanSheetState extends State<_TravelPlanSheet> {
                   ),
                   const SizedBox(height: 24),
 
-                  // ── Sheet header ─────────────────────────────────────────
+                  // Sheet header
                   Row(
                     children: [
                       Container(
@@ -987,7 +985,7 @@ class _TravelPlanSheetState extends State<_TravelPlanSheet> {
 
                   const SizedBox(height: 28),
 
-                  // ── Destination city field ────────────────────────────────
+                  // Destination city field
                   Text(
                     'saved_outfits.destination_city'.tr(),
                     style: AppTextStyles.label.copyWith(
@@ -1035,7 +1033,7 @@ class _TravelPlanSheetState extends State<_TravelPlanSheet> {
 
                   const SizedBox(height: 18),
 
-                  // ── Date range selector ───────────────────────────────────
+                  // Date range selector
                   Text(
                     'saved_outfits.travel_dates'.tr(),
                     style: AppTextStyles.label.copyWith(
@@ -1119,7 +1117,7 @@ class _TravelPlanSheetState extends State<_TravelPlanSheet> {
 
                   const SizedBox(height: 28),
 
-                  // ── Submit CTA ────────────────────────────────────────────
+                  // Submit CTA
                   GestureDetector(
                     onTap: _isSubmitting ? null : _submit,
                     child: AnimatedContainer(
@@ -1207,9 +1205,7 @@ class _TravelPlanSheetState extends State<_TravelPlanSheet> {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 //  YÜKLEME DURUMU
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _LoadingSpinner extends StatelessWidget {
   const _LoadingSpinner({super.key});
@@ -1244,9 +1240,7 @@ class _LoadingSpinner extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 //  BOŞ DURUM
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _EmptyState extends StatelessWidget {
   const _EmptyState({super.key});
@@ -1351,9 +1345,7 @@ class _EmptyState extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 //  KOMBİN KARTI  (expandable description)
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _OutfitCard extends StatefulWidget {
   final SavedOutfit outfit;
@@ -1605,7 +1597,7 @@ class _OutfitCardState extends State<_OutfitCard> {
   }
 }
 
-// ── Kıyafet görselleri şeridi ──────────────────────────────────────────────
+// Kıyafet görselleri şeridi
 
 class _ItemStrip extends StatelessWidget {
   final List<ClothingItem> items;
@@ -1678,9 +1670,7 @@ class _Placeholder extends StatelessWidget {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 //  SAYAÇ ROZET — küçük gold pill
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _CountBadge extends StatelessWidget {
   final String label;
@@ -1706,9 +1696,7 @@ class _CountBadge extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 //  SEYAHAT BAVUL KARTI
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _SuitcaseCard extends StatefulWidget {
   final TravelSuitcase suitcase;
@@ -2038,9 +2026,7 @@ class _SuitcaseCardState extends State<_SuitcaseCard> {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 //  PREMIUM TARİH ARALIĞI SEÇİCİ — Glassmorphic centered dialog
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _DateRangePickerDialog extends StatefulWidget {
   final List<DateTime?> initialValue;
@@ -2104,7 +2090,7 @@ class _DateRangePickerDialogState extends State<_DateRangePickerDialog> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // ── Header ────────────────────────────────────────────────
+                // Header
                 Padding(
                   padding: const EdgeInsets.fromLTRB(18, 18, 18, 6),
                   child: Row(
@@ -2181,7 +2167,7 @@ class _DateRangePickerDialogState extends State<_DateRangePickerDialog> {
                   ),
                 ),
 
-                // ── Calendar ──────────────────────────────────────────────
+                // Calendar
                 Theme(
                   data: ThemeData.dark().copyWith(
                     colorScheme: const ColorScheme.dark(
@@ -2251,7 +2237,7 @@ class _DateRangePickerDialogState extends State<_DateRangePickerDialog> {
                   ),
                 ),
 
-                // ── Selected range chip ────────────────────────────────────
+                // Selected range chip
                 if (_isRangeComplete)
                   Padding(
                     padding: const EdgeInsets.fromLTRB(18, 0, 18, 12),
@@ -2310,7 +2296,7 @@ class _DateRangePickerDialogState extends State<_DateRangePickerDialog> {
                     ),
                   ),
 
-                // ── Action buttons ─────────────────────────────────────────
+                // Action buttons
                 Padding(
                   padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
                   child: Row(

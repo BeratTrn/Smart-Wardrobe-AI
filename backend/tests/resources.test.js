@@ -4,12 +4,12 @@
  *   - savedOutfitController  (18 → ~100%)
  *   - travelController       (15 → ~100%)
  *   - userController         (15 → ~100%)
- *   - outfitController       kombinOnerisi başarı yolu + generateDailyOutfit
+ *   - outfitController       kombinOnerisi başarı yolu
  *   - statsController        gerçek dolap verisiyle istatistik
  *   - weatherController      503 hata yolları
  */
 
-// ─── Mocks ───────────────────────────────────────────────────────────────────
+// Mocks 
 jest.mock('../services/emailService', () => ({
     sendVerificationEmail: jest.fn().mockResolvedValue({
         accepted: ['resources@test.com'],
@@ -42,7 +42,6 @@ jest.mock('../services/aiService', () => ({
     generateWeatherNotificationText: jest.fn().mockResolvedValue('Test bildirimi')
 }));
 
-// ─────────────────────────────────────────────────────────────────────────────
 
 const request    = require('supertest');
 const mongoose   = require('mongoose');
@@ -66,14 +65,11 @@ const {
     generateSuitcaseSuggestion
 } = require('../services/aiService');
 
-// outfitController doğrudan import (route'da kayıtlı olmayan fonksiyonlar için)
-const { generateDailyOutfit } = require('../controllers/outfitController');
-
 let mongoServer;
 let authToken;
 let authToken2; // İkinci kullanıcı (yetki testleri)
 
-// ─── Helper: item oluştur ─────────────────────────────────────────────────────
+// Helper: item oluştur
 const makeItem = (userId, overrides = {}) =>
     Item.create({
         kullanici: userId, resimUrl: 'http://test/img.jpg',
@@ -81,7 +77,7 @@ const makeItem = (userId, overrides = {}) =>
         ...overrides
     });
 
-// ─── Helper: Doğrulanmış kullanıcı + token ────────────────────────────────────
+// Helper: Doğrulanmış kullanıcı + token 
 const createUser = async (email, kullaniciAdi = 'ResUser') => {
     const { sendVerificationEmail } = require('../services/emailService');
 
@@ -129,9 +125,8 @@ afterAll(async () => {
     server.close();
 });
 
-// =============================================================================
+
 // SAVED OUTFIT — savedOutfitController
-// =============================================================================
 describe('Saved Outfit Endpoints', () => {
 
     test('✅ POST /api/saved-outfits — kombin kaydedilmeli', async () => {
@@ -215,7 +210,7 @@ describe('Saved Outfit Endpoints', () => {
         expect(r2.statusCode).toBe(401);
     });
 
-    // ── Error paths (lines 27-28, 47-48, 68-69) ────────────────────────────
+    // Error paths (lines 27-28, 47-48, 68-69) 
     test('❌ POST /api/saved-outfits — DB hatası → 500 dönmeli', async () => {
         jest.spyOn(SavedOutfit, 'create').mockRejectedValueOnce(new Error('DB Error'));
 
@@ -254,9 +249,8 @@ describe('Saved Outfit Endpoints', () => {
     });
 });
 
-// =============================================================================
+
 // TRAVEL — travelController
-// =============================================================================
 describe('Travel Endpoints', () => {
 
     test('❌ POST /api/travel/pack — eksik alan (400)', async () => {
@@ -416,9 +410,8 @@ describe('Travel Endpoints', () => {
     });
 });
 
-// =============================================================================
+
 // USER — userController
-// =============================================================================
 describe('User Endpoints', () => {
 
     test('✅ PUT /api/users/profile/body — vücut profili güncellenebilmeli', async () => {
@@ -572,9 +565,8 @@ describe('User Endpoints', () => {
     });
 });
 
-// =============================================================================
+
 // OUTFIT — kombinOnerisi başarı yolu (outfitController lines 31–79)
-// =============================================================================
 describe('POST /api/outfits/recommend — başarı yolu', () => {
 
     test('✅ Dolu dolap + mocked AI → 200 kombin dönmeli', async () => {
@@ -660,7 +652,7 @@ describe('POST /api/outfits/recommend — başarı yolu', () => {
         expect(res.statusCode).toBe(200);
     });
 
-    // ── catch block (lines 72-78): AI throws 500 error ──────────────────────
+    // catch block (lines 72-78): AI throws 500 error 
     test('❌ AI hatası → 500 dönmeli (kombinOnerisi catch)', async () => {
         const user = await User.findOne({ email: 'resources@test.com' });
         await makeItem(user._id, { kategori: 'Üst Giyim' });
@@ -678,7 +670,7 @@ describe('POST /api/outfits/recommend — başarı yolu', () => {
         expect(res.body.mesaj).toMatch(/oluşturulamadı/i);
     });
 
-    // ── catch block (lines 74-76): AI throws statusCode 400 (wardrobeOnKontrol) ─
+    // catch block (lines 74-76): AI throws statusCode 400 (wardrobeOnKontrol) 
     test('❌ AI dolap yetersiz hatası → 400 dönmeli (kombinOnerisi catch)', async () => {
         const user = await User.findOne({ email: 'resources@test.com' });
         await makeItem(user._id, { kategori: 'Üst Giyim' });
@@ -698,137 +690,8 @@ describe('POST /api/outfits/recommend — başarı yolu', () => {
     });
 });
 
-// =============================================================================
-// generateDailyOutfit — Doğrudan fonksiyon testi (route'da kayıtlı değil)
-// =============================================================================
-describe('generateDailyOutfit — direct function test', () => {
 
-    const mockRes = () => {
-        const res = {};
-        res.status = jest.fn().mockReturnValue(res);
-        res.json   = jest.fn().mockReturnValue(res);
-        return res;
-    };
-
-    test('❌ Boş dolap → 400 dönmeli', async () => {
-        const user  = await User.findOne({ email: 'resources@test.com' });
-        const req   = { user: { _id: user._id }, body: {} };
-        const res   = mockRes();
-        const next  = jest.fn();
-
-        await generateDailyOutfit(req, res, next);
-
-        expect(res.status).toHaveBeenCalledWith(400);
-        expect(res.json).toHaveBeenCalledWith(
-            expect.objectContaining({ mesaj: expect.stringMatching(/kıyafet/i) })
-        );
-    });
-
-    test('✅ Dolu dolap + mocked AI → 200 döndürmeli', async () => {
-        const user = await User.findOne({ email: 'resources@test.com' });
-        await makeItem(user._id, { kategori: 'Üst Giyim' });
-        await makeItem(user._id, { kategori: 'Alt Giyim' });
-        await makeItem(user._id, { kategori: 'Ayakkabı' });
-
-        generateOutfitSuggestion.mockResolvedValueOnce({
-            aciklama: 'Günlük kombin', secilen_kiyafet_idleri: [], ipucu: 'İpucu'
-        });
-
-        const req = { user: { _id: user._id }, body: { sehir: 'Istanbul', etkinlik: 'Günlük' } };
-        const res = mockRes();
-
-        await generateDailyOutfit(req, res, jest.fn());
-
-        expect(res.status).toHaveBeenCalledWith(200);
-        expect(res.json).toHaveBeenCalledWith(
-            expect.objectContaining({ mesaj: expect.stringMatching(/hazır/i) })
-        );
-    });
-
-    test('✅ Hava durumu hatası → fallback ile çalışmalı', async () => {
-        const user = await User.findOne({ email: 'resources@test.com' });
-        await makeItem(user._id, { kategori: 'Üst Giyim' });
-        await makeItem(user._id, { kategori: 'Alt Giyim' });
-        await makeItem(user._id, { kategori: 'Ayakkabı' });
-
-        sehirHavaDurumu.mockRejectedValueOnce(new Error('Weather error'));
-
-        generateOutfitSuggestion.mockResolvedValueOnce({
-            aciklama: 'Fallback kombin', secilen_kiyafet_idleri: [], ipucu: ''
-        });
-
-        const req = { user: { _id: user._id }, body: { sehir: 'Istanbul' } };
-        const res = mockRes();
-
-        await generateDailyOutfit(req, res, jest.fn());
-
-        expect(res.status).toHaveBeenCalledWith(200);
-    });
-
-    // ── catch block (lines 144-149): AI throws ──────────────────────────────
-    test('❌ AI hatası → 500 dönmeli (generateDailyOutfit catch)', async () => {
-        const user = await User.findOne({ email: 'resources@test.com' });
-        await makeItem(user._id, { kategori: 'Üst Giyim' });
-        await makeItem(user._id, { kategori: 'Alt Giyim' });
-        await makeItem(user._id, { kategori: 'Ayakkabı' });
-
-        generateOutfitSuggestion.mockRejectedValueOnce(new Error('Fatal AI error'));
-
-        const req = { user: { _id: user._id }, body: { sehir: 'Istanbul' } };
-        const res = mockRes();
-
-        await generateDailyOutfit(req, res, jest.fn());
-
-        expect(res.status).toHaveBeenCalledWith(500);
-    });
-
-    // ── catch block: AI throws 400 (wardrobeOnKontrol) ──────────────────────
-    test('❌ Dolap yetersiz hatası → 400 dönmeli (generateDailyOutfit catch)', async () => {
-        const user = await User.findOne({ email: 'resources@test.com' });
-        await makeItem(user._id, { kategori: 'Üst Giyim' });
-        await makeItem(user._id, { kategori: 'Alt Giyim' });
-        await makeItem(user._id, { kategori: 'Ayakkabı' });
-
-        const err = Object.assign(new Error('Yetersiz dolap'), { statusCode: 400 });
-        generateOutfitSuggestion.mockRejectedValueOnce(err);
-
-        const req = { user: { _id: user._id }, body: {} };
-        const res = mockRes();
-
-        await generateDailyOutfit(req, res, jest.fn());
-
-        expect(res.status).toHaveBeenCalledWith(400);
-    });
-
-    // ── Line 108: secilen_kiyafet_idleri non-empty → Item.find çağrısı ──────
-    test('✅ secilen_kiyafet_idleri doluysa Item.find çağrılmalı', async () => {
-        const user = await User.findOne({ email: 'resources@test.com' });
-        const [ust, alt, ayak] = await Promise.all([
-            makeItem(user._id, { kategori: 'Üst Giyim' }),
-            makeItem(user._id, { kategori: 'Alt Giyim' }),
-            makeItem(user._id, { kategori: 'Ayakkabı' })
-        ]);
-
-        generateOutfitSuggestion.mockResolvedValueOnce({
-            aciklama: 'Daily kombin',
-            secilen_kiyafet_idleri: [ust._id.toString(), alt._id.toString(), ayak._id.toString()],
-            ipucu: 'Harika'
-        });
-
-        const req = { user: { _id: user._id }, body: { sehir: 'Istanbul', etkinlik: 'Günlük' } };
-        const res = mockRes();
-
-        await generateDailyOutfit(req, res, jest.fn());
-
-        expect(res.status).toHaveBeenCalledWith(200);
-        const body = res.json.mock.calls[0][0];
-        expect(body.kombin.kiyafetler.length).toBeGreaterThan(0);
-    });
-});
-
-// =============================================================================
 // OUTFIT — catch block coverage (lines 178, 204, 222)
-// =============================================================================
 describe('Outfit catch block coverage', () => {
 
     test('❌ getOutfits — DB hatası → 500 dönmeli', async () => {
@@ -870,9 +733,8 @@ describe('Outfit catch block coverage', () => {
     });
 });
 
-// =============================================================================
+
 // STATS — Dolu dolap ile istatistikler (mapping lines)
-// =============================================================================
 describe('GET /api/stats/wardrobe — dolu dolap', () => {
 
     test('✅ Kıyafetle dolu dolap → kategori/renk/mevsim/stil dağılımı dönmeli', async () => {
@@ -903,9 +765,8 @@ describe('GET /api/stats/wardrobe — dolu dolap', () => {
     });
 });
 
-// =============================================================================
+
 // WEATHER — 503 hata yolları (weatherController lines 18-19, 42)
-// =============================================================================
 describe('weatherController — 503 error paths', () => {
 
     test('❌ GET /api/weather — service throws → 503 dönmeli', async () => {

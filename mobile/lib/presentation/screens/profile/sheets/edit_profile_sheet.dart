@@ -8,8 +8,9 @@ import 'package:smart_wardrobe_ai/core/constants/api_constants.dart';
 import 'package:smart_wardrobe_ai/core/constants/app_colors.dart';
 import 'package:smart_wardrobe_ai/data/models/user_profile.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/profile/profile_shared_widgets.dart';
+import 'package:smart_wardrobe_ai/presentation/widgets/wardrobe/app_filter_chip.dart';
 
-/// Bottom sheet — PUT /api/users/profile { kullaniciAdi }
+/// Bottom sheet — PUT /api/users/profile { kullaniciAdi, cinsiyet }
 /// [returns] true eğer profil güncellendiyse (caller'ın veriyi yenilemesi için)
 class EditProfileSheet extends StatefulWidget {
   final UserProfile? profile;
@@ -21,13 +22,22 @@ class EditProfileSheet extends StatefulWidget {
 
 class _EditProfileSheetState extends State<EditProfileSheet> {
   late final TextEditingController _nameCtrl;
+  late String _selectedGender;
   bool _loading = false;
   String? _error;
+
+  // Backend enum (User.cinsiyet): 'Erkek' | 'Kadın' | 'Belirtilmemiş'
+  late final List<(String value, String label)> _genderOptions = [
+    ('Belirtilmemiş', 'edit_profile.gender_unspecified'.tr()),
+    ('Kadın', 'edit_profile.gender_female'.tr()),
+    ('Erkek', 'edit_profile.gender_male'.tr()),
+  ];
 
   @override
   void initState() {
     super.initState();
     _nameCtrl = TextEditingController(text: widget.profile?.name ?? '');
+    _selectedGender = widget.profile?.cinsiyet ?? 'Belirtilmemiş';
   }
 
   @override
@@ -36,7 +46,7 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
     super.dispose();
   }
 
-  // ── Doğrulama
+  // Doğrulama
   String? _validate(String name) {
     if (name.isEmpty) return 'edit_profile.username_required'.tr();
     if (name.length < 3) return 'edit_profile.username_too_short'.tr();
@@ -67,7 +77,10 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
               'Content-Type': 'application/json',
               'Authorization': 'Bearer $token',
             },
-            body: jsonEncode({'kullaniciAdi': name}),
+            body: jsonEncode({
+              'kullaniciAdi': name,
+              'cinsiyet': _selectedGender,
+            }),
           )
           .timeout(const Duration(seconds: 10));
 
@@ -134,7 +147,7 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
             style: TextStyle(color: AppColors.muted, fontSize: 12),
           ),
           const SizedBox(height: 20),
-          // ── Kullanıcı adı alanı
+          // Kullanıcı adı alanı
           TextField(
             controller: _nameCtrl,
             style: const TextStyle(color: AppColors.text, fontSize: 14),
@@ -166,6 +179,35 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
                 borderSide: const BorderSide(color: AppColors.gold),
               ),
             ),
+          ),
+          const SizedBox(height: 20),
+          // Cinsiyet seçici
+          Text(
+            'edit_profile.gender'.tr(),
+            style: const TextStyle(
+              color: AppColors.muted,
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'edit_profile.gender_hint'.tr(),
+            style: const TextStyle(color: AppColors.muted, fontSize: 11),
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _genderOptions
+                .map(
+                  (g) => AppFilterChip(
+                    label: g.$2,
+                    selected: _selectedGender == g.$1,
+                    onTap: () => setState(() => _selectedGender = g.$1),
+                  ),
+                )
+                .toList(),
           ),
           if (_error != null) ...[
             const SizedBox(height: 8),

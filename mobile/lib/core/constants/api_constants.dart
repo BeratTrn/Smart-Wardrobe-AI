@@ -5,9 +5,9 @@ import 'package:flutter/foundation.dart';
 class ApiConstants {
   ApiConstants._();
 
-  // ─── 🚀 GELİŞTİRİCİ AYARLARI ──────────────────────────────────────────────
+  // GELİŞTİRİCİ AYARLARI 
 
-  /// Production URL — Render.com'da Docker ile deploy edilmiş backend
+  // Production URL — Render.com'da Docker ile deploy edilmiş backend
   static const String _productionUrl =
       'https://smart-wardrobe-ai-2nwd.onrender.com/api';
 
@@ -29,7 +29,7 @@ class ApiConstants {
     return _productionUrl;
   }
 
-  // --- API Anahtarları ve Diğer Sabitler ---
+  // API Anahtarları ve Diğer Sabitler
   static const String googleClientId =
       '743327952521-btdahvqrg64r8r3iin2sqqalck7bfdbk.apps.googleusercontent.com';
 }

@@ -3,9 +3,9 @@
 import { useRef, useState } from "react";
 import Image from "next/image";
 import {
-  Bookmark, Sparkles, Lightbulb, User, Camera, Loader2, Shirt, Footprints,
+  Bookmark, Sparkles, Lightbulb, User, Camera, Loader2, Shirt, Footprints, ShoppingBag, ExternalLink,
 } from "lucide-react";
-import type { Outfit, OutfitRecommendation, PopulatedItem, WeatherData } from "@/types";
+import type { Outfit, OutfitRecommendation, PopulatedItem, WeatherData, WebProduct } from "@/types";
 
 const BDR = "1px solid #1E1E18";
 const SBG = "#161614";
@@ -28,7 +28,7 @@ function slotMeta(kategori: string): { label: string; icon: React.ElementType } 
 
 interface NormalizedOutfit {
   id: string; baslik: string; aciklama: string; ipucu: string;
-  kiyafetler: PopulatedItem[]; havaDurumu?: WeatherData; etkinlik?: string;
+  kiyafetler: PopulatedItem[]; disUrunler?: WebProduct[]; havaDurumu?: WeatherData; etkinlik?: string;
   begeniyor?: boolean | null; kaydedildi?: boolean;
 }
 
@@ -36,12 +36,12 @@ function normalize(outfit: Outfit | OutfitRecommendation): NormalizedOutfit {
   if ("aiAciklama" in outfit) {
     const o = outfit as Outfit;
     return { id: o._id, baslik: o.baslik, aciklama: o.aiAciklama, ipucu: "",
-      kiyafetler: o.kiyafetler, havaDurumu: o.havaDurumu, etkinlik: o.etkinlik,
+      kiyafetler: o.kiyafetler, disUrunler: o.disUrunler, havaDurumu: o.havaDurumu, etkinlik: o.etkinlik,
       begeniyor: o.begeniyor, kaydedildi: o.kaydedildi };
   }
   const r = outfit as OutfitRecommendation;
   return { id: r.id, baslik: r.baslik, aciklama: r.aciklama, ipucu: r.ipucu,
-    kiyafetler: r.kiyafetler as PopulatedItem[], havaDurumu: r.havaDurumu, etkinlik: r.etkinlik };
+    kiyafetler: r.kiyafetler as PopulatedItem[], disUrunler: r.disUrunler, havaDurumu: r.havaDurumu, etkinlik: r.etkinlik };
 }
 
 interface LookbookResultCardProps {
@@ -172,6 +172,53 @@ export function LookbookResultCard({ outfit, onSave, isSaveLoading }: LookbookRe
               </div>
             );
           })}
+          {(data.disUrunler ?? []).map((urun, idx) => (
+            <a
+              key={`${urun.link}-${idx}`}
+              href={urun.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="space-y-1.5 group block"
+            >
+              {/* Category label */}
+              <div className="flex items-center gap-1.5">
+                <ShoppingBag className="h-3 w-3 text-gold" />
+                <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-gold">
+                  WEB'DEN
+                </span>
+              </div>
+              {/* Item photo */}
+              <div
+                className="relative w-full rounded-xl overflow-hidden"
+                style={{ height: "88px" }}
+              >
+                {urun.resimUrl ? (
+                  <Image
+                    src={urun.resimUrl}
+                    alt={urun.ad}
+                    fill
+                    unoptimized
+                    className="object-cover"
+                    sizes="200px"
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center bg-[#161614]">
+                    <ShoppingBag className="h-5 w-5 text-muted" />
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+                  <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-white px-2.5 py-1 rounded-full bg-black/60">
+                    Satın Al <ExternalLink className="h-2.5 w-2.5" />
+                  </span>
+                </div>
+              </div>
+              {/* Item name bar */}
+              <div
+                className="h-1.5 rounded-full"
+                style={{ background: "rgba(201,168,76,0.25)", width: "80%" }}
+              />
+            </a>
+          ))}
         </div>
       </div>
 

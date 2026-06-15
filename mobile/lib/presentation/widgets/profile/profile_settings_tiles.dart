@@ -189,7 +189,7 @@ class ProfileTileDivider extends StatelessWidget {
   }
 }
 
-// ── Yardımcı: ikon kutusu (tema-aware)
+// Yardımcı: ikon kutusu (tema-aware)
 class _IconBox extends StatelessWidget {
   final IconData icon;
   final Color color;

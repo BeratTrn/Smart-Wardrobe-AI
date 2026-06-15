@@ -4,6 +4,8 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Üzerinizdeki kıyafeti fotoğraflayıp gardırobunuza eklemek için kameraya ihtiyacımız var.</string>
 	<key>CFBundleDisplayName</key>
 	<string>Smart Wardrobe Ai</string>
 	<key>CFBundleExecutable</key>

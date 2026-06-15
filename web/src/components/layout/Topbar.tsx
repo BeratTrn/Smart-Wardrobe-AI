@@ -1,14 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
-import Link from "next/link";
-import Image from "next/image";
-import { Menu, Sun, Moon, Cloud, CloudRain, Wind, Droplets, Thermometer, MapPin, X } from "lucide-react";
-import { useUIStore } from "@/lib/store/uiStore";
-import { useAuthStore } from "@/lib/store/authStore";
-import { useThemeStore } from "@/lib/store/themeStore";
 import { useProfile } from "@/lib/hooks/useUsers";
 import { useWeather } from "@/lib/hooks/useWeather";
+import { useAuthStore } from "@/lib/store/authStore";
+import { useThemeStore } from "@/lib/store/themeStore";
+import { useUIStore } from "@/lib/store/uiStore";
+import { Cloud, CloudRain, Droplets, MapPin, Menu, Moon, Sun, Thermometer, Wind, X } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import React, { useState } from "react";
 
 function getWeatherIcon(durum: string) {
   const d = durum?.toLowerCase() || "";
@@ -136,7 +136,7 @@ export function Topbar() {
             {/* Main Info */}
             <div className="flex flex-col items-center mt-2 mb-8">
               <div className="h-16 w-16 mb-4 flex items-center justify-center rounded-2xl" style={{ background: "rgba(201,168,76,0.1)", border: "1px solid rgba(201,168,76,0.28)" }}>
-                {React.cloneElement(getWeatherIcon(weather.durum) as React.ReactElement, { className: "w-8 h-8", style: { color: "#C9A84C" } })}
+                {React.cloneElement(getWeatherIcon(weather.durum) as React.ReactElement<React.SVGProps<SVGSVGElement>>, { className: "w-8 h-8", style: { color: "#C9A84C" } })}
               </div>
               <h2 className="text-4xl font-black text-text mb-1">{Math.round(weather.sicaklik)}°</h2>
               <p className="text-lg font-semibold text-muted">{weather.durum}</p>

@@ -50,7 +50,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
     super.dispose();
   }
 
-  // ── Veri Yükleme ─────────────────────────────────────────────────────────
+  // Veri Yükleme
 
   Future<void> _loadPreferences() async {
     final prefs = await SharedPreferences.getInstance();
@@ -97,7 +97,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
     });
   }
 
-  // ── Preference Güncelleme ─────────────────────────────────────────────────
+  // Preference Güncelleme
 
   Future<void> _updateToggle({
     bool? dailyWeatherAI,
@@ -203,7 +203,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
     );
   }
 
-  // ── Build ─────────────────────────────────────────────────────────────────
+  // Build
 
   @override
   Widget build(BuildContext context) {
@@ -240,7 +240,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
     );
   }
 
-  // ── Üst Bar ──────────────────────────────────────────────────────────────
+  // Üst Bar
 
   Widget _buildTopBar() {
     return Padding(
@@ -267,7 +267,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
     );
   }
 
-  // ── Başlık Banner ────────────────────────────────────────────────────────
+  // Başlık Banner
 
   Widget _buildHeader() {
     return Padding(
@@ -346,7 +346,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
     );
   }
 
-  // ── Bildirim Kartları ─────────────────────────────────────────────────────
+  // Bildirim Kartları
 
   Widget _buildNotifCards() {
     return Padding(
@@ -388,7 +388,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
     );
   }
 
-  // ── Şehir Alanı ──────────────────────────────────────────────────────────
+  // Şehir Alanı
 
   Widget _buildCitySection() {
     return Padding(
@@ -487,7 +487,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
   }
 }
 
-// ── Yardımcı Widgetlar ────────────────────────────────────────────────────────
+// Yardımcı Widgetlar
 
 class _SectionLabel extends StatelessWidget {
   final String label;

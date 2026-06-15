@@ -15,7 +15,7 @@ const { protect } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
-// ── Açık (Public) Rotalar ─────────────────────────────────────────────────────
+// Public Rotalar
 
 /**
  * @swagger
@@ -384,7 +384,7 @@ router.post('/forgot-password', forgotPassword);
  */
 router.put('/reset-password/:resettoken', resetPassword);
 
-// ── Korumalı (Private) Rotalar — JWT gerektirir ───────────────────────────────
+// Private Rotalar — JWT gerektirir
 
 /**
  * @swagger

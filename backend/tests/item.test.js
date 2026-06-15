@@ -46,9 +46,8 @@ afterAll(async () => {
     server.close();
 });
 
-// =============================================
+
 // KIYAFETLERİ LİSTELEME (GET)
-// =============================================
 describe('GET /api/items', () => {
 
     test('✅ Token ile boş dolap başarıyla dönmeli', async () => {
@@ -86,9 +85,8 @@ describe('GET /api/items', () => {
     });
 });
 
-// =============================================
+
 // TEK KIYAFETİ GETIRME
-// =============================================
 describe('GET /api/items/:id', () => {
     test('✅ Olusturulan kiyafet ID ile getirilebilmeli', async () => {
         const createRes = await request(app)
@@ -128,9 +126,8 @@ describe('GET /api/items/:id', () => {
     });
 });
 
-// =============================================
+
 // KIYAFETİ GÜNCELLEME (PUT)
-// =============================================
 describe('PUT /api/items/:id', () => {
     test('✅ Kullanicinin kendi kiyafeti guncellenebilmeli', async () => {
         const createRes = await request(app)
@@ -178,9 +175,8 @@ describe('PUT /api/items/:id', () => {
     });
 });
 
-// =============================================
+
 // KIYAFETİ SİLME (DELETE)
-// =============================================
 describe('DELETE /api/items/:id', () => {
     test('✅ Kullanicinin kendi kiyafeti silinebilmeli', async () => {
         const createRes = await request(app)
@@ -221,9 +217,8 @@ describe('DELETE /api/items/:id', () => {
     });
 });
 
-// =============================================
+
 // SAĞLIK KONTROLÜ
-// =============================================
 describe('GET /api/health', () => {
 
     test('✅ Health check endpoint çalışmalı', async () => {
@@ -233,9 +228,8 @@ describe('GET /api/health', () => {
     });
 });
 
-// =============================================
+
 // 404 TEST
-// =============================================
 describe('Olmayan Endpoint', () => {
 
     test('✅ Olmayan endpoint 404 dönmeli', async () => {

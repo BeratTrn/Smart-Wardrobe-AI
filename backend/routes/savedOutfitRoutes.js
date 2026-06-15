@@ -73,8 +73,6 @@ const { saveOutfit, getSavedOutfits, deleteOutfit } = require('../controllers/sa
  *                 type: string
  *               stil:
  *                 type: string
- *               marka:
- *                 type: string
  *         kullaniciFoto:
  *           type: string
  *         createdAt:

@@ -13,7 +13,7 @@ import 'package:smart_wardrobe_ai/presentation/screens/auth/login_screen.dart';
 import 'package:smart_wardrobe_ai/presentation/screens/main/home_screen.dart';
 import 'package:smart_wardrobe_ai/presentation/screens/startup/onboarding_screen.dart';
 
-// ── Supported locales — language code only.
+// Supported locales — language code only.
 // Translation files are assets/translations/de.json etc. (no country suffix).
 // useOnlyLangCode: true in the EasyLocalization widget matches this convention.
 const _supportedLocales = [
@@ -30,33 +30,35 @@ const _easyLocStorageKey = 'locale';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // ── Step 1: Load SharedPreferences ───────────────────────────────────────
+  // Step 1: Load SharedPreferences
   final prefs = await SharedPreferences.getInstance();
 
-  // ── Step 2: Resolve start screen + sync theme & locale from backend ───────
-  //    Runs before EasyLocalization.ensureInitialized() so any locale written
-  //    to SharedPreferences is picked up when EasyLocalization reads them.
+  // Step 2: Resolve start screen + sync theme & locale from backend
+  // Runs before EasyLocalization.ensureInitialized() so any locale written
+  // to SharedPreferences is picked up when EasyLocalization reads them.
   final boot = await _resolveStartScreen(prefs);
 
-  // ── Step 3: Apply theme (no flicker — runApp hasn't been called yet) ──────
+  // Step 3: Apply theme (no flicker — runApp hasn't been called yet)
   final savedLangCode = prefs.getString('pref_language') ?? 'tr';
-  AppSettingsController.instance.init(isDark: boot.isDark, language: savedLangCode);
+  AppSettingsController.instance.init(
+    isDark: boot.isDark,
+    language: savedLangCode,
+  );
 
-  // ── Step 4: Force-sync EasyLocalization's own cache key from pref_language ─
-  //    pref_language is written on every locale change and on every successful
-  //    /auth/me response.  It is always the authoritative value.
-  //
-  //    EasyLocalization.ensureInitialized() reads SharedPreferences['locale']
-  //    (EasyLocalizationController.initEasyLocation).  By overwriting that key
-  //    with our verified value NOW — before ensureInitialized() — we guarantee
-  //    frame 1 matches the user's saved language, even if EasyLocalization's own
-  //    cache drifted (e.g. stale 'tr' left from a previous install).
+  // Step 4: Force-sync EasyLocalization's own cache key from pref_language
+  // pref_language is written on every locale change and on every successful
+  // /auth/me response.  It is always the authoritative value.
+  // EasyLocalization.ensureInitialized() reads SharedPreferences['locale']
+  // (EasyLocalizationController.initEasyLocation).  By overwriting that key
+  // with our verified value NOW — before ensureInitialized() — we guarantee
+  // frame 1 matches the user's saved language, even if EasyLocalization's own
+  // cache drifted (e.g. stale 'tr' left from a previous install).
   await prefs.setString(_easyLocStorageKey, savedLangCode);
 
-  // ── Step 5: EasyLocalization reads the freshly-written, correct key ───────
+  // Step 5: EasyLocalization reads the freshly-written, correct key
   await EasyLocalization.ensureInitialized();
 
-  // ── Step 6: Date formatting for every supported locale ────────────────────
+  // Step 6: Date formatting for every supported locale
   await Future.wait([
     initializeDateFormatting('tr_TR', null),
     initializeDateFormatting('en_US', null),
@@ -91,7 +93,7 @@ void main() async {
   );
 }
 
-// ── Boot result ───────────────────────────────────────────────────────────────
+// Boot result
 
 class _BootResult {
   final Widget screen;
@@ -99,8 +101,7 @@ class _BootResult {
   const _BootResult({required this.screen, required this.isDark});
 }
 
-// ── Start-screen resolver + cross-device settings sync ───────────────────────
-//
+// Start-screen resolver + cross-device settings sync
 // Single /auth/me call that handles both routing and settings sync.
 // Updates AppSettingsController and pref_darkMode/pref_language in
 // SharedPreferences before EasyLocalization.ensureInitialized() reads them.
@@ -133,13 +134,13 @@ Future<_BootResult> _resolveStartScreen(SharedPreferences prefs) async {
       final data = jsonDecode(res.body) as Map<String, dynamic>;
       final user = data['kullanici'] as Map<String, dynamic>? ?? {};
 
-      // ── Sync theme (cross-device) ──
+      // Sync theme (cross-device
       final backendTheme = user['theme'] as String?;
       if (backendTheme != null) {
         isDark = backendTheme == 'dark';
       }
 
-      // ── Sync locale (cross-device) ──
+      // Sync locale (cross-device)
       // Store ONLY the language code.  Consistent with useOnlyLangCode: true
       // and our assets/translations/de.json naming convention.
       final backendLang = user['language'] as String?;
@@ -174,7 +175,7 @@ Future<_BootResult> _resolveStartScreen(SharedPreferences prefs) async {
   }
 }
 
-// ── APP ROOT ──────────────────────────────────────────────────────────────────
+// APP ROOT
 
 class SmartWardrobeApp extends StatefulWidget {
   final Widget startScreen;
@@ -198,14 +199,14 @@ class _SmartWardrobeAppState extends State<SmartWardrobeApp> {
   void initState() {
     super.initState();
 
-    // ── Reactive locale listener ───────────────────────────────────────────
+    // Reactive locale listener
     // Fires whenever AppSettingsController notifies — e.g. when the backend
     // /auth/me response arrives and applyBackendSettings() is called.
     // This closes the race condition where EasyLocalization renders the first
     // frame in the fallback locale before the network call completes.
     AppSettingsController.instance.addListener(_onSettingsChanged);
 
-    // ── Post-frame locale failsafe ─────────────────────────────────────────
+    // Post-frame locale failsafe
     // Runs exactly once after the first frame.  Catches any divergence that
     // occurred before the listener was registered (e.g. stale EasyLocalization
     // cache from a previous install with country-code locales).
@@ -242,12 +243,12 @@ class _SmartWardrobeAppState extends State<SmartWardrobeApp> {
           title: 'Smart Wardrobe AI',
           debugShowCheckedModeBanner: false,
 
-          // ── Tema ────────────────────────────────────────────────────────
+          // Tema
           themeMode: AppSettingsController.instance.themeMode,
           theme: _buildLightTheme(),
           darkTheme: _buildDarkTheme(),
 
-          // ── Lokalizasyon ─────────────────────────────────────────────────
+          // Lokalizasyon
           locale: context.locale,
           supportedLocales: context.supportedLocales,
           localizationsDelegates: EasyLocalization.of(context)!.delegates,
@@ -258,34 +259,43 @@ class _SmartWardrobeAppState extends State<SmartWardrobeApp> {
     );
   }
 
-  // ── Lüks karanlık tema — orijinal renkler korundu ──────────────────────────
+  // Lüks karanlık tema — orijinal renkler korundu
   ThemeData _buildDarkTheme() {
     return ThemeData(
       brightness: Brightness.dark,
       scaffoldBackgroundColor: const Color(0xFF0A0A0A),
       fontFamily: 'Cormorant',
       colorScheme: const ColorScheme.dark(
-        primary:   Color(0xFFC9A84C),
+        primary: Color(0xFFC9A84C),
         secondary: Color(0xFFE8C97A),
-        surface:   Color(0xFF141414),
-        error:     Color(0xFFB04040),
+        surface: Color(0xFF141414),
+        error: Color(0xFFB04040),
       ),
       textTheme: const TextTheme(
-        displayLarge:  TextStyle(color: Color(0xFFF5F0E8), fontFamily: 'Cormorant'),
-        displayMedium: TextStyle(color: Color(0xFFF5F0E8), fontFamily: 'Cormorant'),
-        displaySmall:  TextStyle(color: Color(0xFFF5F0E8), fontFamily: 'Cormorant'),
-        headlineLarge:  TextStyle(color: Color(0xFFF5F0E8)),
+        displayLarge: TextStyle(
+          color: Color(0xFFF5F0E8),
+          fontFamily: 'Cormorant',
+        ),
+        displayMedium: TextStyle(
+          color: Color(0xFFF5F0E8),
+          fontFamily: 'Cormorant',
+        ),
+        displaySmall: TextStyle(
+          color: Color(0xFFF5F0E8),
+          fontFamily: 'Cormorant',
+        ),
+        headlineLarge: TextStyle(color: Color(0xFFF5F0E8)),
         headlineMedium: TextStyle(color: Color(0xFFF5F0E8)),
-        headlineSmall:  TextStyle(color: Color(0xFFF5F0E8)),
-        titleLarge:  TextStyle(color: Color(0xFFF5F0E8)),
+        headlineSmall: TextStyle(color: Color(0xFFF5F0E8)),
+        titleLarge: TextStyle(color: Color(0xFFF5F0E8)),
         titleMedium: TextStyle(color: Color(0xFFB0A898)),
-        titleSmall:  TextStyle(color: Color(0xFFB0A898)),
-        bodyLarge:   TextStyle(color: Color(0xFFF5F0E8)),
-        bodyMedium:  TextStyle(color: Color(0xFFF5F0E8)),
-        bodySmall:   TextStyle(color: Color(0xFFB0A898)),
-        labelLarge:  TextStyle(color: Color(0xFFF5F0E8)),
+        titleSmall: TextStyle(color: Color(0xFFB0A898)),
+        bodyLarge: TextStyle(color: Color(0xFFF5F0E8)),
+        bodyMedium: TextStyle(color: Color(0xFFF5F0E8)),
+        bodySmall: TextStyle(color: Color(0xFFB0A898)),
+        labelLarge: TextStyle(color: Color(0xFFF5F0E8)),
         labelMedium: TextStyle(color: Color(0xFFB0A898)),
-        labelSmall:  TextStyle(color: Color(0xFF6A6458)),
+        labelSmall: TextStyle(color: Color(0xFF6A6458)),
       ),
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: {
@@ -300,36 +310,45 @@ class _SmartWardrobeAppState extends State<SmartWardrobeApp> {
     );
   }
 
-  // ── Premium "Ivory & Gold" açık tema ──────────────────────────────────────
+  // Premium "Ivory & Gold" açık tema
   ThemeData _buildLightTheme() {
     return ThemeData(
       brightness: Brightness.light,
       scaffoldBackgroundColor: const Color(0xFFF8F6F0),
       fontFamily: 'Cormorant',
       colorScheme: const ColorScheme.light(
-        primary:   Color(0xFFC9A84C),
+        primary: Color(0xFFC9A84C),
         secondary: Color(0xFFB8942A),
-        surface:   Color(0xFFFFFFFF),
-        error:     Color(0xFF9A3030),
+        surface: Color(0xFFFFFFFF),
+        error: Color(0xFF9A3030),
         onPrimary: Color(0xFF1A1A1A),
         onSurface: Color(0xFF1A1A1A),
       ),
       textTheme: const TextTheme(
-        displayLarge:  TextStyle(color: Color(0xFF1A1A1A), fontFamily: 'Cormorant'),
-        displayMedium: TextStyle(color: Color(0xFF1A1A1A), fontFamily: 'Cormorant'),
-        displaySmall:  TextStyle(color: Color(0xFF1A1A1A), fontFamily: 'Cormorant'),
-        headlineLarge:  TextStyle(color: Color(0xFF1A1A1A)),
+        displayLarge: TextStyle(
+          color: Color(0xFF1A1A1A),
+          fontFamily: 'Cormorant',
+        ),
+        displayMedium: TextStyle(
+          color: Color(0xFF1A1A1A),
+          fontFamily: 'Cormorant',
+        ),
+        displaySmall: TextStyle(
+          color: Color(0xFF1A1A1A),
+          fontFamily: 'Cormorant',
+        ),
+        headlineLarge: TextStyle(color: Color(0xFF1A1A1A)),
         headlineMedium: TextStyle(color: Color(0xFF1A1A1A)),
-        headlineSmall:  TextStyle(color: Color(0xFF1A1A1A)),
-        titleLarge:  TextStyle(color: Color(0xFF1A1A1A)),
+        headlineSmall: TextStyle(color: Color(0xFF1A1A1A)),
+        titleLarge: TextStyle(color: Color(0xFF1A1A1A)),
         titleMedium: TextStyle(color: Color(0xFF1A1A1A)),
-        titleSmall:  TextStyle(color: Color(0xFF757575)),
-        bodyLarge:   TextStyle(color: Color(0xFF1A1A1A)),
-        bodyMedium:  TextStyle(color: Color(0xFF1A1A1A)),
-        bodySmall:   TextStyle(color: Color(0xFF757575)),
-        labelLarge:  TextStyle(color: Color(0xFF1A1A1A)),
+        titleSmall: TextStyle(color: Color(0xFF757575)),
+        bodyLarge: TextStyle(color: Color(0xFF1A1A1A)),
+        bodyMedium: TextStyle(color: Color(0xFF1A1A1A)),
+        bodySmall: TextStyle(color: Color(0xFF757575)),
+        labelLarge: TextStyle(color: Color(0xFF1A1A1A)),
         labelMedium: TextStyle(color: Color(0xFF757575)),
-        labelSmall:  TextStyle(color: Color(0xFF757575)),
+        labelSmall: TextStyle(color: Color(0xFF757575)),
       ),
       cardTheme: CardThemeData(
         color: const Color(0xFFFFFFFF),
@@ -341,7 +360,10 @@ class _SmartWardrobeAppState extends State<SmartWardrobeApp> {
         ),
       ),
       dividerColor: const Color(0xFFE0DED7),
-      dividerTheme: const DividerThemeData(color: Color(0xFFE0DED7), thickness: 1),
+      dividerTheme: const DividerThemeData(
+        color: Color(0xFFE0DED7),
+        thickness: 1,
+      ),
       iconTheme: const IconThemeData(color: Color(0xFF1A1A1A)),
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: {

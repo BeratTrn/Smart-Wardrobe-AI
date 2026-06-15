@@ -1,14 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { BookOpen, Sparkles, Plane, Plus } from "lucide-react";
-import { OutfitResultCard }  from "@/components/outfits/OutfitResultCard";
-import { SuitcaseList }      from "@/components/travel/SuitcaseList";
-import { TravelModal }       from "@/components/travel/TravelModal";
-import { useSavedOutfits, useDeleteSavedOutfit } from "@/lib/hooks/useSavedOutfits";
-import { useSuitcases, useDeleteSuitcase } from "@/lib/hooks/useTravel";
+import { OutfitResultCard } from "@/components/outfits/OutfitResultCard";
+import { SuitcaseList } from "@/components/travel/SuitcaseList";
+import { TravelModal } from "@/components/travel/TravelModal";
+import { useDeleteSavedOutfit, useSavedOutfits } from "@/lib/hooks/useSavedOutfits";
+import { useDeleteSuitcase, useSuitcases } from "@/lib/hooks/useTravel";
+import { BookOpen, Plane, Plus, Sparkles } from "lucide-react";
 import Link from "next/link";
-import type { Outfit } from "@/types";
+import { useState } from "react";
 
 type Tab = "kombinler" | "bavullar";
 
@@ -109,7 +108,7 @@ export default function SavedOutfitsPage() {
         })}
       </div>
 
-      {/* ── Kombinler Tab ── */}
+      {/* Kombinler Tab */}
       {activeTab === "kombinler" && (
         <>
           {outfitsLoading ? (
@@ -157,7 +156,7 @@ export default function SavedOutfitsPage() {
         </>
       )}
 
-      {/* ── Bavullar Tab ── */}
+      {/* Bavullar Tab */}
       {activeTab === "bavullar" && (
         <SuitcaseList
           suitcases={suitcases}

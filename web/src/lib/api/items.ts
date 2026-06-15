@@ -4,11 +4,12 @@ import type {
   ItemCategory,
   ItemSeason,
   ItemStyle,
+  ItemCinsiyet,
   ItemsResponse,
   AnalysisResult,
 } from "@/types";
 
-// ── Query params for GET /api/items ───────────────────────────────────
+// Query params for GET /api/items
 
 export interface ItemsFilter {
   kategori?: ItemCategory;
@@ -19,7 +20,7 @@ export interface ItemsFilter {
   limit?: number;
 }
 
-// ── Response shapes ───────────────────────────────────────────────────
+// Response shapes
 
 export interface AnalyzeOnlyResponse {
   mesaj: string;
@@ -35,6 +36,7 @@ export interface AddItemPayload {
   renk: string;
   mevsim: ItemSeason;
   stil: ItemStyle;
+  cinsiyet?: ItemCinsiyet;
   marka?: string;
   notlar?: string;
 }
@@ -49,7 +51,7 @@ export interface ToggleFavoriteResponse {
   favori: boolean;
 }
 
-// ── API calls ─────────────────────────────────────────────────────────
+// API calls
 
 /** GET /api/items — returns paginated, filtered item list */
 export async function getItems(filters: ItemsFilter = {}): Promise<ItemsResponse> {
@@ -85,6 +87,7 @@ export async function addItem(payload: AddItemPayload): Promise<AddItemResponse>
   form.append("renk", payload.renk);
   form.append("mevsim", payload.mevsim);
   form.append("stil", payload.stil);
+  if (payload.cinsiyet) form.append("cinsiyet", payload.cinsiyet);
   if (payload.marka)  form.append("marka",  payload.marka);
   if (payload.notlar) form.append("notlar", payload.notlar);
 

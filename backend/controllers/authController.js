@@ -5,12 +5,12 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { sendVerificationEmail, sendPasswordResetEmail } = require('../services/emailService');
 
-// ─── Yardımcı: JWT token üretici ────────────────────────────────────────────
+// Yardımcı: JWT token üretici 
 const tokenUret = (id) => {
     return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
 };
 
-// ─── Yardımcı: OTP hash kontrolü ────────────────────────────────────────────
+// Yardımcı: OTP hash kontrolü 
 const hashOtp = (otp) => crypto.createHash('sha256').update(otp).digest('hex');
 
 const logDevOtp = (email, otpCode) => {
@@ -24,11 +24,10 @@ const isEmailDelivered = (sendResult) =>
     sendResult.accepted.length > 0 &&
     (!Array.isArray(sendResult?.rejected) || sendResult.rejected.length === 0);
 
-// ────────────────────────────────────────────────────────────────────────────
+
 // @route  POST /api/auth/register
 // @desc   1. Adım — Geçici kayıt oluştur ve OTP gönder (User oluşturmaz)
 // @access Public
-// ────────────────────────────────────────────────────────────────────────────
 const registerUser = async (req, res) => {
     try {
         const { kullaniciAdi, email, sifre } = req.body;
@@ -161,11 +160,10 @@ const resendVerification = async (req, res) => {
     }
 };
 
-// ────────────────────────────────────────────────────────────────────────────
+
 // @route  POST /api/auth/verify-email
 // @desc   2. Adım — OTP doğrula → isVerified: true yap → JWT döndür
 // @access Public
-// ────────────────────────────────────────────────────────────────────────────
 const verifyEmail = async (req, res) => {
     try {
         const { email, otpCode } = req.body;
@@ -221,11 +219,10 @@ const verifyEmail = async (req, res) => {
     }
 };
 
-// ────────────────────────────────────────────────────────────────────────────
+
 // @route  POST /api/auth/login
 // @desc   Kullanıcı girişi
 // @access Public
-// ────────────────────────────────────────────────────────────────────────────
 const loginUser = async (req, res) => {
     try {
         const { email, sifre } = req.body;
@@ -274,11 +271,10 @@ const loginUser = async (req, res) => {
     }
 };
 
-// ────────────────────────────────────────────────────────────────────────────
+
 // @route  GET /api/auth/me
 // @desc   Giriş yapan kullanıcının bilgilerini getir
 // @access Private
-// ────────────────────────────────────────────────────────────────────────────
 const getMe = async (req, res) => {
     try {
         res.status(200).json({
@@ -291,6 +287,7 @@ const getMe = async (req, res) => {
                 theme: req.user.theme ?? 'dark',
                 language: req.user.language ?? 'tr',
                 vucut: req.user.vucut,
+                cinsiyet: req.user.cinsiyet ?? 'Belirtilmemiş',
                 defaultCity: req.user.defaultCity ?? 'Istanbul',
                 notificationPreferences: req.user.notificationPreferences ?? {
                     dailyWeatherAI:  true,
@@ -305,11 +302,10 @@ const getMe = async (req, res) => {
     }
 };
 
-// ────────────────────────────────────────────────────────────────────────────
+
 // @route  POST /api/auth/forgot-password
 // @desc   Şifre sıfırlama bağlantısı gönder
 // @access Public
-// ────────────────────────────────────────────────────────────────────────────
 const forgotPassword = async (req, res) => {
     try {
         const { email } = req.body;
@@ -358,11 +354,10 @@ const forgotPassword = async (req, res) => {
     }
 };
 
-// ────────────────────────────────────────────────────────────────────────────
+
 // @route  PUT /api/auth/reset-password/:resettoken
 // @desc   Şifreyi sıfırla
 // @access Public
-// ────────────────────────────────────────────────────────────────────────────
 const resetPassword = async (req, res) => {
     try {
         const resetPasswordToken = crypto.createHash('sha256').update(req.params.resettoken).digest('hex');
@@ -396,11 +391,10 @@ const resetPassword = async (req, res) => {
     }
 };
 
-// ────────────────────────────────────────────────────────────────────────────
+
 // @route  PUT /api/auth/change-password
 // @desc   Mevcut şifre kontrol edilerek yeni şifre belirle
 // @access Private
-// ────────────────────────────────────────────────────────────────────────────
 const changePassword = async (req, res) => {
     try {
         const { mevcutSifre, yeniSifre } = req.body;
@@ -429,11 +423,10 @@ const changePassword = async (req, res) => {
     }
 };
 
-// ────────────────────────────────────────────────────────────────────────────
+
 // @route  DELETE /api/auth/me
 // @desc   Hesabı ve tüm ilgili verileri kalıcı olarak sil
 // @access Private
-// ────────────────────────────────────────────────────────────────────────────
 const deleteAccount = async (req, res) => {
     try {
         const userId = req.user._id;
@@ -457,11 +450,9 @@ const deleteAccount = async (req, res) => {
 };
 
 
-// ────────────────────────────────────────────────────────────────────────────
 // @route  POST /api/auth/google
 // @desc   Google ID token ile giriş / kayıt
 // @access Public
-// ────────────────────────────────────────────────────────────────────────────
 const { OAuth2Client } = require('google-auth-library');
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 

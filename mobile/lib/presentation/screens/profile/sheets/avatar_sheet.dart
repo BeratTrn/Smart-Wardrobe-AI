@@ -42,11 +42,11 @@ class _AvatarSheetState extends State<AvatarSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Handle
+          // Handle
           const Center(child: ProfileSheetHandle()),
           const SizedBox(height: 22),
 
-          // ── Header
+          // Header
           Row(
             children: [
               Container(
@@ -100,7 +100,7 @@ class _AvatarSheetState extends State<AvatarSheet> {
 
           const SizedBox(height: 6),
 
-          // ── Bölüm etiketi: Erkek
+          // Bölüm etiketi: Erkek
           _SectionLabel('ERKEK'),
           const SizedBox(height: 10),
           _AvatarRow(
@@ -111,7 +111,7 @@ class _AvatarSheetState extends State<AvatarSheet> {
 
           const SizedBox(height: 16),
 
-          // ── Bölüm etiketi: Kadın
+          // Bölüm etiketi: Kadın
           _SectionLabel('KADIN'),
           const SizedBox(height: 10),
           _AvatarRow(
@@ -135,7 +135,7 @@ class _AvatarSheetState extends State<AvatarSheet> {
   }
 }
 
-// ─── Row of 4 avatars ─────────────────────────────────────────────────────────
+// Row of 4 avatars
 
 class _AvatarRow extends StatelessWidget {
   final List<String> paths;
@@ -162,7 +162,7 @@ class _AvatarRow extends StatelessWidget {
   }
 }
 
-// ─── Single avatar cell ───────────────────────────────────────────────────────
+// Single avatar cell
 
 class _AvatarCell extends StatelessWidget {
   final String path;
@@ -242,7 +242,7 @@ class _AvatarCell extends StatelessWidget {
   }
 }
 
-// ─── Section label ────────────────────────────────────────────────────────────
+// Section label
 
 class _SectionLabel extends StatelessWidget {
   final String text;

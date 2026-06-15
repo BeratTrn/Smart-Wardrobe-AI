@@ -6,7 +6,7 @@ import type { KategoriItem } from "@/lib/api/stats";
 const CAT_COLORS: Record<string, string> = {
   "Üst Giyim":     "#5A7A9C",
   "Alt Giyim":     "#7A5A9C",
-  "Elbise & Etek": "#9C5A7A",
+  "Elbise":        "#9C5A7A",
   "Dış Giyim":     "#6A8C6A",
   "Ayakkabı":      "#9C7A5A",
   "Aksesuar":      "#5A9C7A",

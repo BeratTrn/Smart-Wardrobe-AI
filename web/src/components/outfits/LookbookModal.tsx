@@ -3,7 +3,7 @@
 import { useState, useRef } from "react";
 
 import Image from "next/image";
-import { ChevronLeft, Sparkles, User, Bookmark, Loader2, Lightbulb, Image as ImageIcon } from "lucide-react";
+import { ChevronLeft, Sparkles, User, Bookmark, Loader2, Lightbulb, Image as ImageIcon, ShoppingBag, ExternalLink } from "lucide-react";
 import type { OutfitRecommendation } from "@/types";
 
 interface LookbookModalProps {
@@ -20,7 +20,7 @@ export function LookbookModal({ outfit, onClose, onSave, isSaveLoading }: Lookbo
   if (!outfit) return null;
 
   const topItem = outfit.kiyafetler.find((k: any) => k.kategori === "Üst Giyim" || k.kategori === "Dış Giyim");
-  const bottomItem = outfit.kiyafetler.find((k: any) => k.kategori === "Alt Giyim" || k.kategori === "Elbise & Etek");
+  const bottomItem = outfit.kiyafetler.find((k: any) => k.kategori === "Alt Giyim" || k.kategori === "Elbise");
   const shoesItem = outfit.kiyafetler.find((k: any) => k.kategori === "Ayakkabı");
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -144,6 +144,33 @@ export function LookbookModal({ outfit, onClose, onSave, isSaveLoading }: Lookbo
                     </div>
                   </div>
                 )}
+                {(outfit.disUrunler ?? []).map((urun, idx) => (
+                  <a
+                    key={`${urun.link}-${idx}`}
+                    href={urun.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex flex-col gap-2 group"
+                  >
+                    <p className="text-[10px] text-gold font-bold flex items-center gap-1.5 uppercase tracking-wider">
+                      <ShoppingBag className="h-3 w-3" /> WEB'DEN
+                    </p>
+                    <div className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-[#F4F4F4] shadow-lg">
+                      {urun.resimUrl ? (
+                        <Image src={urun.resimUrl} alt={urun.ad} fill unoptimized className="object-cover transition-transform duration-500 group-hover:scale-105" />
+                      ) : (
+                        <div className="absolute inset-0 flex items-center justify-center bg-[#111110]">
+                          <ShoppingBag className="h-6 w-6 text-muted" />
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-white px-3 py-1.5 rounded-full bg-black/60">
+                          Satın Al <ExternalLink className="h-3 w-3" />
+                        </span>
+                      </div>
+                    </div>
+                  </a>
+                ))}
               </div>
 
               {/* Stylist Note */}

@@ -5,7 +5,7 @@ import { Sparkles, Bookmark } from "lucide-react";
 import { OutfitGeneratorPanel } from "@/components/outfits/OutfitGeneratorPanel";
 import { OutfitResultCard }     from "@/components/outfits/OutfitResultCard";
 import { LookbookModal }        from "@/components/outfits/LookbookModal";
-import { useGenerateOutfit, useRateOutfit, useSaveOutfit } from "@/lib/hooks/useOutfits";
+import { useGenerateOutfit, useGenerateWebOutfit, useRateOutfit, useSaveOutfit } from "@/lib/hooks/useOutfits";
 import { useWeather }           from "@/lib/hooks/useWeather";
 import type { OutfitGeneratePayload, OutfitRecommendation } from "@/types";
 import type { SaveToArchivePayload } from "@/lib/api/outfits";
@@ -19,6 +19,7 @@ const ABD = "1px solid rgba(201,168,76,0.25)";
 export default function OutfitsPage() {
   const { weather } = useWeather();
   const generateOutfit = useGenerateOutfit();
+  const generateWebOutfit = useGenerateWebOutfit();
   const rateOutfit = useRateOutfit();
   const saveOutfit = useSaveOutfit();
 
@@ -27,8 +28,9 @@ export default function OutfitsPage() {
   const [pendingSaveId,      setPendingSaveId]      = useState<string | null>(null);
   const [lookbookOutfitId,   setLookbookOutfitId]   = useState<string | null>(null);
 
-  const handleGenerate = (payload: OutfitGeneratePayload) => {
-    generateOutfit.mutate(payload, { onSuccess: (d) => setFreshResults(d.kombin ? [d.kombin] : []) });
+  const handleGenerate = (payload: OutfitGeneratePayload, webdenOner: boolean) => {
+    const mutation = webdenOner ? generateWebOutfit : generateOutfit;
+    mutation.mutate(payload, { onSuccess: (d) => setFreshResults(d.kombin ? [d.kombin] : []) });
   };
 
   const handleFeedback = (id: string, begeniyor: boolean) => {
@@ -43,14 +45,17 @@ export default function OutfitsPage() {
       ipucu: outfit.ipucu,
       havaDurumu: outfit.havaDurumu as unknown as Record<string, unknown>,
       kiyafetler: outfit.kiyafetler.map((k) => k._id),
+      disUrunler: outfit.disUrunler,
     };
     setPendingSaveId(outfit.id);
     saveOutfit.mutate(payload, { onSettled: () => setPendingSaveId(null) });
   };
 
+  const isGenerating = generateOutfit.isPending || generateWebOutfit.isPending;
+
   return (
     <div className="space-y-6 animate-fade-in pb-10">
-      {/* ── Header ── */}
+      {/* Header */}
       <div>
         <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-muted mb-1">AI STİL</p>
         <h1 className="text-2xl font-black text-text leading-none">AI Kombin Üretici</h1>
@@ -58,14 +63,14 @@ export default function OutfitsPage() {
       </div>
 
       <div className="grid lg:grid-cols-[380px_1fr] xl:grid-cols-[420px_1fr] gap-8 items-start">
-        {/* ── Left: Sticky Generator ── */}
+        {/* Left: Sticky Generator */}
         <div className="sticky top-6">
-          <OutfitGeneratorPanel onGenerate={handleGenerate} isLoading={generateOutfit.isPending} weather={weather} />
+          <OutfitGeneratorPanel onGenerate={handleGenerate} isLoading={isGenerating} weather={weather} />
         </div>
 
-        {/* ── Right: Results ── */}
+        {/* Right: Results */}
         <div className="space-y-4">
-          {generateOutfit.isPending && (
+          {isGenerating && (
             <div className="rounded-[32px] overflow-hidden" style={{ background: SBG, border: BDR }}>
               <div className="h-1 w-full bg-gold-gradient animate-pulse" />
               <div className="p-6 space-y-5">
@@ -79,7 +84,7 @@ export default function OutfitsPage() {
             </div>
           )}
 
-          {!generateOutfit.isPending && freshResults.length > 0 && (
+          {!isGenerating && freshResults.length > 0 && (
             <div className="space-y-4 animate-slide-up">
               <div className="flex items-center justify-between">
                 <p className="text-[18px] font-bold text-text">Önerilen kombin</p>
@@ -97,7 +102,7 @@ export default function OutfitsPage() {
             </div>
           )}
 
-          {!generateOutfit.isPending && freshResults.length === 0 && (
+          {!isGenerating && freshResults.length === 0 && (
             <div
               className="rounded-[32px] p-12 flex flex-col items-center justify-center text-center gap-4 min-h-[400px]"
               style={{ background: SBG, border: BDR }}

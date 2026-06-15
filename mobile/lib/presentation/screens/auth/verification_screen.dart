@@ -74,7 +74,7 @@ class _VerificationScreenState extends State<VerificationScreen>
     super.dispose();
   }
 
-  // ── Geri sayım başlat ──────────────────────────────────────────────────
+  // Geri sayım başlat
   void _startCountdown() {
     _resendCountdown = 60;
     _canResend = false;
@@ -95,10 +95,10 @@ class _VerificationScreenState extends State<VerificationScreen>
     });
   }
 
-  // ── 6 kutunun değerini birleştir ───────────────────────────────────────
+  // 6 kutunun değerini birleştir
   String get _otpValue => _controllers.map((c) => c.text).join();
 
-  // ── OTP bir kutuya girildiğinde ────────────────────────────────────────
+  // OTP bir kutuya girildiğinde
   void _onOtpInput(int index, String value) {
     // Hata mesajını temizle
     if (_errorMessage != null) setState(() => _errorMessage = null);
@@ -113,7 +113,7 @@ class _VerificationScreenState extends State<VerificationScreen>
     setState(() {});
   }
 
-  // ── Backspace ile geri dön ─────────────────────────────────────────────
+  // Backspace ile geri dön
   void _onBackspace(int index) {
     if (_controllers[index].text.isEmpty && index > 0) {
       _controllers[index - 1].clear();
@@ -122,7 +122,7 @@ class _VerificationScreenState extends State<VerificationScreen>
     setState(() {});
   }
 
-  // ── Doğrulama isteği gönder ────────────────────────────────────────────
+  // Doğrulama isteği gönder
   Future<void> _verify() async {
     final otp = _otpValue;
     if (otp.length < 6) {
@@ -152,7 +152,7 @@ class _VerificationScreenState extends State<VerificationScreen>
       final data = jsonDecode(res.body);
 
       if (res.statusCode == 200) {
-        // ✅ Doğrulama başarılı — Token'ı kaydet, HomeScreen'e git
+        // Doğrulama başarılı — Token'ı kaydet, HomeScreen'e git
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('token', data['token'] ?? '');
 
@@ -168,7 +168,7 @@ class _VerificationScreenState extends State<VerificationScreen>
           (_) => false,
         );
       } else {
-        // ❌ Hatalı kod — ekranda kal, hata göster
+        // Hatalı kod — ekranda kal, hata göster
         setState(() {
           _errorMessage =
               data['mesaj'] ?? 'verify.incorrect_verification_code'.tr();
@@ -199,7 +199,7 @@ class _VerificationScreenState extends State<VerificationScreen>
     }
   }
 
-  // ── Kodu yeniden gönder ────────────────────────────────────────────────
+  // Kodu yeniden gönder
   Future<void> _resendCode() async {
     if (!_canResend) return;
 
@@ -245,7 +245,7 @@ class _VerificationScreenState extends State<VerificationScreen>
     }
   }
 
-  // ── UI ────────────────────────────────────────────────────────────────
+  // UI
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -401,7 +401,7 @@ class _VerificationScreenState extends State<VerificationScreen>
   }
 }
 
-// ── OTP tek kutu widget ────────────────────────────────────────────────────
+// OTP tek kutu widget
 class _OtpBox extends StatelessWidget {
   final TextEditingController controller;
   final FocusNode focusNode;
@@ -476,7 +476,7 @@ class _OtpBox extends StatelessWidget {
   }
 }
 
-// ── Geri butonu ────────────────────────────────────────────────────────────
+// Geri butonu
 class _BackButton extends StatelessWidget {
   final VoidCallback onTap;
   const _BackButton({required this.onTap});

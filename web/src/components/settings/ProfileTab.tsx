@@ -46,12 +46,15 @@ export function ProfileTab({ profile }: ProfileTabProps) {
     formState: { errors, isDirty },
   } = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
-    defaultValues: { kullaniciAdi: profile.kullaniciAdi },
+    defaultValues: {
+      kullaniciAdi: profile.kullaniciAdi,
+      cinsiyet: profile.cinsiyet ?? "Belirtilmemiş",
+    },
   });
 
   const onSubmit = (data: ProfileFormData) => {
     setSaved(false);
-    updateProfile.mutate({ kullaniciAdi: data.kullaniciAdi });
+    updateProfile.mutate({ kullaniciAdi: data.kullaniciAdi, cinsiyet: data.cinsiyet });
   };
 
   return (
@@ -73,6 +76,21 @@ export function ProfileTab({ profile }: ProfileTabProps) {
             error={errors.kullaniciAdi?.message}
             {...register("kullaniciAdi")}
           />
+
+          <div className="space-y-1.5">
+            <label className="text-[12px] text-muted block">Cinsiyet</label>
+            <select
+              className="w-full rounded-lg border border-border bg-white/3 px-3 py-2 text-sm text-text"
+              {...register("cinsiyet")}
+            >
+              <option value="Belirtilmemiş">Belirtilmemiş</option>
+              <option value="Kadın">Kadın</option>
+              <option value="Erkek">Erkek</option>
+            </select>
+            <p className="text-[11px] text-muted">
+              Kombin önerilerinde (dolap ve web) sana uygun olmayan parçaların gösterilmemesi için kullanılır.
+            </p>
+          </div>
 
           <div className="space-y-1.5">
             <label className="text-[12px] text-muted block">E-Posta</label>

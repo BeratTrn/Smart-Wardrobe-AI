@@ -14,17 +14,17 @@ jest.mock('axios');
 const axios   = require('axios');
 const weather = require('../services/weatherService');
 
-// ─── Test başlamadan önce API key'i ayarla ────────────────────────────────────
+// Test başlamadan önce API key'i ayarla 
 beforeAll(() => {
     process.env.OPENWEATHER_API_KEY = 'test_key';
 });
 
-// ─── Her testten önce axios mock'larını temizle ───────────────────────────────
+// Her testten önce axios mock'larını temizle 
 beforeEach(() => {
     jest.clearAllMocks();
 });
 
-// ─── Yardımcı: sahte OpenWeather yanıtı ──────────────────────────────────────
+// Yardımcı: sahte OpenWeather yanıtı 
 const makeWeatherResponse = (temp, city = 'TestCity') => ({
     data: {
         main:    { temp, feels_like: temp + 1, humidity: 50 },
@@ -35,9 +35,30 @@ const makeWeatherResponse = (temp, city = 'TestCity') => ({
     },
 });
 
-// ══════════════════════════════════════════════════════════════════════════════
+
+// weatherService — API anahtarı tanımlı değilse hata fırlatan dallar
+describe('weatherService — OPENWEATHER_API_KEY tanımsız dalları', () => {
+    let originalKey;
+
+    beforeEach(() => {
+        originalKey = process.env.OPENWEATHER_API_KEY;
+        delete process.env.OPENWEATHER_API_KEY;
+    });
+
+    afterEach(() => {
+        process.env.OPENWEATHER_API_KEY = originalKey;
+    });
+
+    test('havaDurumuGetir — API anahtarı yoksa hata fırlatır', async () => {
+        await expect(weather.havaDurumuGetir(41.05, 28.98)).rejects.toThrow(/API anahtarı/);
+    });
+
+    test('sehirHavaDurumu — API anahtarı yoksa hata fırlatır', async () => {
+        await expect(weather.sehirHavaDurumu('Istanbul')).rejects.toThrow(/API anahtarı/);
+    });
+});
+
 // weatherService cache — line 16 false branch (süresi dolmuş cache)
-// ══════════════════════════════════════════════════════════════════════════════
 describe('weatherService cache expiry (line 16 false branch)', () => {
 
     test('süresi dolmuş cache girişi API\'yi yeniden çağırır', async () => {

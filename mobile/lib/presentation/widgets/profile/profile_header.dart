@@ -40,7 +40,7 @@ class ProfileHeader extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(22, 20, 22, 20),
       child: Row(
         children: [
-          // ── Avatar + kamera rozeti
+          // Avatar + kamera rozeti
           SizedBox(
             width: 76,
             height: 76,
@@ -114,7 +114,7 @@ class ProfileHeader extends StatelessWidget {
 
           const SizedBox(width: 16),
 
-          // ── İsim + e-posta
+          // İsim + e-posta
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -166,7 +166,7 @@ class ProfileHeader extends StatelessWidget {
   }
 }
 
-// ─── Avatar dairesi — asset / network / baş harf ─────────────────────────────
+// Avatar dairesi — asset / network / baş harf 
 
 class _AvatarCircle extends StatelessWidget {
   final String? profilePhoto;

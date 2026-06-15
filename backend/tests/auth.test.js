@@ -42,9 +42,8 @@ afterAll(async () => {
     server.close();
 });
 
-// =============================================
+
 // KAYIT (REGISTER) TESTLERİ
-// =============================================
 describe('POST /api/auth/register', () => {
 
     const gecerliKullanici = {
@@ -155,9 +154,8 @@ const createVerifiedUserAndToken = async (payload) => {
     return loginRes.body.token;
 };
 
-// =============================================
+
 // GİRİŞ (LOGIN) TESTLERİ
-// =============================================
 describe('POST /api/auth/login', () => {
 
     beforeEach(async () => {
@@ -203,9 +201,8 @@ describe('POST /api/auth/login', () => {
     });
 });
 
-// =============================================
+
 // KORUNAN ROUTE TESTLERİ
-// =============================================
 describe('GET /api/auth/me', () => {
 
     let token;
@@ -241,9 +238,8 @@ describe('GET /api/auth/me', () => {
     });
 });
 
-// =============================================
+
 // PROFIL GUNCELLEME TESTLERI
-// =============================================
 describe('PUT /api/users/profile', () => {
     let token;
 
@@ -283,9 +279,8 @@ describe('PUT /api/users/profile', () => {
     });
 });
 
-// =============================================
+
 // SIFRE DEGISTIRME TESTLERI
-// =============================================
 describe('PUT /api/auth/change-password', () => {
     let token;
 
@@ -323,9 +318,8 @@ describe('PUT /api/auth/change-password', () => {
     });
 });
 
-// =============================================
+
 // SIFRE SIFIRLAMA TESTLERI
-// =============================================
 describe('Sifre sifirlama akis testleri', () => {
     beforeEach(async () => {
         await createVerifiedUserAndToken({

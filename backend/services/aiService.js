@@ -1,6 +1,6 @@
 const axios = require('axios');
 const FormData = require('form-data');
-const Groq = require('groq-sdk'); // Google'ı sildik, Groq'u ekledik!
+const Groq = require('groq-sdk');
 
 const FASTAPI_URL = process.env.FASTAPI_URL || 'http://localhost:8000';
 
@@ -11,8 +11,8 @@ const groq = new Groq({ apiKey: process.env.GROQ_API_KEY || 'dummy_key_for_build
 const CATEGORY_MAP = {
     ust_giyim:   'Üst Giyim',
     alt_giyim:   'Alt Giyim',
-    elbise:      'Elbise & Etek',
-    etek:        'Elbise & Etek',
+    elbise:      'Elbise',
+    etek:        'Elbise',
     dis_giyim:   'Dış Giyim',
     mont:        'Dış Giyim',
     ayakkabi:    'Ayakkabı',
@@ -57,11 +57,11 @@ const analyzeItem = async (fileOrUrl, originalname) => {
     };
 };
 
-// ── Kategori sabitleri ────────────────────────────────────────────────────────
+// Kategori sabitleri
 const KAT = {
     UST:     'Üst Giyim',
     ALT:     'Alt Giyim',
-    ELBISE:  'Elbise & Etek',
+    ELBISE:  'Elbise',
     DIS:     'Dış Giyim',
     AYAK:    'Ayakkabı',
     AKSESUAR:'Aksesuar',
@@ -73,7 +73,7 @@ const KAT = {
  *
  * Geçerli yapılar:
  *   A) En az 1 Üst Giyim + 1 Alt Giyim + 1 Ayakkabı
- *   B) En az 1 Elbise & Etek + 1 Ayakkabı
+ *   B) En az 1 Elbise + 1 Ayakkabı
  *
  * @param {Array} items - MongoDB Item dökümanları
  * @returns {{ gecerli: boolean, mesaj?: string }}
@@ -119,7 +119,7 @@ const wardrobeOnKontrol = (items) => {
  */
 const generateOutfitSuggestion = async (userItems, havaDurumu, etkinlik = 'Günlük') => {
 
-    // ── 1. ÖN KONTROL ────────────────────────────────────────────────────────
+    // 1. ÖN KONTROL
     const kontrol = wardrobeOnKontrol(userItems);
     if (!kontrol.gecerli) {
         const err = new Error(kontrol.mesaj);
@@ -127,7 +127,7 @@ const generateOutfitSuggestion = async (userItems, havaDurumu, etkinlik = 'Günl
         throw err;
     }
 
-    // ── 2. DOLAP LİSTESİNİ HAZIRLA ───────────────────────────────────────────
+    // 2. DOLAP LİSTESİNİ HAZIRLA 
     // Kategori etiketini ID'nin yanına ekliyoruz ki AI hangi parçanın
     // hangi kategoride olduğunu net görsün.
     // Geçerli Stil değerleri: Günlük, Klasik, Spor, Sokak, Minimal, Şık, Resmi
@@ -141,7 +141,7 @@ const generateOutfitSuggestion = async (userItems, havaDurumu, etkinlik = 'Günl
     const sogukHava = sicaklik < 10;
     const sıcakHava = sicaklik > 25;
 
-    // ── 3. PROMPT ─────────────────────────────────────────────────────────────
+    // 3. PROMPT
     const prompt = `
 Sen bir profesyonel moda danışmanısın. Aşağıdaki DOLAP İÇERİĞİ listesinden tam anlamıyla giyilebilir, gerçek hayata uygun bir kombin oluştur.
 
@@ -166,7 +166,7 @@ Kombin, aşağıdaki iki yapıdan BİRİNE TAMAMEN UYMAK ZORUNDADIR:
           + TAM OLARAK 1 adet "Alt Giyim"
           + TAM OLARAK 1 adet "Ayakkabı"
 
-  YAPI B:  TAM OLARAK 1 adet "Elbise & Etek"
+  YAPI B:  TAM OLARAK 1 adet "Elbise"
           + TAM OLARAK 1 adet "Ayakkabı"
 
 İKİ YAPI İÇİN DE ORTAK OPSIYONEL EKLER:
@@ -178,7 +178,7 @@ MUTLAK YASAK KURALLAR
 ════════════════════════════════
 1. AYNI KATEGORİDEN 2 PARÇA ASLA SEÇİLEMEZ (2 üst, 2 ayakkabı, 2 elbise vb. kesinlikle yasak).
 2. Listede ID'si OLMAYAN herhangi bir parça seçilemez.
-3. "Üst Giyim" + "Elbise & Etek" kombinasyonu yasak (ikisi birden seçilemez).
+3. "Üst Giyim" + "Elbise" kombinasyonu yasak (ikisi birden seçilemez).
 ${sogukHava ? '4. Hava 10°C altında: şort, kolsuz üst, ince yazlık KESİNLİKLE seçilmez.\n' : ''}${etkinlik === 'İş' ? '4. İş etkinliği: spor kıyafet (Spor Giyim) ve aşırı rahat parçalar seçilmez.\n' : ''}
 ════════════════════════════════
 ÇIKTI FORMATI
@@ -191,7 +191,7 @@ Yanıtını YALNIZCA geçerli bir JSON nesnesi olarak ver. Markdown, açıklama,
 }
 `.trim();
 
-    // ── 4. AI ÇAĞRISI ─────────────────────────────────────────────────────────
+    // 4. AI ÇAĞRISI 
     const response = await groq.chat.completions.create({
         messages: [{ role: 'user', content: prompt }],
         model: 'llama-3.3-70b-versatile',
@@ -201,7 +201,7 @@ Yanıtını YALNIZCA geçerli bir JSON nesnesi olarak ver. Markdown, açıklama,
 
     const text = response.choices[0].message.content.trim();
 
-    // ── 5. PARSE & SONUÇ DOĞRULAMA ────────────────────────────────────────────
+    // 5. PARSE & SONUÇ DOĞRULAMA 
     let parsed;
     try {
         parsed = JSON.parse(text);
@@ -230,7 +230,7 @@ Yanıtını YALNIZCA geçerli bir JSON nesnesi olarak ver. Markdown, açıklama,
  */
 const generateSuitcaseSuggestion = async (userItems, havaDurumu, sehir, gunSayisi) => {
 
-    // ── 1. DOLAP LİSTESİNİ HAZIRLA ───────────────────────────────────────────
+    // 1. DOLAP LİSTESİNİ HAZIRLA 
     const kiyafetListesi = userItems
         .map(k =>
             `ID:${k._id} | KATEGORİ:${k.kategori} | Renk:${k.renk} | Mevsim:${k.mevsim} | Stil:${k.stil}${k.marka ? ' | Marka:' + k.marka : ''}`
@@ -241,7 +241,7 @@ const generateSuitcaseSuggestion = async (userItems, havaDurumu, sehir, gunSayis
     const sogukHava = sicaklik < 10;
     const sicakHava = sicaklik > 25;
 
-    // ── 2. GÜN SAYISINA GÖRE PAKETLEME KILAVUZU ─────────────────────────────
+    // 2. GÜN SAYISINA GÖRE PAKETLEME KILAVUZU 
     let paketlemeKuralı;
     if (gunSayisi <= 3) {
         paketlemeKuralı = `${gunSayisi} günlük kısa seyahat: 2-${gunSayisi + 1} üst/elbise, 1-2 alt giyim, 1 ayakkabı öner. Valiz yerine kabin bagajına sığacak kadar az parça seç.`;
@@ -251,7 +251,7 @@ const generateSuitcaseSuggestion = async (userItems, havaDurumu, sehir, gunSayis
         paketlemeKuralı = `${gunSayisi} günlük uzun seyahat: kapsül gardırop mantığıyla 5-6 üst/elbise, 3 alt giyim, 2 ayakkabı öner. Mix-and-match yaratabilecek nötr tonları tercih et.`;
     }
 
-    // ── 3. PROMPT ─────────────────────────────────────────────────────────────
+    // 3. PROMPT 
     const prompt = `
 Sen bir profesyonel seyahat stili danışmanısın. Kullanıcı ${sehir}'e ${gunSayisi} günlük bir seyahat yapıyor.
 
@@ -284,7 +284,7 @@ ${sogukHava ? '- Şort, kolsuz üst, ince yazlık YASAK.' : sicakHava ? '- Kaban
 
 ZORUNLU MİNİMUM (en az biri sağlanmalı):
   YAPI A: 1 Üst Giyim + 1 Alt Giyim + 1 Ayakkabı
-  YAPI B: 1 Elbise & Etek + 1 Ayakkabı
+  YAPI B: 1 Elbise + 1 Ayakkabı
 
 ════════════════════════════════
 MUTLAK YASAKLAR
@@ -303,7 +303,7 @@ YALNIZCA geçerli bir JSON nesnesi döndür. Markdown ve ek metin yasak.
 }
 `.trim();
 
-    // ── 4. AI ÇAĞRISI ─────────────────────────────────────────────────────────
+    // 4. AI ÇAĞRISI 
     const response = await groq.chat.completions.create({
         messages: [{ role: 'user', content: prompt }],
         model: 'llama-3.3-70b-versatile',
@@ -313,7 +313,7 @@ YALNIZCA geçerli bir JSON nesnesi döndür. Markdown ve ek metin yasak.
 
     const text = response.choices[0].message.content.trim();
 
-    // ── 5. PARSE & ID DOĞRULAMA ───────────────────────────────────────────────
+    // 5. PARSE & ID DOĞRULAMA 
     let parsed;
     try {
         parsed = JSON.parse(text);

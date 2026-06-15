@@ -7,6 +7,7 @@ import 'package:smart_wardrobe_ai/core/constants/app_colors.dart';
 import 'package:smart_wardrobe_ai/core/theme/app_theme_extension.dart';
 import 'package:smart_wardrobe_ai/data/services/api_service.dart';
 import 'package:smart_wardrobe_ai/presentation/screens/auth/login_screen.dart';
+import 'package:smart_wardrobe_ai/presentation/screens/item/camera_extract_screen.dart';
 import 'package:smart_wardrobe_ai/presentation/screens/main/home_screen.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/shared/app_background.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/shared/app_text_styles.dart';
@@ -28,14 +29,22 @@ class _AddItemScreenState extends State<AddItemScreen>
   Uint8List? _imageBytes;
   String _imageName = 'photo.jpg';
 
-  // ─── State machine ───────────────────────────────────────────────────────
+  // State machine
   // pick → analyzing → review → saving → done
   String _step = 'pick';
 
-  // ─── Form değerleri ──────────────────────────────────────────────────────
+  // Form değerleri
   String _selectedCategory = '';
   String _selectedSeason = 'add_item.all_seasons'.tr();
   String _selectedStyle = 'add_item.casual'.tr();
+  // Backend enum (Item.cinsiyet): 'Unisex' | 'Kadın' | 'Erkek'
+  String _selectedGender = 'Unisex';
+
+  final List<(String value, String label)> _genders = [
+    ('Unisex', 'add_item.gender_unisex'.tr()),
+    ('Kadın', 'add_item.gender_female'.tr()),
+    ('Erkek', 'add_item.gender_male'.tr()),
+  ];
 
   final List<String> _categories = [
     'add_item.outerwear'.tr(),
@@ -86,7 +95,7 @@ class _AddItemScreenState extends State<AddItemScreen>
     super.dispose();
   }
 
-  // ─── 1. Fotoğraf seç ────────────────────────────────────────────────────
+  // 1. Fotoğraf seç
 
   Future<void> _pick(ImageSource source) async {
     final xf = await _picker.pickImage(source: source, imageQuality: 85);
@@ -101,8 +110,24 @@ class _AddItemScreenState extends State<AddItemScreen>
     await _getAiPreview(bytes, _imageName);
   }
 
-  // ─── 2. AI Önizleme (kayıt YOK) ─────────────────────────────────────────
+  /// Kamera: canlı önizleme + dokunarak kıyafet/aksesuar seçimi
+  /// (segmentasyon ile şeffaf arka planlı kesim) ekranını açar.
+  Future<void> _openCameraExtract() async {
+    final result = await Navigator.push<CameraExtractResult>(
+      context,
+      MaterialPageRoute(builder: (_) => const CameraExtractScreen()),
+    );
+    if (result == null) return;
 
+    setState(() {
+      _imageBytes = result.bytes;
+      _imageName = result.filename;
+      _step = 'analyzing';
+    });
+    await _getAiPreview(result.bytes, _imageName);
+  }
+
+  // 2. AI Önizleme (kayıt YOK)
   /// Görüntüyü yalnızca FastAPI motoruna gönderir.
   /// Başarılı veya başarısız olsun, her zaman 'review' adımına geçer.
   /// Başarısızlık durumunda form boş kalır ve kullanıcı manuel doldurur.
@@ -147,7 +172,7 @@ class _AddItemScreenState extends State<AddItemScreen>
     }
   }
 
-  // ─── 3. Kullanıcı onayı sonrası kaydet ──────────────────────────────────
+  // 3. Kullanıcı onayı sonrası kaydet
 
   Future<void> _save() async {
     if (_imageBytes == null) {
@@ -171,6 +196,7 @@ class _AddItemScreenState extends State<AddItemScreen>
         renk: _colorCtrl.text.trim(),
         mevsim: _selectedSeason,
         stil: _selectedStyle,
+        cinsiyet: _selectedGender,
       );
 
       if (!mounted) return;
@@ -206,6 +232,7 @@ class _AddItemScreenState extends State<AddItemScreen>
     _selectedCategory = '';
     _selectedSeason = 'add_item.all_seasons'.tr();
     _selectedStyle = 'add_item.casual'.tr();
+    _selectedGender = 'Unisex';
     _nameCtrl.clear();
     _colorCtrl.clear();
   });
@@ -221,7 +248,7 @@ class _AddItemScreenState extends State<AddItemScreen>
     );
   }
 
-  // ─── Build ───────────────────────────────────────────────────────────────
+  // Build
 
   @override
   Widget build(BuildContext context) {
@@ -248,7 +275,7 @@ class _AddItemScreenState extends State<AddItemScreen>
         return _PickStep(
           key: const ValueKey('pick'),
           onBack: () => Navigator.pop(context),
-          onCamera: () => _pick(ImageSource.camera),
+          onCamera: _openCameraExtract,
           onGallery: () => _pick(ImageSource.gallery),
         );
       case 'analyzing':
@@ -266,12 +293,15 @@ class _AddItemScreenState extends State<AddItemScreen>
           selectedCategory: _selectedCategory,
           selectedSeason: _selectedSeason,
           selectedStyle: _selectedStyle,
+          selectedGender: _selectedGender,
           categories: _categories,
           seasons: _seasons,
           styles: _styles,
+          genders: _genders,
           onCategoryChange: (v) => setState(() => _selectedCategory = v),
           onSeasonChange: (v) => setState(() => _selectedSeason = v),
           onStyleChange: (v) => setState(() => _selectedStyle = v),
+          onGenderChange: (v) => setState(() => _selectedGender = v),
           onBack: _reset,
           onSave: _save,
         );
@@ -296,9 +326,7 @@ class _AddItemScreenState extends State<AddItemScreen>
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // ADIM 1 — Fotoğraf Seç
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _PickStep extends StatelessWidget {
   final VoidCallback onBack, onCamera, onGallery;
@@ -456,9 +484,7 @@ class _PickStep extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // ADIM 2 — AI Analiz Ediliyor
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _AnalyzingStep extends StatelessWidget {
   final Uint8List? imageBytes;
@@ -576,16 +602,18 @@ class _AnalyzingStep extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // ADIM 3 — AI Sonucunu Onayla / Düzelt
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _ReviewStep extends StatelessWidget {
   final Uint8List? imageBytes;
   final TextEditingController nameCtrl, colorCtrl;
-  final String selectedCategory, selectedSeason, selectedStyle;
+  final String selectedCategory, selectedSeason, selectedStyle, selectedGender;
   final List<String> categories, seasons, styles;
-  final ValueChanged<String> onCategoryChange, onSeasonChange, onStyleChange;
+  final List<(String value, String label)> genders;
+  final ValueChanged<String> onCategoryChange,
+      onSeasonChange,
+      onStyleChange,
+      onGenderChange;
   final VoidCallback onBack, onSave;
 
   const _ReviewStep({
@@ -596,12 +624,15 @@ class _ReviewStep extends StatelessWidget {
     required this.selectedCategory,
     required this.selectedSeason,
     required this.selectedStyle,
+    required this.selectedGender,
     required this.categories,
     required this.seasons,
     required this.styles,
+    required this.genders,
     required this.onCategoryChange,
     required this.onSeasonChange,
     required this.onStyleChange,
+    required this.onGenderChange,
     required this.onBack,
     required this.onSave,
   });
@@ -654,7 +685,7 @@ class _ReviewStep extends StatelessWidget {
           ),
           const SizedBox(height: 16),
 
-          // ── Uyarı notu
+          // Uyarı notu
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -686,7 +717,7 @@ class _ReviewStep extends StatelessWidget {
           ),
           const SizedBox(height: 18),
 
-          // ── Görsel + Ad / Renk
+          // Görsel + Ad / Renk
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -726,7 +757,7 @@ class _ReviewStep extends StatelessWidget {
 
           const SizedBox(height: 22),
 
-          // ── KATEGORİ (AI'ın yanlış tahmin ettiği yer burası — dropdown)
+          // KATEGORİ (AI'ın yanlış tahmin ettiği yer burası — dropdown)
           Text(
             'add_item.category'.tr(),
             style: AppTextStyles.label.copyWith(letterSpacing: 1.2),
@@ -745,7 +776,7 @@ class _ReviewStep extends StatelessWidget {
 
           const SizedBox(height: 18),
 
-          // ── MEVSİM
+          // MEVSİM
           Text(
             'add_item.season'.tr(),
             style: AppTextStyles.label.copyWith(letterSpacing: 1.2),
@@ -767,7 +798,7 @@ class _ReviewStep extends StatelessWidget {
 
           const SizedBox(height: 18),
 
-          // ── STİL
+          // STİL
           Text(
             'add_item.style'.tr(),
             style: AppTextStyles.label.copyWith(letterSpacing: 1.2),
@@ -787,9 +818,36 @@ class _ReviewStep extends StatelessWidget {
                 .toList(),
           ),
 
+          const SizedBox(height: 18),
+
+          // CİNSİYET
+          Text(
+            'add_item.gender'.tr(),
+            style: AppTextStyles.label.copyWith(letterSpacing: 1.2),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'add_item.gender_hint'.tr(),
+            style: AppTextStyles.caption.copyWith(color: AppColors.muted),
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: genders
+                .map(
+                  (g) => AppFilterChip(
+                    label: g.$2,
+                    selected: selectedGender == g.$1,
+                    onTap: () => onGenderChange(g.$1),
+                  ),
+                )
+                .toList(),
+          ),
+
           const SizedBox(height: 30),
 
-          // ── Kaydet butonu
+          // Kaydet butonu
           GestureDetector(
             onTap: onSave,
             child: Container(
@@ -829,9 +887,7 @@ class _ReviewStep extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // ADIM 4 — Kaydediliyor
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _SavingStep extends StatelessWidget {
   const _SavingStep({super.key});
@@ -854,9 +910,7 @@ class _SavingStep extends StatelessWidget {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // ADIM 5 — Tamamlandı
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _DoneStep extends StatelessWidget {
   final String name;
@@ -987,9 +1041,7 @@ class _DoneStep extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // Kategori Dropdown — Chips yerine dropdown (7 seçenek için daha temiz UX)
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _CategoryDropdown extends StatelessWidget {
   final String selected;
@@ -1062,7 +1114,7 @@ class _CategoryDropdown extends StatelessWidget {
         return Icons.dry_cleaning_outlined;
       case 'Alt Giyim':
         return Icons.checkroom_outlined;
-      case 'Elbise & Etek':
+      case 'Elbise':
         return Icons.woman_outlined;
       case 'Ayakkabı':
         return Icons.run_circle_outlined;
@@ -1076,9 +1128,7 @@ class _CategoryDropdown extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // Renk dairesel swatch (HEX kodunu parse eder, geçersizse göstermez)
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _ColorCircleSwatch extends StatefulWidget {
   final TextEditingController hexValue;
@@ -1136,9 +1186,7 @@ class _ColorCircleSwatchState extends State<_ColorCircleSwatch> {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // Yardımcı widget'lar
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _DarkField extends StatelessWidget {
   final TextEditingController controller;

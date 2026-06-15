@@ -1,28 +1,29 @@
 import 'dart:convert';
 import 'dart:math' as math;
 import 'dart:ui';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:smart_wardrobe_ai/core/constants/api_constants.dart';
 import 'package:smart_wardrobe_ai/core/constants/app_colors.dart';
 import 'package:smart_wardrobe_ai/core/theme/app_theme_extension.dart';
+import 'package:smart_wardrobe_ai/core/utils/nav_transitions.dart';
 import 'package:smart_wardrobe_ai/data/models/clothing_item.dart';
 import 'package:smart_wardrobe_ai/data/models/saved_outfit.dart';
 import 'package:smart_wardrobe_ai/data/services/saved_outfits_store.dart';
-import 'package:smart_wardrobe_ai/presentation/screens/main/saved_outfits_screen.dart';
 import 'package:smart_wardrobe_ai/presentation/screens/item/add_item_screen.dart';
 import 'package:smart_wardrobe_ai/presentation/screens/main/favorites_screen.dart';
+import 'package:smart_wardrobe_ai/presentation/screens/main/saved_outfits_screen.dart';
 import 'package:smart_wardrobe_ai/presentation/screens/main/wardrobe_screen.dart';
 import 'package:smart_wardrobe_ai/presentation/screens/profile/profile_screen.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/shared/app_background.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/shared/app_bottom_nav.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/shared/app_text_styles.dart';
-import 'package:smart_wardrobe_ai/core/utils/nav_transitions.dart';
 
-// ─────────────────────────── Category helpers ────────────────────────────────
+// Category helpers
 
 bool _isCat(String cat, List<String> keys) =>
     keys.any((k) => cat.toLowerCase().contains(k));
@@ -42,7 +43,7 @@ Color _categoryColor(String cat) {
   return AppColors.gold;
 }
 
-// ─────────────────────────── HomeScreen ─────────────────────────────────────
+// HomeScreen
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -54,10 +55,10 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   static const int _navIndex = 0;
 
-  // ── Singleton store — reactive SavedOutfit list ───────────────────────────
+  // Singleton store — reactive SavedOutfit list
   final _store = SavedOutfitsStore.instance;
 
-  // ── State ─────────────────────────────────────────────────────────────────
+  // State
   String _userName = 'Kullanıcı';
   String _profilFoto = '';
   bool _itemsLoading = true; // guards items + scorecard sections
@@ -74,7 +75,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   String _weatherWind = '-- km/h';
   String _weatherCity = '';
 
-  // ── Animations ────────────────────────────────────────────────────────────
+  // Animations
   late final AnimationController _fadeCtrl;
   late final Animation<double> _fadeAnim;
 
@@ -106,7 +107,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  // ── Data loading ──────────────────────────────────────────────────────────
+  // Data loading
 
   Future<void> _loadData() async {
     if (mounted) {
@@ -228,7 +229,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     }
   }
 
-  // ── Weather ───────────────────────────────────────────────────────────────
+  // Weather
 
   Future<void> _loadWeather(String token) async {
     try {
@@ -328,7 +329,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     }
   }
 
-  // ── Weather Detail ────────────────────────────────────────────────────────
+  // Weather Detail
 
   void _showWeatherDetail() {
     showGeneralDialog(
@@ -362,7 +363,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  // ── Navigation ────────────────────────────────────────────────────────────
+  // Navigation
 
   void _onNavTap(int index) {
     if (index == _navIndex) return;
@@ -387,7 +388,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     }
   }
 
-  // ── Build ─────────────────────────────────────────────────────────────────
+  // Build
 
   @override
   Widget build(BuildContext context) {
@@ -412,7 +413,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   parent: AlwaysScrollableScrollPhysics(),
                 ),
                 slivers: [
-                  // ── Top Bar ──────────────────────────────────────────────
+                  // Top Bar
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(22, 16, 22, 0),
@@ -573,7 +574,7 @@ class _LookbookCarousel extends StatelessWidget {
   }
 }
 
-// ── Individual lookbook card  (SavedOutfit)
+// Individual lookbook card  (SavedOutfit)
 
 class _LookbookCard extends StatelessWidget {
   final SavedOutfit outfit;
@@ -617,13 +618,13 @@ class _LookbookCard extends StatelessWidget {
       ),
       child: Stack(
         children: [
-          // ── Mosaic of clothing images
+          // Mosaic of clothing images
           ClipRRect(
             borderRadius: BorderRadius.circular(24),
             child: _OutfitMosaic(items: items),
           ),
 
-          // ── Bottom gradient
+          // Bottom gradient
           Positioned.fill(
             child: ClipRRect(
               borderRadius: BorderRadius.circular(24),
@@ -644,7 +645,7 @@ class _LookbookCard extends StatelessWidget {
             ),
           ),
 
-          // ── KAYITLI badge — top right ───────────────────────────
+          // KAYITLI badge — top right
           Positioned(
             top: 12,
             right: 12,
@@ -686,7 +687,7 @@ class _LookbookCard extends StatelessWidget {
             ),
           ),
 
-          // ── Style tag — top left
+          // Style tag — top left
           Positioned(
             top: 12,
             left: 12,
@@ -712,7 +713,7 @@ class _LookbookCard extends StatelessWidget {
             ),
           ),
 
-          // ── Bottom info strip
+          // Bottom info strip
           Positioned(
             left: 0,
             right: 0,
@@ -827,7 +828,7 @@ class _ItemCountPill extends StatelessWidget {
   );
 }
 
-// ── Outfit image mosaic
+// Outfit image mosaic
 //  0 items  → full placeholder
 //  1 item   → single full-frame
 //  2 items  → top 60% / bottom 40%  (full width each)
@@ -957,21 +958,21 @@ class _StyleScorecardCard extends StatelessWidget {
     return _stilCounts.entries.reduce((a, b) => a.value >= b.value ? a : b).key;
   }
 
-static const _stilColors = <String, Color>{
+  static const _stilColors = <String, Color>{
     // Türkçe
-    'Casual':     Color(0xFFD4A853),
-    'Günlük':     Color(0xFFD4A853),
-    'Spor':       Color(0xFF4FC3F7),
-    'Klasik':     Color(0xFF9E9E9E),
-    'Formal':     Color(0xFF9E9E9E),
-    'Sokak':      Color(0xFF80CBC4),
+    'Casual': Color(0xFFD4A853),
+    'Günlük': Color(0xFFD4A853),
+    'Spor': Color(0xFF4FC3F7),
+    'Klasik': Color(0xFF9E9E9E),
+    'Formal': Color(0xFF9E9E9E),
+    'Sokak': Color(0xFF80CBC4),
     'Streetwear': Color(0xFF80CBC4),
-    'Şık':        Color(0xFFCE93D8),
-    'Elegant':    Color(0xFFCE93D8),
-    'Resmi':      Color(0xFF90A4AE),
-    'Bohemian':   Color(0xFFFFB74D),
-    'Minimal':    Color(0xFFB0BEC5),
-    'Diğer':      Color(0xFF546E7A),
+    'Şık': Color(0xFFCE93D8),
+    'Elegant': Color(0xFFCE93D8),
+    'Resmi': Color(0xFF90A4AE),
+    'Bohemian': Color(0xFFFFB74D),
+    'Minimal': Color(0xFFB0BEC5),
+    'Diğer': Color(0xFF546E7A),
   };
 
   @override
@@ -1013,7 +1014,7 @@ static const _stilColors = <String, Color>{
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ── Header ──────────────────────────────────────────────────
+              // Header
               Row(
                 children: [
                   Container(
@@ -1068,7 +1069,7 @@ static const _stilColors = <String, Color>{
               const Divider(color: Color(0xFF272720), height: 1),
               const SizedBox(height: 18),
 
-              // ── Donut + özet satırı
+              // Donut + özet satırı
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -1081,7 +1082,10 @@ static const _stilColors = <String, Color>{
                       children: [
                         CustomPaint(
                           size: const Size(90, 90),
-                          painter: _DoughnutPainter(slices: slices, total: total),
+                          painter: _DoughnutPainter(
+                            slices: slices,
+                            total: total,
+                          ),
                         ),
                         Column(
                           mainAxisSize: MainAxisSize.min,
@@ -1120,7 +1124,8 @@ static const _stilColors = <String, Color>{
                           icon: Icons.style_outlined,
                           label: 'home.dominant_style'.tr(),
                           value: dominant,
-                          valueColor: _stilColors[dominant] ?? AppColors.goldLight,
+                          valueColor:
+                              _stilColors[dominant] ?? AppColors.goldLight,
                         ),
                         const SizedBox(height: 10),
                         _StatRow(
@@ -1137,7 +1142,7 @@ static const _stilColors = <String, Color>{
                 ],
               ),
 
-              // ── Stil dağılımı — progress bar'lı liste
+              // Stil dağılımı — progress bar'lı liste
               if (slices.isNotEmpty) ...[
                 const SizedBox(height: 20),
                 const Divider(color: Color(0xFF272720), height: 1),
@@ -2062,7 +2067,7 @@ class _WeatherDetailDialog extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
 
-                    // ── Header: icon + city + desc + temp
+                    // Header: icon + city + desc + temp
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
@@ -2134,7 +2139,7 @@ class _WeatherDetailDialog extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
 
-                    // ── Metrics 2×2 grid
+                    // Metrics 2×2 grid
                     Row(
                       children: [
                         Expanded(
@@ -2189,7 +2194,7 @@ class _WeatherDetailDialog extends StatelessWidget {
 
                     const SizedBox(height: 14),
 
-                    // ── Dismiss hint
+                    // Dismiss hint
                     Text(
                       'home.tap_outside_to_close'.tr(),
                       style: TextStyle(

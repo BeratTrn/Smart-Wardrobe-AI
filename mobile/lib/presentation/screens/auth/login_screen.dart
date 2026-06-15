@@ -1,12 +1,13 @@
 import 'dart:convert';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:smart_wardrobe_ai/core/constants/api_constants.dart';
 import 'package:smart_wardrobe_ai/core/controllers/app_settings_controller.dart';
 import 'package:smart_wardrobe_ai/presentation/screens/auth/sign_up_screen.dart';
-import 'package:smart_wardrobe_ai/core/constants/api_constants.dart';
 import 'package:smart_wardrobe_ai/presentation/screens/main/home_screen.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/auth/auth_widgets.dart';
 
@@ -218,7 +219,7 @@ class _LoginScreenState extends State<LoginScreen>
                 const AuthLogo(),
                 const SizedBox(height: 48),
 
-                // — animasyonlu ikon
+                // animasyonlu ikon
                 Center(
                   child: AnimatedBuilder(
                     animation: _floatAnim,
@@ -267,7 +268,7 @@ class _LoginScreenState extends State<LoginScreen>
 
                 const SizedBox(height: 32),
 
-                // — alanlar
+                // alanlar
                 AuthTextField(
                   controller: _emailCtrl,
                   hint: 'login.email'.tr(),
@@ -282,7 +283,7 @@ class _LoginScreenState extends State<LoginScreen>
                   isPassword: true,
                 ),
 
-                // — şifremi unuttum
+                // şifremi unuttum
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
@@ -315,7 +316,7 @@ class _LoginScreenState extends State<LoginScreen>
                 const AuthDivider(),
                 const SizedBox(height: 24),
 
-                // — sosyal
+                // sosyal
                 AuthSocialButton(
                   icon: _googleLoading
                       ? const SizedBox(
@@ -333,7 +334,7 @@ class _LoginScreenState extends State<LoginScreen>
 
                 const SizedBox(height: 32),
 
-                // — kayıt ol
+                // kayıt ol
                 Center(
                   child: GestureDetector(
                     onTap: () => Navigator.push(

@@ -17,7 +17,7 @@ const A = "1px solid rgba(201,168,76,0.25)";
 const CAT_TEXT: Record<string, string> = {
   "Üst Giyim":     "#7EB3E0",
   "Alt Giyim":     "#B07EE0",
-  "Elbise & Etek": "#E07EB0",
+  "Elbise":        "#E07EB0",
   "Dış Giyim":     "#90C490",
   "Ayakkabı":      "#E0B07E",
   "Aksesuar":      "#7EE0B0",

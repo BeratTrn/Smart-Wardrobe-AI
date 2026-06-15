@@ -1,18 +1,26 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
-import { useDropzone } from "react-dropzone";
-import { Loader2, Sparkles, CloudUpload, Info, ChevronDown, Camera, Palette, RotateCcw, X, RefreshCcw } from "lucide-react";
+import { useAddItem, useAnalyzeItem } from "@/lib/hooks/useItems";
+import {
+  blobToFile,
+  extractRegionAtPoint,
+  loadImage,
+  segmentImage,
+  type ExtractResult,
+  type SegmentationResult,
+} from "@/lib/utils/clothingExtractor";
+import { cn } from "@/lib/utils/cn";
+import type { ItemCategory, ItemCinsiyet, ItemSeason, ItemStyle } from "@/types";
+import { Camera, ChevronDown, CloudUpload, Hand, ImageIcon, Info, Loader2, RefreshCcw, RotateCcw, Scissors, Sparkles, X } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { cn } from "@/lib/utils/cn";
-import { useAnalyzeItem, useAddItem } from "@/lib/hooks/useItems";
-import type { ItemCategory, ItemSeason, ItemStyle } from "@/types";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useDropzone } from "react-dropzone";
 
 const CATEGORIES: { value: ItemCategory; label: string; icon: string }[] = [
   { value: "Üst Giyim",    label: "Üst Giyim",    icon: "👕" },
   { value: "Alt Giyim",    label: "Alt Giyim",     icon: "👖" },
-  { value: "Elbise & Etek",label: "Elbise & Etek", icon: "👗" },
+  { value: "Elbise",       label: "Elbise",        icon: "👗" },
   { value: "Dış Giyim",    label: "Dış Giyim",     icon: "🧥" },
   { value: "Ayakkabı",     label: "Ayakkabı",      icon: "👟" },
   { value: "Aksesuar",     label: "Aksesuar",      icon: "⌚" },
@@ -20,6 +28,11 @@ const CATEGORIES: { value: ItemCategory; label: string; icon: string }[] = [
 
 const SEASONS: ItemSeason[] = ["İlkbahar", "Yaz", "Sonbahar", "Kış", "Tüm Mevsimler"];
 const STYLES: ItemStyle[]   = ["Günlük", "Klasik", "Spor", "Sokak", "Minimal", "Şık", "Resmi"];
+const CINSIYETLER: { value: ItemCinsiyet; label: string }[] = [
+  { value: "Unisex", label: "Unisex" },
+  { value: "Kadın",  label: "Kadın" },
+  { value: "Erkek",  label: "Erkek" },
+];
 
 // Colors
 const BG = "transparent"; 
@@ -67,6 +80,7 @@ export default function AddItemPage() {
   const [renk, setRenk]             = useState("");
   const [mevsimler, setMevsimler]   = useState<ItemSeason[]>(["Tüm Mevsimler"]);
   const [stiller, setStiller]       = useState<ItemStyle[]>(["Günlük"]);
+  const [cinsiyet, setCinsiyet]     = useState<ItemCinsiyet>("Unisex");
   const [marka, setMarka]           = useState("");
 
   const analyzeItem = useAnalyzeItem();
@@ -82,6 +96,16 @@ export default function AddItemPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+
+  // Kıyafet Çıkarma (Extract) State — kameradan çekilen "üzerimde" fotoğraftan
+  // dokunulan kıyafeti otomatik olarak kesip şeffaf arka planlı görsele çevirir.
+  const [extractStage, setExtractStage] = useState<"idle" | "select" | "preview">("idle");
+  const [capturedDataUrl, setCapturedDataUrl] = useState<string | null>(null);
+  const [capturedImageEl, setCapturedImageEl] = useState<HTMLImageElement | null>(null);
+  const [segmentation, setSegmentation] = useState<SegmentationResult | null>(null);
+  const [segmenting, setSegmenting] = useState(false);
+  const [extractResult, setExtractResult] = useState<ExtractResult | null>(null);
+  const [extractHint, setExtractHint] = useState<string | null>(null);
 
   const startCamera = async (mode: "user" | "environment" = facingMode) => {
     if (streamRef.current) {
@@ -128,15 +152,92 @@ export default function AddItemPage() {
       const ctx = canvas.getContext("2d");
       if (ctx) {
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        canvas.toBlob((blob) => {
-          if (blob) {
-            const file = new File([blob], "camera-photo.jpg", { type: "image/jpeg" });
-            stopCamera();
-            onDrop([file]);
-          }
-        }, "image/jpeg", 0.9);
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.92);
+        stopCamera();
+        beginExtraction(dataUrl);
       }
     }
+  };
+
+  // Kıyafet Çıkarma (Extract) Yardımcıları
+  const resetExtractState = () => {
+    setExtractStage("idle");
+    setCapturedDataUrl(null);
+    setCapturedImageEl(null);
+    setSegmentation(null);
+    setExtractResult(null);
+    setExtractHint(null);
+    setSegmenting(false);
+  };
+
+  // Çekilen fotoğraf için segmentasyonu başlatır ve "seç" adımına geçer.
+  const beginExtraction = async (dataUrl: string) => {
+    setCapturedDataUrl(dataUrl);
+    setExtractStage("select");
+    setExtractResult(null);
+    setExtractHint(null);
+    setSegmenting(true);
+    try {
+      const img = await loadImage(dataUrl);
+      setCapturedImageEl(img);
+      const seg = await segmentImage(img);
+      setSegmentation(seg);
+    } catch {
+      setSegmentation(null);
+      setExtractHint("Otomatik kıyafet algılama başlatılamadı. Tüm fotoğrafı kullanabilirsin.");
+    } finally {
+      setSegmenting(false);
+    }
+  };
+
+  // Fotoğrafa dokunulduğunda o noktadaki kıyafeti kesip önizleme adımına geçer.
+  const handlePhotoTap = async (e: React.MouseEvent<HTMLImageElement>) => {
+    if (!capturedImageEl || !segmentation || segmenting) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width;
+    const y = (e.clientY - rect.top) / rect.height;
+    setExtractHint(null);
+    try {
+      const result = await extractRegionAtPoint(capturedImageEl, segmentation, { x, y });
+      if (!result) {
+        setExtractHint("Burada bir kıyafet algılanamadı. Üzerindeki kıyafete dokunmayı dene.");
+        return;
+      }
+      setExtractResult(result);
+      setExtractStage("preview");
+    } catch {
+      setExtractHint("Kesme işlemi başarısız oldu, tekrar dener misin?");
+    }
+  };
+
+  // Kesilen (şeffaf arka planlı) kıyafeti analiz akışına gönderir.
+  const useExtractedCutout = () => {
+    if (!extractResult) return;
+    const file = blobToFile(extractResult.blob, "kiyafet-cutout.png");
+    resetExtractState();
+    onDrop([file]);
+  };
+
+  // Kesme yapmadan, çekilen fotoğrafın tamamını analiz akışına gönderir.
+  const useFullPhoto = async () => {
+    if (!capturedDataUrl) return;
+    const res = await fetch(capturedDataUrl);
+    const blob = await res.blob();
+    const file = blobToFile(blob, "camera-photo.jpg");
+    resetExtractState();
+    onDrop([file]);
+  };
+
+  // Yeniden fotoğraf çekmek için kameraya döner.
+  const retakePhoto = () => {
+    resetExtractState();
+    startCamera(facingMode);
+  };
+
+  const backToSelect = () => {
+    setExtractStage("select");
+    setExtractResult(null);
+    setExtractHint(null);
   };
 
   // Cleanup on unmount
@@ -151,7 +252,8 @@ export default function AddItemPage() {
   const resetState = () => {
     setStep("drop"); setPreview(null); setOriginalFile(null);
     setAd(""); setKategori("Üst Giyim"); setRenk("");
-    setMevsimler(["Tüm Mevsimler"]); setStiller(["Günlük"]); setMarka("");
+    setMevsimler(["Tüm Mevsimler"]); setStiller(["Günlük"]); setCinsiyet("Unisex"); setMarka("");
+    resetExtractState();
   };
 
   const toggleMevsim = (m: ItemSeason) => setMevsimler([m]);
@@ -188,13 +290,14 @@ export default function AddItemPage() {
       renk,
       mevsim: mevsimler[0] ?? "Tüm Mevsimler",
       stil: stiller[0] ?? "Günlük",
+      cinsiyet,
       marka: marka || undefined,
     });
   };
 
   return (
     <div className="flex flex-col gap-6 animate-fade-in max-w-2xl mx-auto mt-4">
-      {/* ── Header ──────────────────────────────────────────── */}
+      {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-[10px] font-bold tracking-[0.2em] text-muted uppercase mb-1">YENİ PARÇA</p>
@@ -216,8 +319,8 @@ export default function AddItemPage() {
       </div>
 
       <div className="mt-2">
-        {/* ── Step 1: Drop or Camera ────────────────────────── */}
-        {step === "drop" && !cameraOpen && (
+        {/* Step 1: Drop or Camera */}
+        {step === "drop" && !cameraOpen && extractStage === "idle" && (
           <div className="space-y-6 flex flex-col h-full animate-in fade-in duration-300">
             
             <div className="flex-1 space-y-4">
@@ -270,7 +373,7 @@ export default function AddItemPage() {
           </div>
         )}
 
-        {/* ── Camera View ──────────────────────────────────── */}
+        {/* Camera View */}
         {step === "drop" && cameraOpen && (
           <div className="flex flex-col gap-4 animate-in fade-in duration-300">
             <div className="relative w-full aspect-[3/4] sm:aspect-video rounded-[32px] overflow-hidden bg-black shadow-2xl" style={{ border: `1px solid ${BORDER}` }}>
@@ -310,7 +413,144 @@ export default function AddItemPage() {
           </div>
         )}
 
-        {/* ── Step 2: Analyzing ────────────────────────────── */}
+        {/* Extract: Kıyafeti Seç */}
+        {step === "drop" && extractStage === "select" && capturedDataUrl && (
+          <div className="flex flex-col gap-4 animate-in fade-in duration-300">
+            <div
+              className="relative w-full aspect-[3/4] sm:aspect-video rounded-[32px] overflow-hidden bg-black shadow-2xl"
+              style={{ border: `1px solid ${BORDER}` }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={capturedDataUrl}
+                alt="Çekilen fotoğraf"
+                onClick={handlePhotoTap}
+                className={cn(
+                  "w-full h-full object-cover",
+                  segmenting ? "cursor-wait" : "cursor-crosshair"
+                )}
+              />
+
+              {/* Instruction banner */}
+              <div className="absolute top-4 left-4 right-4 flex justify-center">
+                <div
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-full text-[13px] font-bold text-white backdrop-blur-md"
+                  style={{ background: "rgba(0,0,0,0.55)", border: `1px solid ${GOLD}40` }}
+                >
+                  <Hand className="h-4 w-4 text-gold" />
+                  {segmenting ? "Kıyafetler algılanıyor…" : "Çıkarmak istediğin kıyafete dokun"}
+                </div>
+              </div>
+
+              {/* Close / cancel */}
+              <button
+                onClick={retakePhoto}
+                className="absolute top-4 right-4 h-11 w-11 bg-black/50 backdrop-blur-md rounded-full flex items-center justify-center text-white/80 hover:text-white hover:bg-black/70 transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+
+              {/* Loading overlay */}
+              {segmenting && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                  <Loader2 className="h-10 w-10 text-gold animate-spin" />
+                </div>
+              )}
+            </div>
+
+            {/* Hint / error message */}
+            {extractHint && (
+              <div
+                className="flex items-start gap-3 rounded-2xl p-4"
+                style={{ background: "rgba(201,168,76,0.05)", border: `1px solid ${GOLD}25` }}
+              >
+                <Info className="h-5 w-5 text-gold flex-shrink-0 mt-0.5" />
+                <p className="text-[14px] text-white/80 leading-relaxed">{extractHint}</p>
+              </div>
+            )}
+
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={useFullPhoto}
+                className="flex-1 py-4 rounded-[20px] flex items-center justify-center gap-2 font-bold text-[15px] text-white/90 hover:text-white transition-all duration-200"
+                style={{ background: SURFACE, border: `1px solid ${BORDER}` }}
+              >
+                <ImageIcon className="h-5 w-5 text-gold" />
+                Tüm Fotoğrafı Kullan
+              </button>
+              <button
+                onClick={retakePhoto}
+                className="flex-1 py-4 rounded-[20px] flex items-center justify-center gap-2 font-bold text-[15px] text-white/90 hover:text-white transition-all duration-200"
+                style={{ background: SURFACE, border: `1px solid ${BORDER}` }}
+              >
+                <RefreshCcw className="h-5 w-5 text-gold" />
+                Tekrar Çek
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Extract: Kesilen Kıyafet Önizleme */}
+        {step === "drop" && extractStage === "preview" && extractResult && (
+          <div className="flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
+            <div className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-[13px] font-bold text-gold mx-auto"
+              style={{ background: "rgba(201,168,76,0.1)", border: "1px solid rgba(201,168,76,0.3)" }}
+            >
+              <Scissors className="h-4 w-4" />
+              Kıyafet bulundu!
+            </div>
+
+            <div
+              className="relative w-full aspect-[3/4] sm:aspect-video rounded-[32px] overflow-hidden shadow-2xl flex items-center justify-center"
+              style={{
+                border: `1px solid ${BORDER}`,
+                backgroundColor: "#1a1a17",
+                backgroundImage:
+                  "linear-gradient(45deg, #2a2a26 25%, transparent 25%), linear-gradient(-45deg, #2a2a26 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #2a2a26 75%), linear-gradient(-45deg, transparent 75%, #2a2a26 75%)",
+                backgroundSize: "24px 24px",
+                backgroundPosition: "0 0, 0 12px, 12px -12px, -12px 0px",
+              }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={extractResult.dataUrl}
+                alt="Kesilen kıyafet"
+                className="max-h-full max-w-full object-contain p-6"
+              />
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={useExtractedCutout}
+                className="w-full py-4.5 rounded-[20px] font-bold text-[17px] text-black transition-all duration-300 hover:opacity-90 flex items-center justify-center gap-2"
+                style={{ background: "linear-gradient(135deg, #C9A84C 0%, #E8C97A 100%)", boxShadow: "0 8px 30px rgba(201,168,76,0.3)" }}
+              >
+                <Sparkles className="h-5 w-5" />
+                Bu Kıyafeti Kullan
+              </button>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={backToSelect}
+                  className="flex-1 py-4 rounded-[20px] flex items-center justify-center gap-2 font-bold text-[15px] text-white/90 hover:text-white transition-all duration-200"
+                  style={{ background: SURFACE, border: `1px solid ${BORDER}` }}
+                >
+                  <Hand className="h-5 w-5 text-gold" />
+                  Başka Nokta Seç
+                </button>
+                <button
+                  onClick={retakePhoto}
+                  className="flex-1 py-4 rounded-[20px] flex items-center justify-center gap-2 font-bold text-[15px] text-white/90 hover:text-white transition-all duration-200"
+                  style={{ background: SURFACE, border: `1px solid ${BORDER}` }}
+                >
+                  <RefreshCcw className="h-5 w-5 text-gold" />
+                  Tekrar Çek
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Step 2: Analyzing */}
         {step === "analyze" && (
           <div className="flex flex-col items-center justify-center py-20 gap-8 animate-in fade-in duration-300">
             {preview && (
@@ -331,7 +571,7 @@ export default function AddItemPage() {
           </div>
         )}
 
-        {/* ── Step 3: Confirm ──────────────────────────────── */}
+        {/* Step 3: Confirm */}
         {step === "confirm" && (
           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-10">
             
@@ -438,6 +678,16 @@ export default function AddItemPage() {
               <div className="flex flex-wrap gap-3 mt-2">
                 {STYLES.map((s) => (
                   <PillBtn key={s} label={s} active={stiller.includes(s)} onClick={() => toggleStil(s)} />
+                ))}
+              </div>
+            </div>
+
+            {/* Gender pills */}
+            <div>
+              <SectionLabel subtitle="Kombin önerilerinde cinsiyete uygun parçaların seçilmesi için kullanılır.">CİNSİYET</SectionLabel>
+              <div className="flex flex-wrap gap-3 mt-2">
+                {CINSIYETLER.map((c) => (
+                  <PillBtn key={c.value} label={c.label} active={cinsiyet === c.value} onClick={() => setCinsiyet(c.value)} />
                 ))}
               </div>
             </div>

@@ -5,7 +5,7 @@ const SavedOutfit = require('../models/SavedOutfit');
 // @access Private
 const saveOutfit = async (req, res) => {
     try {
-        const { baslik, aciklama, ipucu, havaDurumu, kiyafetler, kullaniciFoto } = req.body;
+        const { baslik, aciklama, ipucu, havaDurumu, kiyafetler, kullaniciFoto, disUrunler } = req.body;
 
         const outfit = await SavedOutfit.create({
             kullanici: req.user._id,
@@ -15,6 +15,7 @@ const saveOutfit = async (req, res) => {
             ipucu: ipucu || '',
             havaDurumu: havaDurumu || {},
             kullaniciFoto: kullaniciFoto || '',
+            disUrunler: disUrunler || [],
         });
 
         await outfit.populate('kiyafetler', 'resimUrl renk kategori stil marka');

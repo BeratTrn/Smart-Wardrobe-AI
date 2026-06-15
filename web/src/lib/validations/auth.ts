@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-// ── Login ─────────────────────────────────────────────────────────────
+// Login
 
 export const loginSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address." }),
@@ -11,7 +11,7 @@ export const loginSchema = z.object({
 
 export type LoginFormData = z.infer<typeof loginSchema>;
 
-// ── Register ──────────────────────────────────────────────────────────
+// Register
 
 export const registerSchema = z.object({
   kullaniciAdi: z
@@ -29,7 +29,7 @@ export const registerSchema = z.object({
 
 export type RegisterFormData = z.infer<typeof registerSchema>;
 
-// ── Verify Email (OTP) ────────────────────────────────────────────────
+// Verify Email (OTP)
 
 export const verifyEmailSchema = z.object({
   otpCode: z
@@ -41,7 +41,7 @@ export const verifyEmailSchema = z.object({
 
 export type VerifyEmailFormData = z.infer<typeof verifyEmailSchema>;
 
-// ── Forgot Password ───────────────────────────────────────────────────
+// Forgot Password
 
 export const forgotPasswordSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address." }),

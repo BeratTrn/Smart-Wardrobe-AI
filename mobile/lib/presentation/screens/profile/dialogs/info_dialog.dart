@@ -25,7 +25,7 @@ class ProfileInfoDialog extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Başlık satırı
+          // Başlık satırı
           Row(
             children: [
               Container(
@@ -64,7 +64,7 @@ class ProfileInfoDialog extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-          // ── Kapat butonu
+          // Kapat butonu
           GestureDetector(
             onTap: () => Navigator.pop(context),
             child: Container(

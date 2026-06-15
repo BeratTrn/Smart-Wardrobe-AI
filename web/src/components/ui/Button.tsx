@@ -4,7 +4,7 @@ import { forwardRef } from "react";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 
-// ── Types ─────────────────────────────────────────────────────────────
+// Types
 
 type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 type ButtonSize = "sm" | "md" | "lg";
@@ -19,7 +19,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   fullWidth?: boolean;
 }
 
-// ── Variant styles ────────────────────────────────────────────────────
+// Variant styles
 
 const VARIANT: Record<ButtonVariant, string> = {
   primary: [
@@ -49,7 +49,7 @@ const SIZE: Record<ButtonSize, string> = {
   lg: "h-12 px-6  text-base gap-2   rounded-xl",
 };
 
-// ── Component ─────────────────────────────────────────────────────────
+// Component
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   (

@@ -15,7 +15,7 @@ class ProfileAboutDialog extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // ── Logo
+          // Logo
           Container(
             width: 56,
             height: 56,
@@ -38,7 +38,7 @@ class ProfileAboutDialog extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 14),
-          // ── Uygulama adı
+          // Uygulama adı
           const Text(
             'Smart Wardrobe AI',
             style: TextStyle(
@@ -64,7 +64,7 @@ class ProfileAboutDialog extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-          // ── Kapat
+          // Kapat
           GestureDetector(
             onTap: () => Navigator.pop(context),
             child: Container(

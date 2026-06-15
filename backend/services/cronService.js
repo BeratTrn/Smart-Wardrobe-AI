@@ -6,7 +6,7 @@ const { sehirHavaDurumu } = require('./weatherService');
 const { generateWeatherNotificationText } = require('./aiService');
 const { sendPushNotification } = require('./notificationService');
 
-// ── Task 1: Hava Durumu + AI Kombin Önerisi — Her gün 08:00 ─────────────────
+// Hava Durumu + AI Kombin Önerisi — Her gün 08:00 
 const scheduleWeatherNotifications = () => {
     cron.schedule('0 8 * * *', async () => {
         console.log('🌤️  Cron [08:00] Hava durumu bildirimleri başlatılıyor...');
@@ -45,7 +45,7 @@ const scheduleWeatherNotifications = () => {
     }, { timezone: 'Europe/Istanbul' });
 };
 
-// ── Task 2: Seyahat Hatırlatıcıları — Her gün 09:00 ─────────────────────────
+// Seyahat Hatırlatıcıları — Her gün 09:00
 const scheduleTravelReminders = () => {
     cron.schedule('0 9 * * *', async () => {
         console.log('✈️  Cron [09:00] Seyahat hatırlatıcıları başlatılıyor...');
@@ -84,7 +84,7 @@ const scheduleTravelReminders = () => {
     }, { timezone: 'Europe/Istanbul' });
 };
 
-// ── Task 3: Haftalık Stil Özeti — Her Pazar 10:00 ───────────────────────────
+// Haftalık Stil Özeti — Her Pazar 10:00
 const scheduleWeeklySummary = () => {
     cron.schedule('0 10 * * 0', async () => {
         console.log('📅  Cron [10:00/Pazar] Haftalık stil özeti başlatılıyor...');
@@ -116,7 +116,7 @@ const scheduleWeeklySummary = () => {
     }, { timezone: 'Europe/Istanbul' });
 };
 
-// ── Tüm cron job'ları başlat ─────────────────────────────────────────────────
+// Tüm cron job'ları başlat
 const startCronJobs = () => {
     scheduleWeatherNotifications();
     scheduleTravelReminders();

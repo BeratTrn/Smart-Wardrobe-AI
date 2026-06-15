@@ -1,8 +1,6 @@
-// ─────────────────────────────────────────────────────────────────────────────
 //  Smart Lookbook — Kişisel Stil Yayını
 //  Outfit Generator'dan gelen GeneratedOutfit'i premium bir magazine spread
 //  olarak sunar. dart:io kullanılmaz → Flutter Web + Android + iOS uyumlu.
-// ─────────────────────────────────────────────────────────────────────────────
 
 import 'dart:typed_data';
 import 'dart:ui' as ui;
@@ -14,15 +12,12 @@ import 'package:smart_wardrobe_ai/data/models/clothing_item.dart';
 import 'package:smart_wardrobe_ai/data/models/generated_outfit.dart';
 import 'package:smart_wardrobe_ai/data/services/api_service.dart';
 import 'package:smart_wardrobe_ai/data/services/saved_outfits_store.dart';
-import 'package:smart_wardrobe_ai/presentation/screens/main/home_screen.dart';
-import 'package:smart_wardrobe_ai/presentation/screens/main/wardrobe_screen.dart';
 import 'package:smart_wardrobe_ai/presentation/screens/main/saved_outfits_screen.dart';
+import 'package:smart_wardrobe_ai/presentation/screens/main/wardrobe_screen.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/shared/app_background.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/shared/app_text_styles.dart';
 
-// ─────────────────────────────────────────────────────────────────────────────
 //  ROOT SCREEN
-// ─────────────────────────────────────────────────────────────────────────────
 
 class TryOnScreen extends StatefulWidget {
   /// Outfit Generator'dan gelen kombin.  null ise boş lookbook açılır.
@@ -36,29 +31,29 @@ class TryOnScreen extends StatefulWidget {
 
 class _TryOnScreenState extends State<TryOnScreen>
     with TickerProviderStateMixin {
-  // ── Image picker (Web + Mobile uyumlu — dart:io yok) ─────────────────────
+  // Image picker (Web + Mobile uyumlu — dart:io yok)
   final _picker = ImagePicker();
   Uint8List? _photoBytes;
   XFile? _xFile;
 
-  // ── UI state ──────────────────────────────────────────────────────────────
+  // UI state
   bool _saved = false; // initState'te store'dan güncellenir
   bool _saving = false; // API isteği sürerken true
 
   final _store = SavedOutfitsStore.instance;
 
-  // ── Kategorize edilmiş kıyafetler ─────────────────────────────────────────
+  // Kategorize edilmiş kıyafetler
   late final List<ClothingItem> _tops;
   late final List<ClothingItem> _bottoms;
   late final List<ClothingItem> _shoes;
   late final List<ClothingItem> _others;
 
-  // ── Staggered entry animasyonları ─────────────────────────────────────────
+  // Staggered entry animasyonları
   late final AnimationController _entryCtrl;
   late final List<Animation<double>> _fades;
   late final List<Animation<Offset>> _slides;
 
-  // ── Shimmer (header pulse) ────────────────────────────────────────────────
+  // Shimmer (header pulse)
   late final AnimationController _shimmerCtrl;
   late final Animation<double> _shimmerAnim;
 
@@ -72,14 +67,14 @@ class _TryOnScreenState extends State<TryOnScreen>
       _saved = _store.isSaved(widget.outfit!.id);
     }
 
-    // ── Shimmer loop
+    // Shimmer loop
     _shimmerCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1600),
     )..repeat();
     _shimmerAnim = CurvedAnimation(parent: _shimmerCtrl, curve: Curves.linear);
 
-    // ── Staggered entry
+    // Staggered entry
     final total =
         (_tops.length + _bottoms.length + _shoes.length + _others.length).clamp(
           1,
@@ -127,7 +122,7 @@ class _TryOnScreenState extends State<TryOnScreen>
     super.dispose();
   }
 
-  // ── Kıyafetleri kategorilere ayır ────────────────────────────────────────
+  // Kıyafetleri kategorilere ayır
 
   void _categorize() {
     final items = widget.outfit?.items ?? [];
@@ -155,7 +150,7 @@ class _TryOnScreenState extends State<TryOnScreen>
     _others = others;
   }
 
-  // ── Fotoğraf seç (XFile → bytes, Web uyumlu) ─────────────────────────────
+  // Fotoğraf seç (XFile → bytes, Web uyumlu)
 
   Future<void> _pickPhoto() async {
     final xf = await _picker.pickImage(
@@ -171,7 +166,7 @@ class _TryOnScreenState extends State<TryOnScreen>
     });
   }
 
-  // ── Kaydet → API'ye gönder + Snackbar + "Kombinlerime Git" aksiyonu ────────
+  // Kaydet → API'ye gönder + Snackbar + "Kombinlerime Git" aksiyonu
 
   Future<void> _saveOutfit() async {
     if (widget.outfit == null || _saving || _saved) return;
@@ -238,7 +233,7 @@ class _TryOnScreenState extends State<TryOnScreen>
     }
   }
 
-  // ── Build ─────────────────────────────────────────────────────────────────
+  // Build
 
   @override
   Widget build(BuildContext context) {
@@ -276,12 +271,14 @@ class _TryOnScreenState extends State<TryOnScreen>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ── Header ──────────────────────────────────────────────────
+                  // Header
                   _LookbookHeader(
                     onBack: () {
                       Navigator.pushAndRemoveUntil(
                         context,
-                        MaterialPageRoute(builder: (_) => const WardrobeScreen()),
+                        MaterialPageRoute(
+                          builder: (_) => const WardrobeScreen(),
+                        ),
                         (route) => false,
                       );
                     },
@@ -289,7 +286,7 @@ class _TryOnScreenState extends State<TryOnScreen>
 
                   const SizedBox(height: 18),
 
-                  // ── Spread Bölümü ────────────────────────────────────────────
+                  // Spread Bölümü
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 18),
                     child: Row(
@@ -319,7 +316,7 @@ class _TryOnScreenState extends State<TryOnScreen>
 
                   const SizedBox(height: 22),
 
-                  // ── Stilistin Notu ────────────────────────────────────────────
+                  // Stilistin Notu
                   if ((widget.outfit?.description ?? '').isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 18),
@@ -331,7 +328,7 @@ class _TryOnScreenState extends State<TryOnScreen>
 
                   const SizedBox(height: 20),
 
-                  // ── Aksiyon Butonları ─────────────────────────────────────────
+                  // Aksiyon Butonları
                   Padding(
                     padding: const EdgeInsets.fromLTRB(18, 0, 18, 30),
                     child: _ActionRow(
@@ -350,9 +347,7 @@ class _TryOnScreenState extends State<TryOnScreen>
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 //  HEADER
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _LookbookHeader extends StatelessWidget {
   final VoidCallback onBack;
@@ -462,9 +457,7 @@ class _AiEngineBadge extends StatelessWidget {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 //  KULLANICI FOTOĞRAFI PANELİ (sol)
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _UserPhotoPanel extends StatelessWidget {
   final Uint8List? photoBytes;
@@ -481,7 +474,7 @@ class _UserPhotoPanel extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // ── Ana fotoğraf çerçevesi
+          // Ana fotoğraf çerçevesi
           GestureDetector(
             onTap: onTap,
             child: Container(
@@ -568,9 +561,7 @@ class _PhotoPlaceholder extends StatelessWidget {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 //  KIYAFet GALERİSİ (sağ taraf — asma / raf bölümleri)
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _WardrobeGallery extends StatelessWidget {
   final List<ClothingItem> tops, bottoms, shoes, others;
@@ -614,7 +605,7 @@ class _WardrobeGallery extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ── ÜST GİYİM — ahşap askı ────────────────────────────────────────
+        // ÜST GİYİM — ahşap askı
         if (tops.isNotEmpty) ...[
           _GalleryLabel(icon: Icons.dry_cleaning_rounded, label: 'ÜST GİYİM'),
           const SizedBox(height: 8),
@@ -628,7 +619,7 @@ class _WardrobeGallery extends StatelessWidget {
           const SizedBox(height: 18),
         ],
 
-        // ── ALT GİYİM — yüzen raf ──────────────────────────────────────────
+        // ALT GİYİM — yüzen raf
         if (bottoms.isNotEmpty) ...[
           _GalleryLabel(icon: Icons.layers_rounded, label: 'ALT GİYİM'),
           const SizedBox(height: 8),
@@ -640,7 +631,7 @@ class _WardrobeGallery extends StatelessWidget {
           const SizedBox(height: 18),
         ],
 
-        // ── AYAKKABI — yüzen raf ────────────────────────────────────────────
+        // AYAKKABI — yüzen raf
         if (shoes.isNotEmpty) ...[
           _GalleryLabel(icon: Icons.directions_walk_rounded, label: 'AYAKKABI'),
           const SizedBox(height: 8),
@@ -652,7 +643,7 @@ class _WardrobeGallery extends StatelessWidget {
           const SizedBox(height: 18),
         ],
 
-        // ── DİĞER (elbise, dış giyim, aksesuar) ────────────────────────────
+        // DİĞER (elbise, dış giyim, aksesuar)
         if (others.isNotEmpty) ...[
           _GalleryLabel(icon: Icons.auto_awesome_outlined, label: 'DİĞER'),
           const SizedBox(height: 8),
@@ -669,7 +660,7 @@ class _WardrobeGallery extends StatelessWidget {
   }
 }
 
-// ── Küçük kategori etiketi ─────────────────────────────────────────────────
+// Küçük kategori etiketi
 
 class _GalleryLabel extends StatelessWidget {
   final IconData icon;
@@ -693,9 +684,7 @@ class _GalleryLabel extends StatelessWidget {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 //  ASKILI ÜST GİYİM  (custom painter ile ahşap askı)
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _HangerItem extends StatelessWidget {
   final ClothingItem item;
@@ -744,9 +733,7 @@ class _HangerItem extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 //  YÜZEN RAF  (alt giyim / ayakkabı için)
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _FloatingShelfRow extends StatelessWidget {
   final List<Widget> children;
@@ -860,9 +847,7 @@ class _MiniCard extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 //  GÖRSEL WİDGET — Shimmer yükleme + ağ görseli
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _ItemImage extends StatelessWidget {
   final String? url;
@@ -944,10 +929,8 @@ class _ShimmerBoxState extends State<_ShimmerBox>
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 //  AHŞAP ASKA PAINTER
 //  Görseli gerçekçi tutmak için ince gradyan + altın kanca.
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _HangerPainter extends CustomPainter {
   const _HangerPainter();
@@ -956,7 +939,7 @@ class _HangerPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final cx = size.width / 2;
 
-    // ─── Altın kanca ─────────────────────────────────────────────────────────
+    // Altın kanca
     final hookPaint = Paint()
       ..color = AppColors.gold
       ..strokeWidth = 2.2
@@ -984,7 +967,7 @@ class _HangerPainter extends CustomPainter {
       hookPaint..strokeWidth = 2.0,
     );
 
-    // ─── Ahşap çubuk (hafif içbükey eğri) ───────────────────────────────────
+    // Ahşap çubuk (hafif içbükey eğri)
     final woodPaint = Paint()
       ..strokeWidth = 5.5
       ..strokeCap = StrokeCap.round
@@ -1008,7 +991,7 @@ class _HangerPainter extends CustomPainter {
       );
     canvas.drawPath(barPath, woodPaint);
 
-    // ─── Uç kapakçıklar (daha koyu) ─────────────────────────────────────────
+    // Uç kapakçıklar (daha koyu)
     final capPaint = Paint()
       ..color = const Color(0xFF3A1E08)
       ..strokeWidth = 6.0
@@ -1031,9 +1014,7 @@ class _HangerPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter old) => false;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 //  STİLİSTİN NOTU — Glassmorphism kart
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _StylistNoteCard extends StatelessWidget {
   final String note;
@@ -1142,9 +1123,7 @@ class _StylistNoteCard extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 //  AKSİYON BUTONLARI
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _ActionRow extends StatelessWidget {
   final bool saved;
@@ -1163,7 +1142,7 @@ class _ActionRow extends StatelessWidget {
 
     return Row(
       children: [
-        // ── Stilimi Kaydet (ana buton)
+        // Stilimi Kaydet (ana buton)
         Expanded(
           child: GestureDetector(
             onTap: inactive ? null : onSave,
