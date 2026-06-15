@@ -62,9 +62,6 @@ router.use(protect);
  *         stil:
  *           type: string
  *           example: "Günlük"
- *         marka:
- *           type: string
- *           example: "Zara"
  *     TravelSuitcase:
  *       type: object
  *       properties:

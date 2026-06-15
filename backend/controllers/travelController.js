@@ -3,15 +3,13 @@ const TravelSuitcase  = require('../models/TravelSuitcase');
 const { seyahatHavaDurumu }        = require('../services/weatherService');
 const { generateSuitcaseSuggestion, wardrobeOnKontrol } = require('../services/aiService');
 
-// ─────────────────────────────────────────────────────────────────────────────
 //  POST /api/travel/pack
 //  Şehir + tarih aralığını alır, hava durumunu çeker, AI ile bavul hazırlar.
-// ─────────────────────────────────────────────────────────────────────────────
 const generateSuitcase = async (req, res, next) => {
     try {
         const { sehir, baslangicTarihi, bitisTarihi } = req.body;
 
-        // ── Girdi doğrulama ───────────────────────────────────────────────────
+        // Girdi doğrulama
         if (!sehir || !baslangicTarihi || !bitisTarihi) {
             return res.status(400).json({
                 mesaj: 'Şehir, başlangıç tarihi ve bitiş tarihi zorunludur.'
@@ -37,7 +35,7 @@ const generateSuitcase = async (req, res, next) => {
             Math.ceil((bitis - baslangic) / (1000 * 60 * 60 * 24)) + 1
         );
 
-        // ── Dolabı çek ────────────────────────────────────────────────────────
+        // Dolabı çek
         const kiyafetler = await Item.find({ kullanici: req.user._id }).lean();
 
         if (kiyafetler.length === 0) {
@@ -52,7 +50,7 @@ const generateSuitcase = async (req, res, next) => {
             return res.status(400).json({ mesaj: kontrol.mesaj });
         }
 
-        // ── Hava durumu (forecast → current fallback) ─────────────────────────
+        // Hava durumu (forecast → current fallback)
         console.log(`✈️  Seyahat hava durumu çekiliyor: ${sehir} | ${baslangicTarihi} → ${bitisTarihi}`);
         let hava;
         try {
@@ -71,7 +69,7 @@ const generateSuitcase = async (req, res, next) => {
             };
         }
 
-        // ── AI bavul önerisi ─────────────────────────────────────────────────
+        // AI bavul önerisi
         console.log(`🤖  AI bavul hazırlıyor: ${sehir}, ${gunSayisi} gün, ${hava.sicaklik}°C`);
         const aiSonuc = await generateSuitcaseSuggestion(
             kiyafetler,
@@ -86,7 +84,7 @@ const generateSuitcase = async (req, res, next) => {
             });
         }
 
-        // ── Veritabanına kaydet ───────────────────────────────────────────────
+        // Veritabanına kaydet
         const yeniBavul = await TravelSuitcase.create({
             kullanici:          req.user._id,
             sehir:              hava.konum || sehir,   // OpenWeather'ın normalize ettiği ismi kullan
@@ -119,10 +117,8 @@ const generateSuitcase = async (req, res, next) => {
     }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
 //  GET /api/travel
 //  Kullanıcının kayıtlı tüm seyahat bavullarını döndürür.
-// ─────────────────────────────────────────────────────────────────────────────
 const getSuitcases = async (req, res, next) => {
     try {
         const bavullar = await TravelSuitcase.find({ kullanici: req.user._id })
@@ -138,10 +134,8 @@ const getSuitcases = async (req, res, next) => {
     }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
 //  DELETE /api/travel/:id
 //  Belirtilen seyahat bavulunu siler.
-// ─────────────────────────────────────────────────────────────────────────────
 const deleteSuitcase = async (req, res, next) => {
     try {
         const bavul = await TravelSuitcase.findOne({

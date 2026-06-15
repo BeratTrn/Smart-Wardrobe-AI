@@ -4,11 +4,21 @@ const User = require('../models/User');
 // @access Private
 const updateProfile = async (req, res) => {
     try {
-        const { kullaniciAdi, tercihler } = req.body;
+        const { kullaniciAdi, tercihler, cinsiyet } = req.body;
+
+        const update = { kullaniciAdi, tercihler };
+
+        if (cinsiyet !== undefined) {
+            const allowedCinsiyet = ['Erkek', 'Kadın', 'Belirtilmemiş'];
+            if (!allowedCinsiyet.includes(cinsiyet)) {
+                return res.status(400).json({ mesaj: 'Geçersiz cinsiyet değeri.' });
+            }
+            update.cinsiyet = cinsiyet;
+        }
 
         const updatedUser = await User.findByIdAndUpdate(
             req.user._id,
-            { kullaniciAdi, tercihler },
+            update,
             { new: true, runValidators: true }
         ).select('-sifre');
 
@@ -61,7 +71,7 @@ const updateBodyProfile = async (req, res) => {
     }
 };
 
-// @route  PUT /api/users/profile/photo        (avatar asset path — JSON body)
+// @route  PUT /api/users/profile/photo  (avatar asset path — JSON body)
 // @access Private
 const updateProfilePhoto = async (req, res) => {
     try {
