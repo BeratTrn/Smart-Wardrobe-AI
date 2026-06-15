@@ -3,7 +3,7 @@
 import { forwardRef, useId } from "react";
 import { cn } from "@/lib/utils/cn";
 
-// ── Types ─────────────────────────────────────────────────────────────
+// Types
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -16,7 +16,7 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   rightElement?: React.ReactNode;
 }
 
-// ── Component ─────────────────────────────────────────────────────────
+// Component
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
   (
