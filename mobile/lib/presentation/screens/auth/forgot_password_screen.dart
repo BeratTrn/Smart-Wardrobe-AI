@@ -75,7 +75,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 ),
                 const SizedBox(height: 48),
 
-                // — AnimatedSwitcher: form ↔ başarı
+                // AnimatedSwitcher: form - başarı
                 Expanded(
                   child: AnimatedSwitcher(
                     duration: const Duration(milliseconds: 500),

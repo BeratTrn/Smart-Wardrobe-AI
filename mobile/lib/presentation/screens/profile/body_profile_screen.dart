@@ -7,7 +7,7 @@ import 'package:smart_wardrobe_ai/data/services/api_service.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/profile/profile_shared_widgets.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/shared/app_background.dart';
 
-// ─────────────────────────── Data ────────────────────────────────────────────
+// Data
 
 class _Shape {
   final String key;
@@ -83,7 +83,7 @@ final List<_Fit> _fits = [
   ),
 ];
 
-// ─────────────────────────── Screen ──────────────────────────────────────────
+// Screen
 
 class BodyProfileScreen extends StatefulWidget {
   const BodyProfileScreen({super.key});
@@ -204,10 +204,10 @@ class _BodyProfileScreenState extends State<BodyProfileScreen>
                   child: CustomScrollView(
                     physics: const BouncingScrollPhysics(),
                     slivers: [
-                      // ── AI context banner ─────────────────────────────────
+                      // AI context banner
                       SliverToBoxAdapter(child: _buildAiBanner()),
 
-                      // ══ SECTION 1 — Vücut Şekli ══════════════════════════
+                      // SECTION 1 — Vücut Şekli
                       SliverToBoxAdapter(
                         child: _SectionHeader(
                           label: 'body_profile.body_shape'.tr(),
@@ -216,7 +216,7 @@ class _BodyProfileScreenState extends State<BodyProfileScreen>
                       ),
                       SliverToBoxAdapter(child: _buildShapeList()),
 
-                      // ══ SECTION 2 — Kalıp Tercihi ═════════════════════════
+                      // SECTION 2 — Kalıp Tercihi
                       SliverToBoxAdapter(
                         child: _SectionHeader(
                           label: 'body_profile.fit_preference'.tr(),
@@ -226,7 +226,7 @@ class _BodyProfileScreenState extends State<BodyProfileScreen>
                       ),
                       SliverToBoxAdapter(child: _buildFitList()),
 
-                      // ── Save button ───────────────────────────────────────
+                      // Save button
                       SliverToBoxAdapter(
                         child: Padding(
                           padding: const EdgeInsets.fromLTRB(24, 40, 24, 52),
@@ -390,9 +390,7 @@ class _BodyProfileScreenState extends State<BodyProfileScreen>
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
 //  Section header
-// ═══════════════════════════════════════════════════════════════════════════
 
 class _SectionHeader extends StatelessWidget {
   final String label;
@@ -435,9 +433,7 @@ class _SectionHeader extends StatelessWidget {
   );
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
 //  Selection row — full-width elegant item
-// ═══════════════════════════════════════════════════════════════════════════
 
 class _SelectionRow extends StatelessWidget {
   final Widget leading;
@@ -573,7 +569,7 @@ class _SelectionRow extends StatelessWidget {
   );
 }
 
-// ─── Leading widgets ──────────────────────────────────────────────────────────
+// Leading widgets
 
 class _LeadingIndex extends StatelessWidget {
   final String index;
@@ -621,9 +617,7 @@ class _LeadingIcon extends StatelessWidget {
   );
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
 //  Floating save button
-// ═══════════════════════════════════════════════════════════════════════════
 
 class _FloatingSaveButton extends StatelessWidget {
   final bool loading;

@@ -26,7 +26,7 @@ class ProfileConfirmDialog extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // ── İkon
+          // İkon
           Container(
             width: 48,
             height: 48,
@@ -45,7 +45,7 @@ class ProfileConfirmDialog extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 14),
-          // ── Başlık
+          // Başlık
           Text(
             title,
             style: const TextStyle(
@@ -56,7 +56,7 @@ class ProfileConfirmDialog extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          // ── Açıklama
+          // Açıklama
           Text(
             body,
             textAlign: TextAlign.center,
@@ -67,7 +67,7 @@ class ProfileConfirmDialog extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-          // ── Butonlar
+          // Butonlar
           Row(
             children: [
               Expanded(

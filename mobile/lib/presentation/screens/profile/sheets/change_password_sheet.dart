@@ -35,7 +35,7 @@ class _ChangePasswordSheetState extends State<ChangePasswordSheet> {
     super.dispose();
   }
 
-  // ── Doğrulama
+  // Doğrulama
   String? _validate() {
     final current = _currentCtrl.text.trim();
     final newPass = _newCtrl.text.trim();
