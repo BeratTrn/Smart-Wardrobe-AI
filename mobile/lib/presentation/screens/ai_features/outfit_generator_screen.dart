@@ -23,7 +23,7 @@ class OutfitGeneratorScreen extends StatefulWidget {
 
 class _OutfitGeneratorScreenState extends State<OutfitGeneratorScreen>
     with TickerProviderStateMixin {
-  // ─── Filtre seçimleri ──────────────────────────────────────────────────────
+  //  Filtre seçimleri
   String _occasion = 'outfit_generator.daily'.tr();
   String _weather = 'outfit_generator.warm'.tr();
   String _style = 'outfit_generator.casual'.tr();
@@ -52,12 +52,12 @@ class _OutfitGeneratorScreenState extends State<OutfitGeneratorScreen>
     'outfit_generator.formal'.tr(),
   ];
 
-  // ─── State ─────────────────────────────────────────────────────────────────
+  //  State
   bool _generating = false;
   bool _hasGenerated = false;
   List<GeneratedOutfit> _outfits = [];
 
-  // ─── Animasyonlar ──────────────────────────────────────────────────────────
+  //  Animasyonlar
   late final AnimationController _shimmerCtrl;
   late final AnimationController _resultCtrl;
   late final Animation<double> _shimmerAnim;
@@ -87,7 +87,7 @@ class _OutfitGeneratorScreenState extends State<OutfitGeneratorScreen>
     super.dispose();
   }
 
-  // ─── API: Kombin Oluştur ───────────────────────────────────────────────────
+  //  API: Kombin Oluştur
 
   Future<void> _generate() async {
     setState(() {
@@ -121,7 +121,7 @@ class _OutfitGeneratorScreenState extends State<OutfitGeneratorScreen>
     }
   }
 
-  // ─── API: Kombin Kaydet ────────────────────────────────────────────────────
+  //  API: Kombin Kaydet
 
   Future<void> _save(GeneratedOutfit outfit) async {
     final prefs = await SharedPreferences.getInstance();
@@ -147,7 +147,7 @@ class _OutfitGeneratorScreenState extends State<OutfitGeneratorScreen>
     }
   }
 
-  // ─── Navigasyon: Smart Lookbook ───────────────────────────────────────────
+  //  Navigasyon: Smart Lookbook
 
   void _onTryOn(GeneratedOutfit outfit) {
     Navigator.push(
@@ -171,7 +171,7 @@ class _OutfitGeneratorScreenState extends State<OutfitGeneratorScreen>
     );
   }
 
-  // ─── Snackbar ──────────────────────────────────────────────────────────────
+  // Snackbar
 
   void _snack(String msg, {bool isError = true}) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -184,7 +184,7 @@ class _OutfitGeneratorScreenState extends State<OutfitGeneratorScreen>
     );
   }
 
-  // ─── Build ─────────────────────────────────────────────────────────────────
+  // Build
 
   @override
   Widget build(BuildContext context) {
@@ -256,9 +256,7 @@ class _OutfitGeneratorScreenState extends State<OutfitGeneratorScreen>
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // HEADER
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _Header extends StatelessWidget {
   final VoidCallback onBack;
@@ -353,9 +351,7 @@ class _AiBadge extends StatelessWidget {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // FILTER SECTION
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _FilterSection extends StatelessWidget {
   final String title;
@@ -395,9 +391,7 @@ class _FilterSection extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // GENERATE BUTTON
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _GenerateButton extends StatelessWidget {
   final bool loading;
@@ -462,9 +456,7 @@ class _GenerateButton extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // RESULT LIST
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _ResultList extends StatelessWidget {
   final List<GeneratedOutfit> outfits;
@@ -520,9 +512,7 @@ class _ResultList extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // OUTFIT CARD
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _OutfitCard extends StatelessWidget {
   final GeneratedOutfit outfit;
@@ -565,7 +555,7 @@ class _OutfitCard extends StatelessWidget {
               ),
             ),
 
-          // ── Bilgi satırı
+          // Bilgi satırı
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 12, 14, 4),
             child: Row(
@@ -598,7 +588,7 @@ class _OutfitCard extends StatelessWidget {
             ),
           ),
 
-          // ── Stil ipucu (varsa)
+          // Stil ipucu (varsa)
           if (outfit.ipucu.isNotEmpty)
             Padding(
               padding: const EdgeInsets.fromLTRB(14, 0, 14, 10),
@@ -624,7 +614,7 @@ class _OutfitCard extends StatelessWidget {
               ),
             ),
 
-          // ── "Üzerinde Dene" butonu ─────────────────────────────────────────
+          // "Üzerinde Dene" butonu
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
             child: GestureDetector(
@@ -707,9 +697,7 @@ class _ThumbPlaceholder extends StatelessWidget {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // SHIMMER İSKELET
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _ShimmerResults extends StatelessWidget {
   final Animation<double> anim;
@@ -747,9 +735,7 @@ class _ShimmerCard extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // İLK AÇILIŞ İPUCU
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _InitialHint extends StatelessWidget {
   const _InitialHint();

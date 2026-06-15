@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -160,10 +161,10 @@ class _ItemDetailScreenState extends State<ItemDetailScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ── Hero Görsel ───────────────────────────────────
+              // Hero Görsel
               _HeroImage(item: item, accentColor: _accentColor),
 
-              // ── İçerik ───────────────────────────────────────
+              // İçerik
               Padding(
                 padding: const EdgeInsets.fromLTRB(22, 24, 22, 40),
                 child: Column(
@@ -243,7 +244,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen>
 
                     const SizedBox(height: 28),
 
-                    // ── Detay Kartları ────────────────────────
+                    // Detay Kartları
                     _DetailGrid(item: item, accentColor: _accentColor),
 
                     // Notlar
@@ -254,7 +255,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen>
 
                     const SizedBox(height: 28),
 
-                    // ── Favori Butonu ─────────────────────────
+                    // Favori Butonu
                     GestureDetector(
                       onTap: _toggleFavorite,
                       child: AnimatedContainer(
@@ -316,7 +317,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen>
   }
 }
 
-// ── Hero Görsel Widget ────────────────────────────────────────────────────────
+// Hero Görsel Widget
 class _HeroImage extends StatelessWidget {
   final ClothingItem item;
   final Color accentColor;
@@ -385,7 +386,7 @@ class _Placeholder extends StatelessWidget {
   );
 }
 
-// ── Kategori Badge ────────────────────────────────────────────────────────────
+// Kategori Badge
 class _CategoryBadge extends StatelessWidget {
   final String label;
   final Color color;
@@ -411,7 +412,7 @@ class _CategoryBadge extends StatelessWidget {
   );
 }
 
-// ── Detay Grid (Renk, Mevsim, Stil) ──────────────────────────────────────────
+// Detay Grid (Renk, Mevsim, Stil)
 class _DetailGrid extends StatelessWidget {
   final ClothingItem item;
   final Color accentColor;
@@ -552,7 +553,7 @@ class _DetailCard extends StatelessWidget {
   );
 }
 
-// ── Notlar Kartı ─────────────────────────────────────────────────────────────
+// Notlar Kartı
 class _NotlarCard extends StatelessWidget {
   final String notlar;
   const _NotlarCard({required this.notlar});
@@ -597,7 +598,7 @@ class _NotlarCard extends StatelessWidget {
   );
 }
 
-// ── HEX → Flutter Color ───────────────────────────────────────────────────────
+// HEX → Flutter Color
 Color? _hexToColor(String raw) {
   final s = raw.trim().replaceAll('#', '');
   if (s.length != 6) return null;
@@ -606,7 +607,7 @@ Color? _hexToColor(String raw) {
   return Color(0xFF000000 | val);
 }
 
-// ── Kategori rengi ────────────────────────────────────────────────────────────
+// Kategori rengi
 Color _catColor(String cat) {
   switch (cat.toLowerCase()) {
     case 'üstler':

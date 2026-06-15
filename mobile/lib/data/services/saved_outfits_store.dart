@@ -1,8 +1,6 @@
-// ─────────────────────────────────────────────────────────────────────────────
 //  SavedOutfitsStore — Kaydedilmiş kombinleri API ile senkronize eder.
 //  Singleton + ValueNotifier: package gerektirmez, ValueListenableBuilder
 //  ile doğrudan UI'a bağlanabilir.
-// ─────────────────────────────────────────────────────────────────────────────
 
 import 'package:flutter/foundation.dart';
 import 'package:smart_wardrobe_ai/data/models/generated_outfit.dart';
@@ -21,7 +19,7 @@ class SavedOutfitsStore {
   /// isSaved() çağrıları için sunucuya gitmeden anlık cevap verir.
   final _savedGeneratedIds = <String>{};
 
-  // ── Sunucudan yükle ──────────────────────────────────────────────────────
+  // Sunucudan yükle
 
   Future<void> load() async {
     try {
@@ -32,8 +30,7 @@ class SavedOutfitsStore {
     }
   }
 
-  // ── Kaydet ───────────────────────────────────────────────────────────────
-
+  // Kaydet 
   /// [outfit]'i sunucuya kaydeder; başarıda listeye ekler ve [SavedOutfit] döner.
   Future<SavedOutfit> save(
     GeneratedOutfit outfit, {
@@ -48,8 +45,7 @@ class SavedOutfitsStore {
     return saved;
   }
 
-  // ── Sil ─────────────────────────────────────────────────────────────────
-
+  //  Sil 
   /// Optimistik silme: UI anında güncellenir, API çağrısı arka planda çalışır.
   /// API başarısız olursa liste sunucudan yeniden çekilir.
   Future<void> delete(String savedOutfitId) async {
@@ -63,8 +59,7 @@ class SavedOutfitsStore {
     }
   }
 
-  // ── Kontrol ──────────────────────────────────────────────────────────────
-
+  //  Kontrol 
   /// Bu oturumda kaydedilmişse true döner (sunucuya gitmez).
   bool isSaved(String generatedOutfitId) =>
       _savedGeneratedIds.contains(generatedOutfitId);
