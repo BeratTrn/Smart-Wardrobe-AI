@@ -1,9 +1,7 @@
-// ============================================================
 //  Clothing Extractor
 //  Kameradan çekilen "üzerinde" fotoğraftan, dokunulan noktadaki
 //  kıyafet/aksesuar bölgesini MediaPipe Selfie Multiclass segmentasyon
 //  modeli ile bulur, şeffaf arka planlı bir "cutout" görseli üretir.
-// ============================================================
 
 import { FilesetResolver, ImageSegmenter } from "@mediapipe/tasks-vision";
 

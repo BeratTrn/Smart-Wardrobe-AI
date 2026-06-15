@@ -1,5 +1,5 @@
-import axios from "axios";
 import { useAuthStore } from "@/lib/store/authStore";
+import axios from "axios";
 
 /**
  * api — the single Axios instance for all Smart Wardrobe API calls.
@@ -22,7 +22,7 @@ const api = axios.create({
   },
 });
 
-// ── Request Interceptor ───────────────────────────────────────────────
+// Request Interceptor
 api.interceptors.request.use(
   (config) => {
     const token = useAuthStore.getState().token;
@@ -34,7 +34,7 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// ── Response Interceptor ──────────────────────────────────────────────
+// Response Interceptor
 api.interceptors.response.use(
   (response) => response,
   (error) => {

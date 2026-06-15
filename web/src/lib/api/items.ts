@@ -9,7 +9,7 @@ import type {
   AnalysisResult,
 } from "@/types";
 
-// ── Query params for GET /api/items ───────────────────────────────────
+// Query params for GET /api/items
 
 export interface ItemsFilter {
   kategori?: ItemCategory;
@@ -20,7 +20,7 @@ export interface ItemsFilter {
   limit?: number;
 }
 
-// ── Response shapes ───────────────────────────────────────────────────
+// Response shapes
 
 export interface AnalyzeOnlyResponse {
   mesaj: string;
@@ -51,7 +51,7 @@ export interface ToggleFavoriteResponse {
   favori: boolean;
 }
 
-// ── API calls ─────────────────────────────────────────────────────────
+// API calls
 
 /** GET /api/items — returns paginated, filtered item list */
 export async function getItems(filters: ItemsFilter = {}): Promise<ItemsResponse> {

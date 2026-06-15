@@ -8,7 +8,7 @@ import type {
   Cinsiyet,
 } from "@/types";
 
-// ── Response shapes ───────────────────────────────────────────────────────────
+// Response shapes
 
 export interface ProfileResponse {
   mesaj: string;
@@ -31,7 +31,7 @@ export interface PreferencesResponse {
   defaultCity: string;
 }
 
-// ── Request shapes ────────────────────────────────────────────────────────────
+// Request shapes
 
 export interface UpdateProfilePayload {
   kullaniciAdi?: string;
@@ -58,7 +58,7 @@ export interface ChangePasswordPayload {
   yeniSifre: string;
 }
 
-// ── API calls ─────────────────────────────────────────────────────────────────
+// API calls
 
 /** GET /api/auth/me — full profile */
 export async function getProfile(): Promise<{ kullanici: UserProfile }> {

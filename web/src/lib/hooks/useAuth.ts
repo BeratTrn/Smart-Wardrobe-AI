@@ -6,7 +6,7 @@ import * as authApi from "@/lib/api/auth";
 import { useAuthStore } from "@/lib/store/authStore";
 import { isVerificationRequired } from "@/lib/utils/errors";
 
-// ── Login ─────────────────────────────────────────────────────────────
+// Login
 
 export function useLogin() {
   const { setAuth } = useAuthStore();
@@ -31,7 +31,7 @@ export function useLogin() {
   });
 }
 
-// ── Register ──────────────────────────────────────────────────────────
+// Register
 
 export function useRegister() {
   const router = useRouter();
@@ -45,7 +45,7 @@ export function useRegister() {
   });
 }
 
-// ── Verify Email (OTP) ────────────────────────────────────────────────
+// Verify Email (OTP)
 
 export function useVerifyEmail() {
   const { setAuth } = useAuthStore();
@@ -60,7 +60,7 @@ export function useVerifyEmail() {
   });
 }
 
-// ── Resend OTP ────────────────────────────────────────────────────────
+// Resend OTP
 
 export function useResendVerification() {
   return useMutation({
@@ -68,7 +68,7 @@ export function useResendVerification() {
   });
 }
 
-// ── Forgot Password ───────────────────────────────────────────────────
+// Forgot Password
 
 export function useForgotPassword() {
   return useMutation({
@@ -76,7 +76,7 @@ export function useForgotPassword() {
   });
 }
 
-// ── Current User (GET /api/auth/me) ───────────────────────────────────
+// Current User (GET /api/auth/me)
 
 export function useMe() {
   const { isAuthenticated, updateUser } = useAuthStore();
@@ -93,7 +93,7 @@ export function useMe() {
   });
 }
 
-// ── Logout ────────────────────────────────────────────────────────────
+// Logout
 
 export function useLogout() {
   const { logout } = useAuthStore();

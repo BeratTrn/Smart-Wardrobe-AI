@@ -1,4 +1,4 @@
-// ── User (minimal — stored in authStore after login) ──────────────────────────
+// User (minimal — stored in authStore after login)
 export interface User {
   _id: string;
   id?: string;
@@ -11,7 +11,7 @@ export interface User {
   profilFoto?: string;
 }
 
-// ── UserProfile (full shape from GET /api/auth/me) ────────────────────────────
+// UserProfile (full shape from GET /api/auth/me)
 export interface UserTercihler {
   favoriStil: string;
   favoriRenkler: string[];
@@ -49,7 +49,7 @@ export type FitPreference = "slim" | "regular" | "oversize";
 export type Language = "tr" | "en" | "de" | "fr";
 export type Cinsiyet = "Erkek" | "Kadın" | "Belirtilmemiş";
 
-// ── Auth ─────────────────────────────────────────────────────────────────────
+// Auth
 export interface LoginPayload {
   email: string;
   sifre: string;
@@ -73,7 +73,7 @@ export interface OtpVerifyPayload {
   otp: string;
 }
 
-// ── Item types ────────────────────────────────────────────────────────────────
+// Item types
 export type ItemCategory =
   | "Üst Giyim"
   | "Alt Giyim"
@@ -107,7 +107,7 @@ export interface AnalysisResult {
 // filtrelemek için kullanılır. 'Unisex' her zaman önerilebilir.
 export type ItemCinsiyet = "Erkek" | "Kadın" | "Unisex";
 
-// ── Item ─────────────────────────────────────────────────────────────────────
+// Item
 export interface Item {
   _id: string;
   ad?: string;
@@ -154,7 +154,7 @@ export interface UpdateItemPayload {
   favori?: boolean;
 }
 
-// ── Weather ──────────────────────────────────────────────────────────────────
+// Weather
 export interface WeatherData {
   sehir: string;
   sicaklik: number;
@@ -165,7 +165,7 @@ export interface WeatherData {
   konum?: string;
 }
 
-// ── Outfit ────────────────────────────────────────────────────────────────────
+// Outfit
 export interface PopulatedItem extends Item {}
 
 // "Webden Kombin Öner" özelliğinde AI'ın gardırop dışından (web'den) seçtiği ürün
@@ -237,7 +237,7 @@ export interface SaveOutfitPayload {
   etkinlik?: string;
 }
 
-// ── Travel ────────────────────────────────────────────────────────────────────
+// Travel
 export interface TravelSuitcase {
   _id: string;
   sehir: string;

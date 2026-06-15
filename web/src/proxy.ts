@@ -10,7 +10,7 @@ export default function proxy(request: NextRequest) {
 
   // API proxy
   if (pathname.startsWith("/api/")) {
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
     return NextResponse.rewrite(`${backendUrl}${pathname}${search}`);
   }
 

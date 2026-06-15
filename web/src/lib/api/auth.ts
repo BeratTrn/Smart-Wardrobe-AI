@@ -7,7 +7,7 @@
 import api from "@/lib/api/axios";
 import type { AuthResponse, User } from "@/types";
 
-// ── Response shapes ───────────────────────────────────────────────────
+// Response shapes
 
 export interface RegisterResponse {
   mesaj: string;
@@ -29,7 +29,7 @@ export interface MeResponse {
   kullanici: User;
 }
 
-// ── Request shapes ────────────────────────────────────────────────────
+// Request shapes
 
 export interface LoginPayload {
   email: string;
@@ -47,7 +47,7 @@ export interface VerifyEmailPayload {
   otpCode: string;
 }
 
-// ── API calls ─────────────────────────────────────────────────────────
+// API calls
 
 /** POST /api/auth/login */
 export async function login(payload: LoginPayload): Promise<AuthResponse> {
