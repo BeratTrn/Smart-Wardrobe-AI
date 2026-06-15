@@ -1,21 +1,21 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
-import { useDropzone } from "react-dropzone";
-import { Loader2, Sparkles, CloudUpload, Info, ChevronDown, Camera, Palette, RotateCcw, X, RefreshCcw, Scissors, Hand, ImageIcon } from "lucide-react";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { cn } from "@/lib/utils/cn";
-import { useAnalyzeItem, useAddItem } from "@/lib/hooks/useItems";
+import { useAddItem, useAnalyzeItem } from "@/lib/hooks/useItems";
 import {
-  segmentImage,
+  blobToFile,
   extractRegionAtPoint,
   loadImage,
-  blobToFile,
-  type SegmentationResult,
+  segmentImage,
   type ExtractResult,
+  type SegmentationResult,
 } from "@/lib/utils/clothingExtractor";
-import type { ItemCategory, ItemSeason, ItemStyle, ItemCinsiyet } from "@/types";
+import { cn } from "@/lib/utils/cn";
+import type { ItemCategory, ItemCinsiyet, ItemSeason, ItemStyle } from "@/types";
+import { Camera, ChevronDown, CloudUpload, Hand, ImageIcon, Info, Loader2, RefreshCcw, RotateCcw, Scissors, Sparkles, X } from "lucide-react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useDropzone } from "react-dropzone";
 
 const CATEGORIES: { value: ItemCategory; label: string; icon: string }[] = [
   { value: "Üst Giyim",    label: "Üst Giyim",    icon: "👕" },
@@ -159,7 +159,7 @@ export default function AddItemPage() {
     }
   };
 
-  // ── Kıyafet Çıkarma (Extract) Yardımcıları ───────────────────
+  // Kıyafet Çıkarma (Extract) Yardımcıları
   const resetExtractState = () => {
     setExtractStage("idle");
     setCapturedDataUrl(null);
@@ -297,7 +297,7 @@ export default function AddItemPage() {
 
   return (
     <div className="flex flex-col gap-6 animate-fade-in max-w-2xl mx-auto mt-4">
-      {/* ── Header ──────────────────────────────────────────── */}
+      {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-[10px] font-bold tracking-[0.2em] text-muted uppercase mb-1">YENİ PARÇA</p>
@@ -319,7 +319,7 @@ export default function AddItemPage() {
       </div>
 
       <div className="mt-2">
-        {/* ── Step 1: Drop or Camera ────────────────────────── */}
+        {/* Step 1: Drop or Camera */}
         {step === "drop" && !cameraOpen && extractStage === "idle" && (
           <div className="space-y-6 flex flex-col h-full animate-in fade-in duration-300">
             
@@ -373,7 +373,7 @@ export default function AddItemPage() {
           </div>
         )}
 
-        {/* ── Camera View ──────────────────────────────────── */}
+        {/* Camera View */}
         {step === "drop" && cameraOpen && (
           <div className="flex flex-col gap-4 animate-in fade-in duration-300">
             <div className="relative w-full aspect-[3/4] sm:aspect-video rounded-[32px] overflow-hidden bg-black shadow-2xl" style={{ border: `1px solid ${BORDER}` }}>
@@ -413,7 +413,7 @@ export default function AddItemPage() {
           </div>
         )}
 
-        {/* ── Extract: Kıyafeti Seç ────────────────────────── */}
+        {/* Extract: Kıyafeti Seç */}
         {step === "drop" && extractStage === "select" && capturedDataUrl && (
           <div className="flex flex-col gap-4 animate-in fade-in duration-300">
             <div
@@ -490,7 +490,7 @@ export default function AddItemPage() {
           </div>
         )}
 
-        {/* ── Extract: Kesilen Kıyafet Önizleme ────────────────────────── */}
+        {/* Extract: Kesilen Kıyafet Önizleme */}
         {step === "drop" && extractStage === "preview" && extractResult && (
           <div className="flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
             <div className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-[13px] font-bold text-gold mx-auto"
@@ -550,7 +550,7 @@ export default function AddItemPage() {
           </div>
         )}
 
-        {/* ── Step 2: Analyzing ────────────────────────────── */}
+        {/* Step 2: Analyzing */}
         {step === "analyze" && (
           <div className="flex flex-col items-center justify-center py-20 gap-8 animate-in fade-in duration-300">
             {preview && (
@@ -571,7 +571,7 @@ export default function AddItemPage() {
           </div>
         )}
 
-        {/* ── Step 3: Confirm ──────────────────────────────── */}
+        {/* Step 3: Confirm */}
         {step === "confirm" && (
           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-10">
             

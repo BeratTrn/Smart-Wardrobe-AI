@@ -58,7 +58,7 @@ export function ItemDetailModal({
             maxHeight: "92vh",
           }}
         >
-          {/* ── Image Section ── */}
+          {/* Image Section */}
           <div className="relative w-full flex-shrink-0" style={{ aspectRatio: "4/3", background: "#F0F0EE" }}>
             <Image
               src={item.resimUrl}
@@ -120,7 +120,7 @@ export function ItemDetailModal({
             </div>
           </div>
 
-          {/* ── Content Section ── */}
+          {/* Content Section */}
           <div className="flex-1 overflow-y-auto scrollbar-none">
             <div className="p-6 space-y-5">
 
@@ -199,7 +199,7 @@ export function ItemDetailModal({
               </div>
             </div>
 
-            {/* ── Sticky Favorite Button ── */}
+            {/* Sticky Favorite Button */}
             <div
               className="sticky bottom-0 p-4 pt-3"
               style={{ background: "linear-gradient(to top, #0C0C0B 80%, transparent)", zIndex: 10 }}

@@ -1,31 +1,51 @@
 "use client";
 
-import Image from "next/image";
-import { useState, useCallback, useRef } from "react";
+import { useWardrobeStats } from "@/lib/hooks/useStats";
 import {
-  Camera, Loader2, ChevronRight, X,
-  Settings, Activity, Bell, Shield,
-  Sun, Moon, Globe, Sparkles,
-  Plane, CalendarDays, Building2,
-  ShieldCheck, FileText, HelpCircle, Info, LogOut, Trash2,
-  Check, CheckCircle, AlertTriangle, User, Mail, Package,
-} from "lucide-react";
-import { useForm } from "react-hook-form";
+  useChangePassword, useDeleteAccount,
+  useProfile,
+  useUpdateBodyProfile,
+  useUpdatePreferences,
+  useUpdateProfile,
+  useUploadProfilePhoto,
+} from "@/lib/hooks/useUsers";
+import { useThemeStore } from "@/lib/store/themeStore";
+import { cn } from "@/lib/utils/cn";
+import { getErrorMessage } from "@/lib/utils/errors";
+import type { ChangePasswordFormData, PreferencesFormData, ProfileFormData } from "@/lib/validations/settings";
+import { changePasswordSchema, preferencesSchema, profileSchema } from "@/lib/validations/settings";
+import type { BodyShape, FitPreference, UserProfile } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  useProfile, useUploadProfilePhoto, useUpdateProfile,
-  useUpdatePreferences, useUpdateBodyProfile,
-  useChangePassword, useDeleteAccount,
-} from "@/lib/hooks/useUsers";
-import { useWardrobeStats } from "@/lib/hooks/useStats";
-import { useThemeStore } from "@/lib/store/themeStore";
-import { profileSchema, preferencesSchema, changePasswordSchema } from "@/lib/validations/settings";
-import type { ProfileFormData, PreferencesFormData, ChangePasswordFormData } from "@/lib/validations/settings";
-import type { BodyShape, FitPreference, UserProfile } from "@/types";
-import { getErrorMessage } from "@/lib/utils/errors";
-import { cn } from "@/lib/utils/cn";
+  Activity,
+  AlertTriangle,
+  Bell,
+  Building2,
+  CalendarDays,
+  Camera,
+  Check, CheckCircle,
+  ChevronRight,
+  FileText,
+  Globe,
+  HelpCircle, Info,
+  Loader2,
+  LogOut,
+  Mail,
+  Moon,
+  Package,
+  Plane,
+  Shield,
+  Sparkles,
+  Sun,
+  Trash2,
+  User,
+  X
+} from "lucide-react";
+import Image from "next/image";
+import { useCallback, useRef, useState } from "react";
+import { useForm } from "react-hook-form";
 
-// ── Design tokens ─────────────────────────────────────────────────────────────
+// Design tokens 
 const BG   = "#0E0E0C";
 const S1   = "#141412";
 const S2   = "#1A1A16";
@@ -38,7 +58,7 @@ const GA   = "rgba(201,168,76,0.28)";
 const b  = `1px solid ${BDR}`;
 const gb = `1px solid ${GA}`;
 
-// ── Shared helpers ────────────────────────────────────────────────────────────
+// Shared helpers 
 function SectionHead({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-3 mb-4">
@@ -94,7 +114,7 @@ function Row({
   );
 }
 
-// ── Avatar Picker Modal ───────────────────────────────────────────────────────
+// Avatar Picker Modal
 const AVATARS = {
   erkek: [
     "/avatars/erkek_avatar_1.png",
@@ -238,7 +258,7 @@ function AvatarPickerModal({
   );
 }
 
-// ── Info Modal ────────────────────────────────────────────────────────────────
+// Info Modal 
 function InfoModal({ open, onClose, title, icon: Icon, children }: {
   open: boolean; onClose: () => void;
   title: string; icon: React.ElementType;
@@ -321,9 +341,9 @@ function GoldInput({ label, ...props }: { label: string } & React.InputHTMLAttri
   );
 }
 
-// ── TAB SECTIONS ──────────────────────────────────────────────────────────────
+// TAB SECTIONS
 
-// — Profil ——————————————————————————————————————————————
+// Profil
 function ProfileSection({ profile }: { profile: UserProfile }) {
   const [saved, setSaved] = useState(false);
   const updateProfile = useUpdateProfile(() => setSaved(true));
@@ -399,7 +419,7 @@ function ProfileSection({ profile }: { profile: UserProfile }) {
   );
 }
 
-// — Vücut Profili ————————————————————————————————————————
+// Vücut Profili
 const BODY_SHAPES: { value: BodyShape; label: string; desc: string; num: string }[] = [
   { value: "kum_saati",  label: "Kum Saati",  desc: "Omuz & kalça dengeli, bel belirgin",  num: "01" },
   { value: "armut",      label: "Armut",       desc: "Kalça omuzdan biraz daha geniş",      num: "02" },
@@ -492,7 +512,7 @@ function BodySection({ profile }: { profile: UserProfile }) {
   );
 }
 
-// — Görünüm & Bildirimler ————————————————————————————————
+// Görünüm & Bildirimler
 const LANGUAGES = [
   { value: "tr", label: "Türkçe", flag: "🇹🇷" },
   { value: "en", label: "English", flag: "🇬🇧" },
@@ -634,7 +654,7 @@ function PreferencesSection({ profile }: { profile: UserProfile }) {
   );
 }
 
-// — Hesap & Güvenlik —————————————————————————————————————
+// Hesap & Güvenlik
 function SecuritySection() {
   const [pwSaved,       setPwSaved]       = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
@@ -652,7 +672,7 @@ function SecuritySection() {
 
   return (
     <>
-      {/* ── Modals ──────────────────────────────────────────── */}
+      {/* Modals */}
       <InfoModal open={modal === "about"} onClose={() => setModal(null)} title="Smart Wardrobe AI" icon={Package}>
         <div className="flex flex-col items-center text-center gap-3 py-2">
           <div className="h-16 w-16 rounded-2xl flex items-center justify-center"
@@ -699,7 +719,7 @@ function SecuritySection() {
         </ul>
       </InfoModal>
 
-      {/* ── Content ─────────────────────────────────────────── */}
+      {/* Content */}
       <div className="space-y-6 animate-in fade-in duration-300">
         <SectionHead>Şifre Değiştir</SectionHead>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
@@ -767,7 +787,7 @@ function SecuritySection() {
   );
 }
 
-// ── Tab config ────────────────────────────────────────────────────────────────
+// Tab config
 type Tab = "profile" | "body" | "preferences" | "security";
 
 const TABS: { id: Tab; label: string; sub: string; icon: React.ElementType }[] = [
@@ -777,7 +797,7 @@ const TABS: { id: Tab; label: string; sub: string; icon: React.ElementType }[] =
   { id: "security",    label: "Hesap & Güvenlik",  sub: "Şifre, gizlilik, çıkış",   icon: Shield },
 ];
 
-// ── Main Page ─────────────────────────────────────────────────────────────────
+// Main Page
 export default function SettingsPage() {
   const [activeTab,     setActiveTab]     = useState<Tab>("profile");
   const [photoPreview,  setPhotoPreview]  = useState<string | null>(null);
@@ -829,7 +849,7 @@ export default function SettingsPage() {
 
       <div className="flex gap-6 items-start">
 
-        {/* ── Sidebar ──────────────────────────────────────────── */}
+        {/* Sidebar */}
         <aside className="w-64 flex-shrink-0 sticky top-4 space-y-3">
 
           {/* Profile card */}
@@ -942,7 +962,7 @@ export default function SettingsPage() {
           </div>
         </aside>
 
-        {/* ── Content panel ────────────────────────────────────── */}
+        {/* Content panel */}
         <div className="flex-1 min-w-0">
           {/* Panel header */}
           <div className="flex items-center gap-3 mb-4">

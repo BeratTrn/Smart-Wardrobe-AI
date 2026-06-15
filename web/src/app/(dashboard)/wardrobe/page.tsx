@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { Search, X, Sparkles, Heart } from "lucide-react";
-import { useToggleFavorite, useDeleteItem, useItems } from "@/lib/hooks/useItems";
 import { ItemGrid } from "@/components/wardrobe/ItemGrid";
-import { useRouter } from "next/navigation";
+import { useDeleteItem, useItems, useToggleFavorite } from "@/lib/hooks/useItems";
 import type { ItemCategory } from "@/types";
+import { Heart, Search, Sparkles, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 const CATEGORIES: { value: ItemCategory | "all"; label: string }[] = [
   { value: "all",           label: "Tümü" },
@@ -63,7 +63,7 @@ export default function WardrobePage() {
   return (
     <div className="flex flex-col gap-5 animate-fade-in">
 
-      {/* ── Header ──────────────────────────────────────────── */}
+      {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-[10px] font-bold tracking-[0.2em] text-muted uppercase mb-1">DOLABIM</p>
@@ -111,7 +111,7 @@ export default function WardrobePage() {
         </div>
       </div>
 
-      {/* ── Filter panel ────────────────────────────────────── */}
+      {/* Filter panel */}
       <div className="rounded-2xl p-4 flex flex-col gap-4" style={{ border: BDR }}>
 
         {/* Search */}
@@ -175,7 +175,7 @@ export default function WardrobePage() {
         )}
       </div>
 
-      {/* ── Grid ────────────────────────────────────────────── */}
+      {/* Grid */}
       <ItemGrid
         items={filtered}
         isLoading={isPending}
@@ -185,7 +185,7 @@ export default function WardrobePage() {
         pendingFavoriteId={pendingFavoriteId}
       />
 
-      {/* ── Empty state for favorites ──── */}
+      {/* Empty state for favorites */}
       {!isPending && favOnly && filtered.length === 0 && (
         <div
           className="rounded-2xl p-14 flex flex-col items-center text-center gap-4"
@@ -206,7 +206,7 @@ export default function WardrobePage() {
         </div>
       )}
 
-      {/* ── Pagination ──────────────────────────────────────── */}
+      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-3">
           <button
