@@ -705,12 +705,6 @@ function PreferencesSection({ profile }: { profile: UserProfile }) {
       <div>
         <SectionHead>{t("web.settings.notif_section")}</SectionHead>
 
-        {notifPermission === "granted" && tokenStatus === "active" && (
-          <div className="flex items-center gap-2 rounded-xl px-3.5 py-2.5 mb-3" style={{ background: "rgba(74,140,92,0.1)", border: "1px solid rgba(74,140,92,0.3)" }}>
-            <CheckCircle className="h-4 w-4 text-green-400 flex-shrink-0" />
-            <p className="text-[12px] text-green-400 font-medium">{t("web.settings.notif_active_device")}</p>
-          </div>
-        )}
         {(tokenStatus === "checking" || notifBusy) && (
           <div className="flex items-center gap-2 rounded-xl px-3.5 py-2.5 mb-3" style={{ background: S2, border: b }}>
             <Loader2 className="h-4 w-4 text-muted flex-shrink-0 animate-spin" />
