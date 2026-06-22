@@ -1,7 +1,9 @@
 import 'dart:convert';
 
 import 'package:easy_localization/easy_localization.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/date_symbol_data_local.dart';
@@ -9,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_wardrobe_ai/core/constants/api_constants.dart';
 import 'package:smart_wardrobe_ai/core/controllers/app_settings_controller.dart';
 import 'package:smart_wardrobe_ai/core/theme/app_theme_extension.dart';
+import 'package:smart_wardrobe_ai/firebase_options.dart';
 import 'package:smart_wardrobe_ai/presentation/screens/auth/login_screen.dart';
 import 'package:smart_wardrobe_ai/presentation/screens/main/home_screen.dart';
 import 'package:smart_wardrobe_ai/presentation/screens/startup/onboarding_screen.dart';
@@ -27,8 +30,22 @@ const _supportedLocales = [
 // Source: EasyLocalizationController._saveLocale() → prefs.setString('locale', ...)
 const _easyLocStorageKey = 'locale';
 
+// GEÇİCİ TANI ARACI — "kıyafet detay" sayfasındaki gizemli boşluğun hangi
+// widget'tan geldiğini bulmak için. true iken Flutter, EKRANDAKİ HER
+// widget'ın etrafına renkli kenarlık çizer (mavi/sarı çizgiler, ok işaretleri).
+// Boşluk hangi renkli kutunun içinde kalıyorsa, sorumlu widget odur.
+// Sorun bulunduktan sonra bu satırı `false` yap / bu yorumla birlikte sil.
+const bool _kDebugPaintGap = false;
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  if (_kDebugPaintGap) {
+    debugPaintSizeEnabled = true;
+  }
+
+  // Firebase — push bildirimleri (FCM) için. NotificationService.init()
+  // çağrılmadan önce bu hazır olmalı (HomeScreen açılışında çağrılıyor).
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // Step 1: Load SharedPreferences
   final prefs = await SharedPreferences.getInstance();

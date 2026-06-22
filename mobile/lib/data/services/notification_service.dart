@@ -1,15 +1,21 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:smart_wardrobe_ai/data/services/api_service.dart';
+import 'package:smart_wardrobe_ai/firebase_options.dart';
 
 // Uygulama tamamen kapalıyken (terminated) gelen mesajları işler.
 // Bu fonksiyon top-level ve @pragma ile işaretlenmiş olmalıdır.
+// Ayrı bir background isolate'te çalışır — ana isolate'teki
+// Firebase.initializeApp() burada GEÇERLİ DEĞİLDİR, bu yüzden kendi
+// başına tekrar initialize etmesi gerekir (FlutterFire standart pattern'i).
 @pragma('vm:entry-point')
 Future<void> _firebaseBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   // Burada yalnızca veri işleme yapılabilir; UI güncellenemez.
-  // flutter_local_notifications burada çağrılmaz çünkü FCM data-only
-  // mesajlarında sistem bildirimi otomatik gösterilmez; gerekirse
-  // burada da FlutterLocalNotificationsPlugin çağrılabilir.
+  // flutter_local_notifications burada çağrılmaz çünkü bildirim tipi
+  // (notification + data) mesajlarda Android/iOS sistem bildirimini zaten
+  // otomatik gösterir; data-only mesaj eklenirse burada gösterilebilir.
 }
 
 /// FCM token yönetimi ve bildirim dinleme işlemlerini yöneten singleton.

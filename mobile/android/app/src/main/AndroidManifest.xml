@@ -1,7 +1,17 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    android:installLocation="internalOnly">
+    <!-- installLocation="internalOnly": PackageManager'ın internal/external
+         depolama arasında "en uygun" konumu hesaplarken düştüğü bilinen
+         emülatör hatasını (INSTALL_FAILED_INSUFFICIENT_STORAGE: "Failed to
+         override installation location") önler — bu hesaplamayı devre dışı
+         bırakıp doğrudan internal depolamaya kurar. -->
 
     <!-- İnternet erişimi -->
     <uses-permission android:name="android.permission.INTERNET"/>
+
+    <!-- Push bildirimleri (FCM) — Android 13+ (API 33+) için zorunlu,
+         olmadan NotificationService.requestPermission() sessizce reddedilir. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
     <!-- Hava durumu için konum izinleri (Geolocator) -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
@@ -40,6 +50,24 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <!-- Impeller (Vulkan) yerine Skia/OpenGL kullan — bu emülatör host'ta
+             gerçek GPU hızlandırması olmadan SwiftShader (yazılımsal) render
+             kullanıyor; Impeller bu kurulumda kararsız (glAttachShader/Vulkan
+             hataları, emülatörün kendiliğinden kapanması). Gerçek cihazda
+             veya GPU hızlandırması düzgün çalışan bir emülatörde sorun
+             yaşanmazsa bu satırı kaldırabilirsin. -->
+        <meta-data
+            android:name="io.flutter.embedding.android.EnableImpeller"
+            android:value="false" />
+        <!-- Uygulama arka plandayken/kapalıyken gelen FCM bildirimleri bu
+             kanalı ve ikonu kullanır — NotificationService'teki
+             _androidChannel ile aynı id olmalı. -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="smart_wardrobe_high" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@mipmap/ic_launcher" />
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data
