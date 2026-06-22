@@ -90,3 +90,10 @@ export function useDeleteAccount() {
     },
   });
 }
+
+/** POST /api/users/fcm-token — silent, no UI feedback needed on success */
+export function useSaveFcmToken() {
+  return useMutation({
+    mutationFn: (fcmToken: string) => usersApi.saveFcmToken(fcmToken),
+  });
+}

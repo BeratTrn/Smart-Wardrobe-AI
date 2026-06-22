@@ -113,3 +113,9 @@ export async function deleteAccount(): Promise<{ mesaj: string }> {
   const res = await api.delete<{ mesaj: string }>("/auth/me");
   return res.data;
 }
+
+/** POST /api/users/fcm-token — registers this browser's FCM token for web push */
+export async function saveFcmToken(fcmToken: string): Promise<{ mesaj: string }> {
+  const res = await api.post<{ mesaj: string }>("/users/fcm-token", { fcmToken });
+  return res.data;
+}
