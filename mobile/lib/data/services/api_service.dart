@@ -225,13 +225,16 @@ class ApiService {
     }
   }
 
-  // POST /api/outfits/recommend
+  // POST /api/outfits/recommend  |  POST /api/outfits/web-recommend
   /// Kullanıcının seçtiği etkinlik ve şehre göre Claude-powered AI kombin
-  /// önerisi alır.
-  
+  /// önerisi alır. [webdenOner] true ise gardırop + web'den bulunan ürünlerle
+  /// destekli öneri için `/outfits/web-recommend` uç noktası kullanılır
+  /// (web uygulamasındaki "Web'den öner" anahtarıyla aynı davranış).
+
   Future<GeneratedOutfit> generateOutfit({
     required String etkinlik,
     String sehir = 'Istanbul',
+    bool webdenOner = false,
   }) async {
     final token = await _getToken();
     if (token.isEmpty) {
@@ -241,7 +244,8 @@ class ApiService {
       );
     }
 
-    final uri = Uri.parse('${ApiConstants.baseUrl}/outfits/recommend');
+    final path = webdenOner ? '/outfits/web-recommend' : '/outfits/recommend';
+    final uri = Uri.parse('${ApiConstants.baseUrl}$path');
     final client = http.Client();
 
     try {
@@ -258,7 +262,7 @@ class ApiService {
           .timeout(const Duration(seconds: 45));
 
       if (kDebugMode) {
-        debugPrint('[ApiService] POST /outfits/recommend → ${res.statusCode}');
+        debugPrint('[ApiService] POST $path → ${res.statusCode}');
         final preview = res.body.length > 400
             ? res.body.substring(0, 400)
             : res.body;
@@ -330,6 +334,7 @@ class ApiService {
                   .map((i) => i.id)
                   .where((id) => id.isNotEmpty)
                   .toList(),
+              'disUrunler': outfit.disUrunler.map((p) => p.toJson()).toList(),
               'kullaniciFoto': kullaniciFoto,
             }),
           )
@@ -618,7 +623,66 @@ class ApiService {
     }
   }
 
-  // DELETE /api/saved-outfits/:id 
+  // PUT /api/users/profile
+  /// Kullanıcının AI Stil Danışmanı tonunu ('professional' | 'friendly' | 'harsh' | '')
+  /// MongoDB `stilTonu` alanına kaydeder. AI, kombin önerisi/açıklaması üretirken
+  /// bu tonu kullanır.
+
+  Future<void> updateStyleAdvisorTone(String stilTonu) async {
+    final token = await _getToken();
+    if (token.isEmpty) {
+      throw const ApiException(
+        message: 'Oturumunuz sona erdi, lütfen tekrar giriş yapın.',
+        statusCode: 401,
+      );
+    }
+
+    final uri = Uri.parse('${ApiConstants.baseUrl}/users/profile');
+    final client = http.Client();
+
+    try {
+      final res = await client
+          .put(
+            uri,
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ${token.trim()}',
+              'Accept': 'application/json',
+            },
+            body: jsonEncode({'stilTonu': stilTonu}),
+          )
+          .timeout(const Duration(seconds: 15));
+
+      if (kDebugMode) {
+        debugPrint('[ApiService] PUT /users/profile (stilTonu) → ${res.statusCode}');
+      }
+
+      if (res.statusCode == 200) return;
+
+      Map<String, dynamic> errBody = {};
+      try {
+        errBody = jsonDecode(res.body) as Map<String, dynamic>;
+      } catch (_) {}
+
+      throw ApiException(
+        message:
+            errBody['mesaj'] as String? ?? 'Sunucu hatası (${res.statusCode})',
+        statusCode: res.statusCode,
+      );
+    } on TimeoutException {
+      throw const ApiException(
+        message: 'Sunucu yanıt vermedi. Bağlantınızı kontrol edin.',
+        statusCode: 0,
+      );
+    } catch (e) {
+      if (e is ApiException) rethrow;
+      throw ApiException(message: 'Sunucuya bağlanılamadı: $e', statusCode: 0);
+    } finally {
+      client.close();
+    }
+  }
+
+  // DELETE /api/saved-outfits/:id
   /// Verilen [id]'li kaydedilmiş kombini sunucudan siler.
   
   Future<bool> deleteSavedOutfit(String id) async {
@@ -817,7 +881,7 @@ class ApiService {
     }
 
     final uri = Uri.parse(
-      '${ApiConstants.baseUrl}/users/notification-preferences',
+      '${ApiConstants.baseUrl}/users/preferences',
     );
     final client = http.Client();
 
@@ -842,7 +906,7 @@ class ApiService {
 
       if (kDebugMode) {
         debugPrint(
-          '[ApiService] PUT /users/notification-preferences → ${res.statusCode}',
+          '[ApiService] PUT /users/preferences (bildirim) → ${res.statusCode}',
         );
       }
 

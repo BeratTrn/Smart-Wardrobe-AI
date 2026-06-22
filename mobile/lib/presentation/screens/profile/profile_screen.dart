@@ -51,8 +51,9 @@ class _ProfileScreenState extends State<ProfileScreen>
   // _darkMode ve _selectedLang artık AppSettingsController / easy_localization
   // tarafından yönetilir — state'te tutulmuyor.
 
-  // AI Asistan Ayarları
-  String _stilTonu = 'Samimi';
+  // AI Asistan Ayarları — '' = kullanıcı hiç seçmemiş (boş kalır).
+  // 'professional' | 'friendly' | 'harsh'
+  String _stilTonu = '';
 
   // Animasyon
   late final AnimationController _fadeCtrl;
@@ -130,7 +131,9 @@ class _ProfileScreenState extends State<ProfileScreen>
       _notifEnabled = prefs.getBool('pref_notif') ?? true;
       // Tema: AppSettingsController.instance.isDark (zaten hazır)
       // Dil: context.locale (easy_localization tarafından yönetiliyor)
-      _stilTonu = prefs.getString('pref_stilTonu') ?? 'Samimi';
+      // Bu sadece anlık/yerel önbellek — _fetch() backend'den gelen
+      // gerçek değeri aldığında bunun üzerine yazacak.
+      _stilTonu = prefs.getString('pref_stilTonu') ?? '';
       // Önce yerel cache'i yükle — API sonucuyla sync edilecek
       _profilePhoto = prefs.getString('pref_profilePhoto');
     });
@@ -225,6 +228,10 @@ class _ProfileScreenState extends State<ProfileScreen>
           prefs.setString('pref_profilePhoto', p.profilePhoto);
         }
 
+        // Backend'den gelen stil danışmanı tonu otoriter kaynaktır —
+        // yerel önbelleği günceller (cihaz/platform fark etmeden senkron olsun).
+        await prefs.setString('pref_stilTonu', p.stilTonu);
+
         setState(() {
           _profile = UserProfile(
             id: p.id,
@@ -235,8 +242,10 @@ class _ProfileScreenState extends State<ProfileScreen>
             totalOutfits: outfitCount,
             totalFavorites: favCount,
             cinsiyet: p.cinsiyet,
+            stilTonu: p.stilTonu,
           );
           if (p.profilePhoto.isNotEmpty) _profilePhoto = p.profilePhoto;
+          _stilTonu = p.stilTonu;
           _loading = false;
         });
       } else {
@@ -268,8 +277,8 @@ class _ProfileScreenState extends State<ProfileScreen>
       context: context,
       backgroundColor: Colors.transparent,
       builder: (ctx) => Container(
-        decoration: const BoxDecoration(
-          color: AppColors.surface,
+        decoration: BoxDecoration(
+          color: AppColorsExtension.of(context).surface,
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
         padding: EdgeInsets.fromLTRB(
@@ -286,7 +295,7 @@ class _ProfileScreenState extends State<ProfileScreen>
               width: 36,
               height: 4,
               decoration: BoxDecoration(
-                color: AppColors.border,
+                color: AppColorsExtension.of(context).border,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -301,7 +310,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                   fontFamily: 'Cormorant',
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.text,
+                  color: AppColorsExtension.of(context).text,
                   letterSpacing: -.2,
                 ),
               ),
@@ -311,7 +320,7 @@ class _ProfileScreenState extends State<ProfileScreen>
               alignment: Alignment.centerLeft,
               child: Text(
                 'photo_source'.tr(),
-                style: TextStyle(color: AppColors.muted, fontSize: 11),
+                style: TextStyle(color: AppColorsExtension.of(context).muted, fontSize: 11),
               ),
             ),
             const SizedBox(height: 20),
@@ -429,7 +438,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(msg),
-        backgroundColor: AppColors.surface,
+        backgroundColor: AppColorsExtension.of(context).surface,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
@@ -620,7 +629,7 @@ class _ProfileScreenState extends State<ProfileScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: AppColorsExtension.of(context).bg,
       body: AppBackground(
         child: SafeArea(
           child: FadeTransition(
@@ -738,17 +747,19 @@ class _ProfileScreenState extends State<ProfileScreen>
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  _stilTonu,
-                  style: const TextStyle(
-                    color: AppColors.gold,
+                  _stilTonu.isEmpty
+                      ? 'style_advisor_not_selected'.tr()
+                      : 'style_advisor_$_stilTonu'.tr(),
+                  style: TextStyle(
+                    color: _stilTonu.isEmpty ? AppColorsExtension.of(context).muted : AppColors.gold,
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
                 const SizedBox(width: 4),
-                const Icon(
+                Icon(
                   Icons.chevron_right_rounded,
-                  color: AppColors.muted,
+                  color: AppColorsExtension.of(context).muted,
                   size: 20,
                 ),
               ],
@@ -768,19 +779,22 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   /// Stil danışmanı tonu seçme bottom sheet
   void _showStilTonuSheet() {
-    // Tone options: name + description + icon
+    // Tone options: backend enum değeri + isim/açıklama key'i + ikon
     const tones = [
       (
+        'professional',
         'style_advisor_professional',
         'style_advisor_professional_description',
         Icons.business_center_outlined,
       ),
       (
+        'friendly',
         'style_advisor_friendly',
         'style_advisor_friendly_description',
         Icons.emoji_emotions_outlined,
       ),
       (
+        'harsh',
         'style_advisor_harsh',
         'style_advisor_harsh_description',
         Icons.star_border_rounded,
@@ -793,8 +807,8 @@ class _ProfileScreenState extends State<ProfileScreen>
       isScrollControlled: true,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setModalState) => Container(
-          decoration: const BoxDecoration(
-            color: AppColors.surface,
+          decoration: BoxDecoration(
+            color: AppColorsExtension.of(context).surface,
             borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
           ),
           padding: EdgeInsets.fromLTRB(
@@ -813,7 +827,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                   width: 36,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: AppColors.border,
+                    color: AppColorsExtension.of(context).border,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -854,13 +868,13 @@ class _ProfileScreenState extends State<ProfileScreen>
                           fontFamily: 'Cormorant',
                           fontSize: 20,
                           fontWeight: FontWeight.w700,
-                          color: AppColors.text,
+                          color: AppColorsExtension.of(context).text,
                         ),
                       ),
                       Text(
                         'style_advisor_tone_description'.tr(),
                         style: TextStyle(
-                          color: AppColors.muted,
+                          color: AppColorsExtension.of(context).muted,
                           fontSize: 11,
                           letterSpacing: .2,
                         ),
@@ -871,18 +885,44 @@ class _ProfileScreenState extends State<ProfileScreen>
               ),
 
               const SizedBox(height: 20),
-              const Divider(color: AppColors.border, height: 1),
+              Divider(color: AppColorsExtension.of(context).border, height: 1),
               const SizedBox(height: 16),
 
               // Tone options
               ...tones.map((t) {
                 final isSelected = _stilTonu == t.$1;
                 return GestureDetector(
-                  onTap: () {
+                  onTap: () async {
+                    final eskiTon = _stilTonu;
+                    final yeniTon = t.$1;
+
+                    // Optimistic UI — hemen seçili göster ve sheet'i kapat.
                     setModalState(() {});
-                    setState(() => _stilTonu = t.$1);
-                    _savePref('pref_stilTonu', t.$1);
+                    setState(() => _stilTonu = yeniTon);
                     Navigator.pop(ctx);
+
+                    // Backend'e kaydet — AI kombin önerisi/açıklaması bu tonu kullanır.
+                    // Yerel önbelleğe SADECE backend onayladıktan sonra yazıyoruz;
+                    // aksi halde kayıt başarısız olsa bile bir dahaki açılışta
+                    // (hot restart/yeniden başlatma) yanlışlıkla "kayıtlı" görünebilir.
+                    try {
+                      await ApiService.instance.updateStyleAdvisorTone(yeniTon);
+                      await _savePref('pref_stilTonu', yeniTon);
+                    } catch (e) {
+                      if (!mounted) return;
+                      // Kayıt başarısız oldu — eski değere geri dön, kullanıcıyı bilgilendir.
+                      setState(() => _stilTonu = eskiTon);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            e is ApiException
+                                ? e.message
+                                : 'profile.style_advisor_tone'.tr(),
+                          ),
+                          backgroundColor: AppColorsExtension.of(context).surface,
+                        ),
+                      );
+                    }
                   },
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
@@ -894,12 +934,12 @@ class _ProfileScreenState extends State<ProfileScreen>
                     decoration: BoxDecoration(
                       color: isSelected
                           ? AppColors.gold.withValues(alpha: .08)
-                          : AppColors.bg,
+                          : AppColorsExtension.of(context).bg,
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
                         color: isSelected
                             ? AppColors.gold.withValues(alpha: .45)
-                            : AppColors.border,
+                            : AppColorsExtension.of(context).border,
                         width: isSelected ? 1.2 : 1,
                       ),
                     ),
@@ -911,19 +951,19 @@ class _ProfileScreenState extends State<ProfileScreen>
                           decoration: BoxDecoration(
                             color: isSelected
                                 ? AppColors.gold.withValues(alpha: .15)
-                                : AppColors.surface,
+                                : AppColorsExtension.of(context).surface,
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(
                               color: isSelected
                                   ? AppColors.gold.withValues(alpha: .35)
-                                  : AppColors.border,
+                                  : AppColorsExtension.of(context).border,
                             ),
                           ),
                           child: Icon(
-                            t.$3,
+                            t.$4,
                             color: isSelected
                                 ? AppColors.goldLight
-                                : AppColors.muted,
+                                : AppColorsExtension.of(context).muted,
                             size: 17,
                           ),
                         ),
@@ -933,20 +973,20 @@ class _ProfileScreenState extends State<ProfileScreen>
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                t.$1,
+                                t.$2.tr(),
                                 style: TextStyle(
                                   color: isSelected
                                       ? AppColors.goldLight
-                                      : AppColors.text,
+                                      : AppColorsExtension.of(context).text,
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                t.$2,
-                                style: const TextStyle(
-                                  color: AppColors.muted,
+                                t.$3.tr(),
+                                style: TextStyle(
+                                  color: AppColorsExtension.of(context).muted,
                                   fontSize: 11,
                                   height: 1.4,
                                 ),
@@ -1021,7 +1061,7 @@ class _ProfileScreenState extends State<ProfileScreen>
             label: 'profile.language'.tr(),
             trailing: Text(
               currentLang,
-              style: const TextStyle(
+              style: TextStyle(
                 color: AppColors.gold,
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
@@ -1068,9 +1108,9 @@ class _ProfileScreenState extends State<ProfileScreen>
                   ),
                 ),
                 const SizedBox(width: 6),
-                const Icon(
+                Icon(
                   Icons.chevron_right_rounded,
-                  color: AppColors.muted,
+                  color: AppColorsExtension.of(context).muted,
                   size: 20,
                 ),
               ],
@@ -1178,9 +1218,9 @@ class _PhotoPickerOption extends StatelessWidget {
     child: Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
       decoration: BoxDecoration(
-        color: AppColors.bg,
+        color: AppColorsExtension.of(context).bg,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColorsExtension.of(context).border),
       ),
       child: Row(
         children: [
@@ -1205,24 +1245,24 @@ class _PhotoPickerOption extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Cormorant',
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.text,
+                  color: AppColorsExtension.of(context).text,
                   letterSpacing: -.1,
                 ),
               ),
               Text(
                 subtitle,
-                style: const TextStyle(color: AppColors.muted, fontSize: 11),
+                style: TextStyle(color: AppColorsExtension.of(context).muted, fontSize: 11),
               ),
             ],
           ),
           const Spacer(),
-          const Icon(
+          Icon(
             Icons.chevron_right_rounded,
-            color: AppColors.muted,
+            color: AppColorsExtension.of(context).muted,
             size: 20,
           ),
         ],
