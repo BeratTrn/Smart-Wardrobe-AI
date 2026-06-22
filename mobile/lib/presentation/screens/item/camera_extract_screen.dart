@@ -103,8 +103,31 @@ class _CameraExtractScreenState extends State<CameraExtractScreen> {
       orElse: () => current,
     );
     if (next == current) return;
-    setState(() => _cameraError = null);
-    await _openCamera(next);
+
+    final old = _controller;
+    setState(() {
+      _controller = null;
+      _cameraError = null;
+    });
+
+    // Android'da iki kamera aynı anda açık olamaz:
+    // önce eskiyi kapat, sonra yeniyi başlat.
+    try {
+      await old?.dispose();
+    } catch (_) {}
+
+    try {
+      final controller = CameraController(
+        next,
+        ResolutionPreset.high,
+        enableAudio: false,
+        imageFormatGroup: ImageFormatGroup.jpeg,
+      );
+      await controller.initialize();
+      if (mounted) setState(() => _controller = controller);
+    } catch (_) {
+      if (mounted) setState(() => _cameraError = 'add_item.camera_init_error'.tr());
+    }
   }
 
   @override
@@ -250,6 +273,14 @@ class _CameraExtractScreenState extends State<CameraExtractScreen> {
   Widget _buildLive() {
     if (_cameraError != null) {
       return _buildErrorState(_cameraError!);
+    }
+
+    // Switch sırasında controller null olabilir — FutureBuilder'dan önce yakala
+    final controller = _controller;
+    if (controller == null || !controller.value.isInitialized) {
+      return const Center(
+        child: CircularProgressIndicator(color: AppColors.gold),
+      );
     }
 
     return FutureBuilder<void>(
