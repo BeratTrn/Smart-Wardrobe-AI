@@ -167,9 +167,6 @@ export function ItemDetailModal({
                       className="h-6 w-6 rounded-full ring-2 ring-white/10 flex-shrink-0"
                       style={{ backgroundColor: item.renk?.toLowerCase() || "#888" }}
                     />
-                    <span className="text-[13px] font-bold text-white capitalize truncate">
-                      {item.renk || t("web.topbar.unknown_location")}
-                    </span>
                   </div>
                 </div>
 

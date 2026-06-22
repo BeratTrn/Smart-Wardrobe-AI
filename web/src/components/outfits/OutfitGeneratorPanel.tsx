@@ -66,7 +66,8 @@ export function OutfitGeneratorPanel({ onGenerate, isLoading, weather }: OutfitG
   const [event,   setEvent]   = useState("Günlük");
   const [hava,    setHava]    = useState("Ilık");
   const [stil,    setStil]    = useState("Günlük");
-  const [useCurrentWeather, setUseCurrentWeather] = useState(!!weather);
+  // Toggle UI'ı kaldırıldı — gerçek hava verisi varsa sessizce kullanılır.
+  const useCurrentWeather = !!weather;
   const [webdenOner, setWebdenOner] = useState(false);
 
   const handleGenerate = () => {
@@ -106,24 +107,6 @@ export function OutfitGeneratorPanel({ onGenerate, isLoading, weather }: OutfitG
       {/* HAVA */}
       <div>
         <SectionLabel>{t("outfit_generator.weather")}</SectionLabel>
-        {weather && (
-          <div className="flex items-center gap-2 mb-3">
-            <button
-              type="button"
-              onClick={() => setUseCurrentWeather((v) => !v)}
-              className="relative h-5 w-9 rounded-full transition-colors flex-shrink-0"
-              style={{ background: useCurrentWeather ? "var(--color-gold)" : "var(--color-border)" }}
-            >
-              <span
-                className="absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform"
-                style={{ transform: useCurrentWeather ? "translateX(16px)" : "translateX(2px)" }}
-              />
-            </button>
-            <span className="text-[12px] text-muted">
-              {t("web.outfits.current_weather", { city: weather.sehir, temp: weather.sicaklik })}
-            </span>
-          </div>
-        )}
         <div className="flex flex-wrap gap-2">
           {WEATHER_FEELS.map((h) => (
             <PillBtn key={h} label={t(WEATHER_FEEL_KEY[h])} active={hava === h} onClick={() => setHava(h)} />
@@ -154,13 +137,15 @@ export function OutfitGeneratorPanel({ onGenerate, isLoading, weather }: OutfitG
         </div>
         <button
           type="button"
+          role="switch"
+          aria-checked={webdenOner}
           onClick={() => setWebdenOner((v) => !v)}
-          className="relative h-5 w-9 rounded-full transition-colors flex-shrink-0"
+          className="relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full p-0.5 transition-colors duration-200 focus:outline-none"
           style={{ background: webdenOner ? "var(--color-gold)" : "var(--color-border)" }}
         >
           <span
-            className="absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform"
-            style={{ transform: webdenOner ? "translateX(16px)" : "translateX(2px)" }}
+            className="h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-200 ease-out"
+            style={{ transform: webdenOner ? "translateX(20px)" : "translateX(0px)" }}
           />
         </button>
       </div>
