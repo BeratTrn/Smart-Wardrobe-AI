@@ -6,10 +6,10 @@ import { useUpdateBodyProfile } from "@/lib/hooks/useUsers";
 import { getErrorMessage } from "@/lib/utils/errors";
 import type { BodyShape, FitPreference, UserProfile } from "@/types";
 
-const SBG = "#161614";
-const BDR = "1px solid #1E1E18";
+const SBG = "var(--color-surface)";
+const BDR = "1px solid var(--color-border)";
 const GBD = "1px solid var(--color-gold)";
-const IBG = "rgba(201,168,76,0.12)";
+const IBG = "var(--color-gold-dim)";
 
 interface BodyTabProps { profile: UserProfile; }
 
@@ -59,7 +59,7 @@ export function BodyTab({ profile }: BodyTabProps) {
       {/* AI info banner */}
       <div
         className="flex items-start gap-3 rounded-xl px-4 py-3"
-        style={{ background: IBG, border: "1px solid rgba(201,168,76,0.2)" }}
+        style={{ background: IBG, border: "1px solid var(--color-gold-border)" }}
       >
         <Sparkles className="h-3.5 w-3.5 text-gold flex-shrink-0 mt-0.5" />
         <p className="text-[12px] leading-relaxed" style={{ color: "var(--color-gold)" }}>
@@ -95,7 +95,7 @@ export function BodyTab({ profile }: BodyTabProps) {
                   <div
                     className="h-5 w-5 rounded-full flex items-center justify-center"
                     style={{
-                      border: active ? "none" : "2px solid #2A2A22",
+                      border: active ? "none" : "2px solid var(--color-border)",
                       background: active ? "var(--color-gold)" : "transparent",
                     }}
                   >
@@ -135,7 +135,7 @@ export function BodyTab({ profile }: BodyTabProps) {
                 <div
                   className="h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0"
                   style={{
-                    background: active ? "rgba(201,168,76,0.2)" : "#1E1E18",
+                    background: active ? "rgba(201,168,76,0.2)" : "var(--color-border)",
                     color: active ? "var(--color-gold)" : "var(--color-muted)",
                   }}
                 >
@@ -150,7 +150,7 @@ export function BodyTab({ profile }: BodyTabProps) {
                 <div
                   className="h-5 w-5 rounded-full flex items-center justify-center flex-shrink-0"
                   style={{
-                    border: active ? "none" : "2px solid #2A2A22",
+                    border: active ? "none" : "2px solid var(--color-border)",
                     background: active ? "var(--color-gold)" : "transparent",
                   }}
                 >
