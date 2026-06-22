@@ -6,16 +6,19 @@ import type { ItemCategory } from "@/types";
 import { Heart, Search, Sparkles, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useT } from "@/lib/i18n";
 
-const CATEGORIES: { value: ItemCategory | "all"; label: string }[] = [
-  { value: "all",           label: "Tümü" },
-  { value: "Üst Giyim",    label: "Üst Giyim" },
-  { value: "Alt Giyim",    label: "Alt Giyim" },
-  { value: "Elbise",        label: "Elbise" },
-  { value: "Dış Giyim",    label: "Dış Giyim" },
-  { value: "Ayakkabı",     label: "Ayakkabı" },
-  { value: "Aksesuar",     label: "Aksesuar" },
-];
+function getCategories(t: (key: string) => string): { value: ItemCategory | "all"; label: string }[] {
+  return [
+    { value: "all",        label: t("wardrobe.all") },
+    { value: "Üst Giyim",  label: t("wardrobe.topwear") },
+    { value: "Alt Giyim",  label: t("wardrobe.bottomwear") },
+    { value: "Elbise",     label: t("wardrobe.dress") },
+    { value: "Dış Giyim",  label: t("wardrobe.outerwear") },
+    { value: "Ayakkabı",   label: t("wardrobe.shoes") },
+    { value: "Aksesuar",   label: t("wardrobe.accessories") },
+  ];
+}
 
 const BDR = "1px solid var(--color-border)";
 const CBG = "var(--color-surface)";
@@ -30,6 +33,8 @@ const trNorm = (s: string) =>
    .replace(/ç/g, "c").replace(/Ç/g, "c");
 
 export default function WardrobePage() {
+  const { t } = useT();
+  const CATEGORIES = getCategories(t);
   const [category,     setCategory]     = useState<ItemCategory | "all">("all");
   const [search,       setSearch]       = useState("");
   const [page,         setPage]         = useState(1);
@@ -56,7 +61,7 @@ export default function WardrobePage() {
     ? allItems.filter((it) => {
         const ad = trNorm(it.ad ?? "");
         if (ad) return ad.includes(q);
-        return trNorm("kıyafet").includes(q);
+        return trNorm(t("add_item.garment")).includes(q);
       })
     : allItems;
 
@@ -66,10 +71,10 @@ export default function WardrobePage() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-[10px] font-bold tracking-[0.2em] text-muted uppercase mb-1">DOLABIM</p>
-          <h1 className="text-3xl font-black text-text leading-none mb-1">Gardırobum</h1>
+          <p className="text-[10px] font-bold tracking-[0.2em] text-muted uppercase mb-1">{t("wardrobe.my_wardrobe")}</p>
+          <h1 className="text-3xl font-black text-text leading-none mb-1">{t("wardrobe.wardrobe")}</h1>
           <p className="text-[13px] text-muted">
-            {isPending ? "Yükleniyor…" : `${total} kıyafet`}
+            {isPending ? t("common.loading") : `${total} ${t("add_item.garment")}`}
           </p>
         </div>
 
@@ -81,13 +86,13 @@ export default function WardrobePage() {
             style={
               favOnly
                 ? {
-                    background: "linear-gradient(135deg, #C9A84C 0%, #E8C97A 100%)",
+                    background: "linear-gradient(135deg, var(--color-gold) 0%, var(--color-gold-light) 100%)",
                     color: "#000",
-                    boxShadow: "0 4px 16px rgba(201,168,76,0.35)",
+                    boxShadow: "0 4px 16px var(--color-gold-border)",
                   }
                 : {
-                    background: "rgba(201,168,76,0.08)",
-                    border: "1px solid rgba(201,168,76,0.2)",
+                    background: "var(--color-gold-dim)",
+                    border: "1px solid var(--color-gold-border)",
                     color: "var(--color-gold)",
                   }
             }
@@ -97,16 +102,16 @@ export default function WardrobePage() {
               fill={favOnly ? "currentColor" : "none"}
               strokeWidth={favOnly ? 0 : 2}
             />
-            Favorilerim
+            {t("nav.favorites")}
           </button>
 
           {/* ✨ Kombin */}
           <button
             onClick={() => { window.location.href = "/outfits"; }}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold text-gold"
-            style={{ background: "rgba(201,168,76,0.1)", border: "1px solid rgba(201,168,76,0.3)" }}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold text-gold capitalize"
+            style={{ background: "var(--color-gold-dim)", border: "1px solid var(--color-gold-border)" }}
           >
-            <Sparkles className="h-4 w-4" /> Kombin
+            <Sparkles className="h-4 w-4" /> {t("saved_outfits.outfit")}
           </button>
         </div>
       </div>
@@ -119,7 +124,7 @@ export default function WardrobePage() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted pointer-events-none" />
           <input
             type="text"
-            placeholder="İsme göre ara… (ör: siyah şapka)"
+            placeholder={t("web.wardrobe.search_placeholder")}
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
             className="w-full pl-9 pr-9 py-2.5 rounded-xl text-sm text-text placeholder:text-muted focus:outline-none"
@@ -147,7 +152,7 @@ export default function WardrobePage() {
                 className="flex-shrink-0 px-4 py-2.5 rounded-full text-[13px] font-bold transition-all duration-200"
                 style={
                   active
-                    ? { background: "linear-gradient(135deg, #E8C97A 0%, #C9A84C 100%)", color: "#000" }
+                    ? { background: "linear-gradient(135deg, var(--color-gold-light) 0%, var(--color-gold) 100%)", color: "#000" }
                     : { background: "var(--color-surface)", color: "var(--color-text-sub)", border: "1px solid var(--color-border)" }
                 }
               >
@@ -161,15 +166,15 @@ export default function WardrobePage() {
         {favOnly && (
           <div
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-semibold animate-fade-in"
-            style={{ background: "rgba(201,168,76,0.07)", border: "1px solid rgba(201,168,76,0.18)", color: "var(--color-gold)" }}
+            style={{ background: "var(--color-gold-dim)", border: "1px solid var(--color-gold-border)", color: "var(--color-gold)" }}
           >
             <Heart className="h-4 w-4" fill="currentColor" strokeWidth={0} />
-            Sadece favori kıyafetler gösteriliyor
+            {t("web.wardrobe.fav_only_banner")}
             <button
               className="ml-auto text-xs underline opacity-60 hover:opacity-100 transition-opacity"
               onClick={() => { setFavOnly(false); setPage(1); }}
             >
-              Temizle
+              {t("web.wardrobe.clear")}
             </button>
           </div>
         )}
@@ -193,14 +198,14 @@ export default function WardrobePage() {
         >
           <div
             className="h-16 w-16 rounded-full flex items-center justify-center"
-            style={{ background: "rgba(201,168,76,0.1)", border: "1px solid rgba(201,168,76,0.2)" }}
+            style={{ background: "var(--color-gold-dim)", border: "1px solid var(--color-gold-border)" }}
           >
             <Heart className="h-7 w-7 text-gold" />
           </div>
           <div>
-            <p className="text-base font-bold text-text mb-1">Henüz favorin yok</p>
+            <p className="text-base font-bold text-text mb-1">{t("favorites.empty_title")}</p>
             <p className="text-sm text-muted">
-              Kıyafetlerdeki ❤️ ikonuna tıklayarak favorilerine ekleyebilirsin.
+              {t("favorites.empty_body")}
             </p>
           </div>
         </div>
@@ -215,7 +220,7 @@ export default function WardrobePage() {
             className="px-4 py-2 rounded-xl text-sm text-muted disabled:opacity-30 hover:text-text transition-colors"
             style={{ border: BDR }}
           >
-            ← Önceki
+            {t("web.wardrobe.prev")}
           </button>
           <span className="text-sm text-muted">{page} / {totalPages}</span>
           <button
@@ -224,7 +229,7 @@ export default function WardrobePage() {
             className="px-4 py-2 rounded-xl text-sm text-muted disabled:opacity-30 hover:text-text transition-colors"
             style={{ border: BDR }}
           >
-            Sonraki →
+            {t("web.wardrobe.next")}
           </button>
         </div>
       )}

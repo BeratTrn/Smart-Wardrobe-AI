@@ -5,27 +5,29 @@ import { Shirt } from "lucide-react";
 import { ItemCard } from "./ItemCard";
 import { ItemDetailModal } from "./ItemDetailModal";
 import type { Item } from "@/types";
+import { useT } from "@/lib/i18n";
 
-const BDR = "1px solid #1E1E18";
-const CBG = "#161614";
+const BDR = "1px solid var(--color-border)";
+const CBG = "var(--color-surface)";
 
 function EmptyWardrobe({ onAdd }: { onAdd: () => void }) {
+  const { t } = useT();
   return (
     <div className="col-span-full flex flex-col items-center justify-center py-24 gap-5 text-center">
-      <div className="w-20 h-20 rounded-2xl flex items-center justify-center" style={{ background: "rgba(201,168,76,0.10)", border: "1px solid rgba(201,168,76,0.20)" }}>
+      <div className="w-20 h-20 rounded-2xl flex items-center justify-center" style={{ background: "var(--color-gold-dim)", border: "1px solid var(--color-gold-border)" }}>
         <Shirt className="w-10 h-10 text-gold/50" />
       </div>
       <div className="space-y-1.5">
-        <p className="text-base font-semibold text-text">Dolabın boş</p>
+        <p className="text-base font-semibold text-text">{t("wardrobe.empty_wardrobe")}</p>
         <p className="text-sm text-muted max-w-xs">
-          İlk kıyafetini ekle, AI kategori ve rengi otomatik tanısın.
+          {t("web.wardrobe.empty_subtitle")}
         </p>
       </div>
       <button
         onClick={onAdd}
         className="mt-1 h-10 px-6 rounded-xl bg-gold-gradient text-black text-sm font-semibold hover:opacity-90 transition-opacity"
       >
-        + İlk Parçayı Ekle
+        {t("web.wardrobe.add_first_item")}
       </button>
     </div>
   );

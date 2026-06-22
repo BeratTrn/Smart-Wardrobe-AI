@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { X, Heart, Sparkles, Palette, Sun, Layers, Loader2 } from "lucide-react";
 import type { Item } from "@/types";
+import { useT } from "@/lib/i18n";
 
 interface ItemDetailModalProps {
   item: Item | null;
@@ -20,6 +21,20 @@ const CAT_COLORS: Record<string, { bg: string; text: string }> = {
   "Aksesuar":      { bg: "rgba(90,156,122,0.2)",  text: "#7EE0B0" },
 };
 
+// Veritabanında kategori/mevsim/stil isimleri Türkçe saklanıyor — görüntülemede aktif dile çevir.
+const CAT_KEY: Record<string, string> = {
+  "Üst Giyim": "wardrobe.topwear", "Alt Giyim": "wardrobe.bottomwear", "Elbise": "wardrobe.dress",
+  "Dış Giyim": "wardrobe.outerwear", "Ayakkabı": "wardrobe.shoes", "Aksesuar": "wardrobe.accessories",
+};
+const SEASON_KEY: Record<string, string> = {
+  "Yaz": "add_item.summer", "Kış": "add_item.winter", "İlkbahar": "add_item.spring",
+  "Sonbahar": "add_item.autumn", "Tüm Mevsimler": "add_item.all_seasons",
+};
+const STYLE_KEY: Record<string, string> = {
+  "Günlük": "add_item.casual", "Spor": "add_item.sport", "Şık": "add_item.chic", "Klasik": "add_item.classic",
+  "Sokak": "add_item.street", "Minimal": "add_item.minimal", "Resmi": "add_item.formal",
+};
+
 const SEASON_ICONS: Record<string, string> = {
   "Yaz": "☀️", "Kış": "❄️", "İlkbahar": "🌸", "Sonbahar": "🍂", "Tüm Mevsimler": "🌍",
 };
@@ -31,9 +46,10 @@ const STYLE_ICONS: Record<string, string> = {
 export function ItemDetailModal({
   item, onClose, onToggleFavorite, isFavoriteLoading,
 }: ItemDetailModalProps) {
+  const { t } = useT();
   if (!item) return null;
 
-  const cat = CAT_COLORS[item.kategori] ?? { bg: "rgba(201,168,76,0.15)", text: "var(--color-gold)" };
+  const cat = CAT_COLORS[item.kategori] ?? { bg: "var(--color-gold-dim)", text: "var(--color-gold)" };
   const isFav = item.favori;
 
   const mevsimArr = Array.isArray(item.mevsim) ? item.mevsim : [item.mevsim];
@@ -53,8 +69,8 @@ export function ItemDetailModal({
           className="relative w-full max-w-lg pointer-events-auto rounded-[32px] overflow-hidden flex flex-col shadow-2xl"
           style={{
             background: "#0C0C0B",
-            border: "1px solid #222218",
-            boxShadow: "0 32px 80px -12px rgba(0,0,0,0.9), 0 0 0 1px rgba(201,168,76,0.08)",
+            border: "1px solid var(--color-border)",
+            boxShadow: "0 32px 80px -12px rgba(0,0,0,0.9), 0 0 0 1px var(--color-gold-dim)",
             maxHeight: "92vh",
           }}
         >
@@ -109,13 +125,13 @@ export function ItemDetailModal({
                 className="px-3 py-1.5 rounded-full text-[12px] font-semibold"
                 style={{ background: cat.bg, color: cat.text, backdropFilter: "blur(8px)", border: `1px solid ${cat.text}30` }}
               >
-                {item.kategori}
+                {CAT_KEY[item.kategori] ? t(CAT_KEY[item.kategori]) : item.kategori}
               </span>
               <span
                 className="px-3 py-1.5 rounded-full text-[12px] font-semibold flex items-center gap-1 text-gold"
-                style={{ background: "rgba(201,168,76,0.15)", backdropFilter: "blur(8px)", border: "1px solid rgba(201,168,76,0.3)" }}
+                style={{ background: "var(--color-gold-dim)", backdropFilter: "blur(8px)", border: "1px solid var(--color-gold-border)" }}
               >
-                <Sparkles className="h-3 w-3" /> AI Onaylı
+                <Sparkles className="h-3 w-3" /> {t("item_detail.ai_approved")}
               </span>
             </div>
           </div>
@@ -127,7 +143,7 @@ export function ItemDetailModal({
               {/* Title + marka */}
               <div>
                 <h2 className="text-2xl font-black text-white leading-tight">
-                  {item.ad || "Kıyafet"}
+                  {item.ad || t("add_item.garment")}
                 </h2>
                 {item.aciklama && (
                   <p className="text-[13px] text-muted mt-1 leading-relaxed">{item.aciklama}</p>
@@ -140,11 +156,11 @@ export function ItemDetailModal({
                 {/* Renk */}
                 <div
                   className="rounded-2xl p-4 space-y-2"
-                  style={{ background: "#161614", border: "1px solid #222218" }}
+                  style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}
                 >
                   <div className="flex items-center gap-1.5">
                     <Palette className="h-3.5 w-3.5 text-muted" />
-                    <span className="text-[11px] font-medium text-muted uppercase tracking-wider">Renk</span>
+                    <span className="text-[11px] font-medium text-muted uppercase tracking-wider">{t("item_detail.color")}</span>
                   </div>
                   <div className="flex items-center gap-2.5">
                     <div
@@ -152,7 +168,7 @@ export function ItemDetailModal({
                       style={{ backgroundColor: item.renk?.toLowerCase() || "#888" }}
                     />
                     <span className="text-[13px] font-bold text-white capitalize truncate">
-                      {item.renk || "Bilinmiyor"}
+                      {item.renk || t("web.topbar.unknown_location")}
                     </span>
                   </div>
                 </div>
@@ -160,16 +176,16 @@ export function ItemDetailModal({
                 {/* Mevsim */}
                 <div
                   className="rounded-2xl p-4 space-y-2"
-                  style={{ background: "#161614", border: "1px solid #222218" }}
+                  style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}
                 >
                   <div className="flex items-center gap-1.5">
                     <Sun className="h-3.5 w-3.5 text-muted" />
-                    <span className="text-[11px] font-medium text-muted uppercase tracking-wider">Mevsim</span>
+                    <span className="text-[11px] font-medium text-muted uppercase tracking-wider">{t("item_detail.season")}</span>
                   </div>
                   <div className="flex flex-wrap gap-1">
                     {mevsimArr.map((m) => (
                       <span key={m} className="text-[12px] font-semibold text-white">
-                        {SEASON_ICONS[m] ?? "🌀"} {m}
+                        {SEASON_ICONS[m] ?? "🌀"} {SEASON_KEY[m] ? t(SEASON_KEY[m]) : m}
                       </span>
                     ))}
                   </div>
@@ -178,20 +194,20 @@ export function ItemDetailModal({
                 {/* Stil */}
                 <div
                   className="rounded-2xl p-4 space-y-2 col-span-2"
-                  style={{ background: "#161614", border: "1px solid #222218" }}
+                  style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}
                 >
                   <div className="flex items-center gap-1.5">
                     <Layers className="h-3.5 w-3.5 text-muted" />
-                    <span className="text-[11px] font-medium text-muted uppercase tracking-wider">Stil</span>
+                    <span className="text-[11px] font-medium text-muted uppercase tracking-wider">{t("item_detail.style")}</span>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {stilArr.map((s) => (
                       <span
                         key={s}
                         className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[12px] font-semibold"
-                        style={{ background: "rgba(201,168,76,0.08)", border: "1px solid rgba(201,168,76,0.2)", color: "var(--color-gold)" }}
+                        style={{ background: "var(--color-gold-dim)", border: "1px solid var(--color-gold-border)", color: "var(--color-gold)" }}
                       >
-                        {STYLE_ICONS[s] ?? "🎨"} {s}
+                        {STYLE_ICONS[s] ?? "🎨"} {STYLE_KEY[s] ? t(STYLE_KEY[s]) : s}
                       </span>
                     ))}
                   </div>
@@ -216,7 +232,7 @@ export function ItemDetailModal({
                         color: "#EF4444",
                       }
                     : {
-                        background: "linear-gradient(135deg, #C9A84C 0%, #E8C97A 100%)",
+                        background: "linear-gradient(135deg, var(--color-gold) 0%, var(--color-gold-light) 100%)",
                         color: "#000",
                         boxShadow: "0 4px 20px rgba(201,168,76,0.3)",
                       }
@@ -231,7 +247,7 @@ export function ItemDetailModal({
                     strokeWidth={isFav ? 0 : 2.5}
                   />
                 )}
-                {isFav ? "Favorilerden Çıkar" : "Favorilere Ekle"}
+                {isFav ? t("item_detail.remove_from_favorites") : t("item_detail.add_to_favorites")}
               </button>
             </div>
           </div>

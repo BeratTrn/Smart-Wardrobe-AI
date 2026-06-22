@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { Trash2 } from "lucide-react";
 import type { Item } from "@/types";
+import { useT } from "@/lib/i18n";
 
 const CAT_COLORS: Record<string, string> = {
   "Üst Giyim":     "rgba(90,122,156,0.25)",
@@ -20,6 +21,15 @@ const CAT_TEXT: Record<string, string> = {
   "Ayakkabı":      "#E0B07E",
   "Aksesuar":      "#7EE0B0",
 };
+// Veritabanında kategori isimleri Türkçe saklanıyor — görüntülemede aktif dile çevir.
+const CAT_KEY: Record<string, string> = {
+  "Üst Giyim":  "wardrobe.topwear",
+  "Alt Giyim":  "wardrobe.bottomwear",
+  "Elbise":     "wardrobe.dress",
+  "Dış Giyim":  "wardrobe.outerwear",
+  "Ayakkabı":   "wardrobe.shoes",
+  "Aksesuar":   "wardrobe.accessories",
+};
 
 interface ItemCardProps {
   item: Item;
@@ -30,8 +40,10 @@ interface ItemCardProps {
 }
 
 export function ItemCard({ item, onFavoriteToggle, onDelete, onClick, isFavoriteLoading }: ItemCardProps) {
-  const catBg   = CAT_COLORS[item.kategori] ?? "rgba(201,168,76,0.15)";
+  const { t } = useT();
+  const catBg   = CAT_COLORS[item.kategori] ?? "var(--color-gold-dim)";
   const catText = CAT_TEXT[item.kategori]   ?? "var(--color-gold)";
+  const catLabel = CAT_KEY[item.kategori] ? t(CAT_KEY[item.kategori]) : item.kategori;
 
   return (
     <article
@@ -64,7 +76,7 @@ export function ItemCard({ item, onFavoriteToggle, onDelete, onClick, isFavorite
         <button
           className="absolute top-2.5 right-2.5 h-7 w-7 rounded-full flex items-center justify-center bg-black/40 text-white hover:bg-black/60 transition-colors z-10 backdrop-blur-md"
           onClick={(e) => { e.stopPropagation(); onDelete(item._id); }}
-          aria-label="Kıyafeti sil"
+          aria-label={t("wardrobe.delete_garment")}
         >
           <Trash2 className="h-4 w-4" /> {/* Or X icon, Trash2 is fine */}
         </button>
@@ -72,13 +84,13 @@ export function ItemCard({ item, onFavoriteToggle, onDelete, onClick, isFavorite
 
       {/* Info / Footer */}
       <div className="p-3.5 flex flex-col justify-center">
-        <p className="text-[14px] font-bold text-text leading-tight mb-1">{item.ad || "Kıyafet"}</p>
+        <p className="text-[14px] font-bold text-text leading-tight mb-1">{item.ad || t("add_item.garment")}</p>
         <div>
           <span
             className="inline-block text-[11px] font-semibold px-2 py-0.5 rounded-md"
             style={{ background: catBg, color: catText }}
           >
-            {item.kategori}
+            {catLabel}
           </span>
         </div>
       </div>
