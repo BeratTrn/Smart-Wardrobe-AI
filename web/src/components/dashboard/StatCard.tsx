@@ -17,7 +17,7 @@ export function StatCard({ label, value, sub, accent, icon, isLoading, gold }: S
     return (
       <div
         className="rounded-[20px] p-5 h-[120px] space-y-3"
-        style={{ background: "#111110", border: "1px solid #1E1E18" }}
+        style={{ background: "var(--color-bg)", border: "1px solid var(--color-border)" }}
       >
         <div className="skeleton h-3 w-20 rounded" />
         <div className="skeleton h-9 w-16 rounded" />
@@ -34,8 +34,8 @@ export function StatCard({ label, value, sub, accent, icon, isLoading, gold }: S
       )}
       style={{
         background: "var(--color-surface)",
-        border: gold ? "1px solid rgba(201,168,76,0.3)" : "1px solid var(--color-border)",
-        boxShadow: gold ? "0 4px 20px rgba(201,168,76,0.08)" : "none",
+        border: gold ? "1px solid var(--color-gold-border)" : "1px solid var(--color-border)",
+        boxShadow: gold ? "0 4px 20px var(--color-gold-dim)" : "none",
       }}
       onMouseEnter={(e) => {
         (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)";
@@ -49,7 +49,7 @@ export function StatCard({ label, value, sub, accent, icon, isLoading, gold }: S
         aria-hidden
         className="pointer-events-none absolute inset-0 rounded-[20px] opacity-0 group-hover:opacity-100 transition-opacity duration-300"
         style={{
-          background: "radial-gradient(ellipse at top left, rgba(201,168,76,0.07) 0%, transparent 60%)",
+          background: "radial-gradient(ellipse at top left, var(--color-gold-dim) 0%, transparent 60%)",
         }}
       />
 
@@ -60,7 +60,7 @@ export function StatCard({ label, value, sub, accent, icon, isLoading, gold }: S
         {icon && (
           <div
             className="h-7 w-7 rounded-xl flex items-center justify-center flex-shrink-0"
-            style={{ background: "rgba(201,168,76,0.12)", border: "1px solid rgba(201,168,76,0.2)" }}
+            style={{ background: "var(--color-gold-dim)", border: "1px solid var(--color-gold-border)" }}
           >
             {icon}
           </div>

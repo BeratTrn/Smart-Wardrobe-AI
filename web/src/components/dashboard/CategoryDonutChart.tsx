@@ -13,7 +13,7 @@ const CAT_COLORS: Record<string, string> = {
 };
 
 function colorFor(ad: string) {
-  return CAT_COLORS[ad] ?? "#C9A84C";
+  return CAT_COLORS[ad] ?? "var(--color-gold)";
 }
 
 interface CategoryDonutChartProps {
@@ -53,7 +53,7 @@ export function CategoryDonutChart({ data, isLoading }: CategoryDonutChartProps)
       <div className="flex items-center gap-3">
         <div
           className="h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0"
-          style={{ background: "rgba(201,168,76,0.12)", border: "1px solid rgba(201,168,76,0.2)" }}
+          style={{ background: "var(--color-gold-dim)", border: "1px solid var(--color-gold-border)" }}
         >
           <svg className="h-4 w-4 text-gold" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
@@ -64,7 +64,7 @@ export function CategoryDonutChart({ data, isLoading }: CategoryDonutChartProps)
           <p className="text-[11px] leading-none mt-0.5" style={{ color: "var(--color-muted)" }}>Dağılım</p>
         </div>
       </div>
-      <div className="h-px" style={{ background: "#1E1E18" }} />
+      <div className="h-px" style={{ background: "var(--color-border)" }} />
 
       {/* Donut */}
       <div className="relative h-32 w-32 mx-auto flex-shrink-0">

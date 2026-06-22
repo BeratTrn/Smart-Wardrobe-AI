@@ -8,11 +8,12 @@ import { StilProfilin }       from "@/components/dashboard/StilProfilin";
 import { RecentOutfits }      from "@/components/dashboard/RecentOutfits";
 import { useWardrobeStats }   from "@/lib/hooks/useStats";
 import { useItems }           from "@/lib/hooks/useItems";
+import { useT } from "@/lib/i18n";
 
-const S = "#111110";
-const C = "#161614";
-const B = "1px solid #1E1E18";
-const A = "1px solid rgba(201,168,76,0.25)";
+const S = "var(--color-bg)";
+const C = "var(--color-surface)";
+const B = "1px solid var(--color-border)";
+const A = "1px solid var(--color-gold-border)";
 
 const CAT_TEXT: Record<string, string> = {
   "Üst Giyim":     "#7EB3E0",
@@ -34,19 +35,20 @@ function ColourSwatch({ hex }: { hex: string }) {
 }
 
 function SonEklenenler() {
+  const { t } = useT();
   const { data, isPending } = useItems({ limit: 6 } as any);
   const items = (data?.kiyafetler ?? []) as any[];
 
   return (
     <div className="pt-4">
       <div className="flex items-center justify-between mb-4">
-        <p className="text-base font-bold text-text">Son Eklenenler</p>
+        <p className="text-base font-bold text-text">{t("home.recent_items")}</p>
         <Link
           href="/wardrobe"
           className="flex items-center gap-1 text-[12px] font-semibold px-3 py-1.5 rounded-full hover:opacity-80 transition-opacity"
-          style={{ color: "var(--color-gold)", border: "1px solid rgba(201,168,76,0.3)" }}
+          style={{ color: "var(--color-gold)", border: "1px solid var(--color-gold-border)" }}
         >
-          Tümünü Gör <ChevronRight className="h-3.5 w-3.5" />
+          {t("home.see_all")} <ChevronRight className="h-3.5 w-3.5" />
         </Link>
       </div>
 
@@ -57,8 +59,8 @@ function SonEklenenler() {
       ) : items.length === 0 ? (
         <div className="rounded-2xl p-8 text-center" style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}>
           <Shirt className="h-8 w-8 text-muted/40 mx-auto mb-3" />
-          <p className="text-sm text-muted mb-1">Dolabın boş.</p>
-          <Link href="/wardrobe" className="text-[12px] text-gold hover:underline">Kıyafet ekle →</Link>
+          <p className="text-sm text-muted mb-1">{t("home.empty_items")}</p>
+          <Link href="/wardrobe" className="text-[12px] text-gold hover:underline">{t("web.dashboard.add_item_cta")}</Link>
         </div>
       ) : (
         <div className="flex gap-4 overflow-x-auto scrollbar-thin pb-4 snap-x">
@@ -86,7 +88,7 @@ function SonEklenenler() {
               
               {/* Content below image */}
               <div className="p-3">
-                <p className="text-[13px] font-bold text-text leading-tight mb-0.5 truncate">{item.ad || 'Kıyafet'}</p>
+                <p className="text-[13px] font-bold text-text leading-tight mb-0.5 truncate">{item.ad || t("add_item.garment")}</p>
                 <p className="text-[11px]" style={{ color: CAT_TEXT[item.kategori] ?? "var(--color-gold)" }}>{item.kategori}</p>
               </div>
             </Link>

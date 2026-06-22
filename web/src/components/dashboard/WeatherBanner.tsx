@@ -25,11 +25,11 @@ function getStyleNudge(temp: number): string {
   return "Kalın mont, bot ve örgü kıyafetler şart.";
 }
 
-const S   = "#111110";
-const C   = "#161614";
-const B   = "1px solid #1E1E18";
-const IA  = "rgba(201,168,76,0.12)";
-const GLOW = "radial-gradient(circle at top right, rgba(201,168,76,0.10) 0%, transparent 65%)";
+const S   = "var(--color-bg)";
+const C   = "var(--color-surface)";
+const B   = "1px solid var(--color-border)";
+const IA  = "var(--color-gold-dim)";
+const GLOW = "radial-gradient(circle at top right, var(--color-gold-dim) 0%, transparent 65%)";
 
 export function WeatherBanner() {
   const { weather, isLoading } = useWeather();
@@ -94,7 +94,7 @@ export function WeatherBanner() {
         </div>
 
         {/* Divider */}
-        <div className="h-px mb-5" style={{ background: "#1E1E18" }} />
+        <div className="h-px mb-5" style={{ background: "var(--color-border)" }} />
 
         {/* Details grid */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">

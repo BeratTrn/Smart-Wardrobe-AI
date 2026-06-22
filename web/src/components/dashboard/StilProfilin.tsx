@@ -2,20 +2,32 @@
 
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import type { StilItem } from "@/lib/api/stats";
+import { useT } from "@/lib/i18n";
 
 /* Stil renk paleti (mobil ile birebir) */
 const STIL_COLORS: Record<string, string> = {
   "Sokak":   "#4FD1C5",
   "Spor":    "#63B3ED",
-  "Günlük":  "#C9A84C",
+  "Günlük":  "var(--color-gold)",
   "Klasik":  "#718096",
   "Minimal": "#B794F4",
   "Şık":     "#F687B3",
   "Resmi":   "#F6AD55",
 };
 
+// Veritabanında stil isimleri Türkçe saklanıyor — görüntülemede aktif dile çevir.
+const STIL_KEY_MAP: Record<string, string> = {
+  "Sokak":   "add_item.street",
+  "Spor":    "add_item.sport",
+  "Günlük":  "add_item.casual",
+  "Klasik":  "add_item.classic",
+  "Minimal": "add_item.minimal",
+  "Şık":     "add_item.chic",
+  "Resmi":   "add_item.formal",
+};
+
 function colorFor(stil: string) {
-  return STIL_COLORS[stil] ?? "#C9A84C";
+  return STIL_COLORS[stil] ?? "var(--color-gold)";
 }
 
 interface StilProfilinProps {
@@ -24,9 +36,12 @@ interface StilProfilinProps {
 }
 
 export function StilProfilin({ data, isLoading }: StilProfilinProps) {
+  const { t } = useT();
+  const stilLabel = (stil: string) => (STIL_KEY_MAP[stil] ? t(STIL_KEY_MAP[stil]) : stil);
+
   if (isLoading) {
     return (
-      <div className="rounded-2xl p-5 h-64 space-y-3" style={{ background: "#111110", border: "1px solid #1E1E18" }}>
+      <div className="rounded-2xl p-5 h-64 space-y-3" style={{ background: "var(--color-bg)", border: "1px solid var(--color-border)" }}>
         <div className="skeleton h-4 w-32 rounded" />
         <div className="flex gap-6 mt-2">
           <div className="skeleton h-32 w-32 rounded-full" />
@@ -56,20 +71,20 @@ export function StilProfilin({ data, isLoading }: StilProfilinProps) {
       <div className="flex items-center gap-3">
         <div
           className="h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0"
-          style={{ background: "color-mix(in srgb, var(--color-gold) 14%, #1A1A15)" }}
+          style={{ background: "color-mix(in srgb, var(--color-gold) 14%, var(--color-surface))" }}
         >
           <svg className="h-4 w-4 text-gold" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
           </svg>
         </div>
         <div>
-          <p className="text-sm font-semibold text-text leading-none">Stil Profilin</p>
-          <p className="text-[11px] text-muted leading-none mt-0.5">Dolap analizi</p>
+          <p className="text-sm font-semibold text-text leading-none">{t("home.style_profile_title")}</p>
+          <p className="text-[11px] text-muted leading-none mt-0.5">{t("home.style_profile_subtitle")}</p>
         </div>
       </div>
 
       {/* Divider */}
-      <div className="h-px" style={{ background: "#1E1E18" }} />
+      <div className="h-px" style={{ background: "var(--color-border)" }} />
 
       {/* Donut + sağ bilgi */}
       <div className="flex items-center gap-6">
@@ -97,7 +112,7 @@ export function StilProfilin({ data, isLoading }: StilProfilinProps) {
           {/* Center label */}
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
             <span className="text-xl font-black text-text leading-none">{totalAdet}</span>
-            <span className="text-[9px] text-muted uppercase tracking-wider mt-0.5">Parça</span>
+            <span className="text-[9px] text-muted uppercase tracking-wider mt-0.5">{t("home.pieces")}</span>
           </div>
         </div>
 
@@ -108,9 +123,9 @@ export function StilProfilin({ data, isLoading }: StilProfilinProps) {
               <path strokeLinecap="round" strokeLinejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
             </svg>
             <div className="min-w-0">
-              <p className="text-[10px] text-muted uppercase tracking-wider leading-none">Baskın Stil</p>
+              <p className="text-[10px] text-muted uppercase tracking-wider leading-none">{t("home.dominant_style")}</p>
               <p className="text-sm font-bold mt-0.5 leading-none" style={{ color: colorFor(dominant.stil) }}>
-                {dominant.stil}
+                {stilLabel(dominant.stil)}
               </p>
             </div>
           </div>
@@ -120,15 +135,15 @@ export function StilProfilin({ data, isLoading }: StilProfilinProps) {
               <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
             <div className="min-w-0">
-              <p className="text-[10px] text-muted uppercase tracking-wider leading-none">Toplam Parça</p>
-              <p className="text-sm font-bold text-text mt-0.5 leading-none">{totalAdet} kıyafet</p>
+              <p className="text-[10px] text-muted uppercase tracking-wider leading-none">{t("home.total_items")}</p>
+              <p className="text-sm font-bold text-text mt-0.5 leading-none">{t("home.total_items_count", { count: totalAdet })}</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Divider */}
-      <div className="h-px" style={{ background: "#1E1E18" }} />
+      <div className="h-px" style={{ background: "var(--color-border)" }} />
 
       {/* Stil dağılımı progress bars */}
       <div className="space-y-3">
@@ -141,10 +156,10 @@ export function StilProfilin({ data, isLoading }: StilProfilinProps) {
                 className="h-2 w-2 rounded-full flex-shrink-0"
                 style={{ backgroundColor: color }}
               />
-              <span className="text-[12px] text-text w-16 flex-shrink-0">{entry.stil}</span>
+              <span className="text-[12px] text-text w-16 flex-shrink-0">{stilLabel(entry.stil)}</span>
               <div
                 className="flex-1 h-1.5 rounded-full overflow-hidden"
-                style={{ background: "#1E1E18" }}
+                style={{ background: "var(--color-border)" }}
               >
                 <div
                   className="h-full rounded-full transition-all duration-700"
