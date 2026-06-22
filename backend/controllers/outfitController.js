@@ -33,7 +33,13 @@ const kombinOnerisi = async (req, res) => {
         }
 
         const havaBilgisi = await resolveWeather({ enlem, boylam, sehir });
-        const aiKombin = await generateOutfitSuggestion(kiyafetler, havaBilgisi, etkinlik);
+        const userProfile = {
+            cinsiyet:   req.user.cinsiyet,
+            vucutSekli: req.user.vucut?.sekil,
+            vucutKalip: req.user.vucut?.kalip,
+            stilTonu:   req.user.stilTonu,
+        };
+        const aiKombin = await generateOutfitSuggestion(kiyafetler, havaBilgisi, etkinlik, userProfile);
 
         let onerilen = [];
         if (aiKombin.secilen_kiyafet_idleri?.length) {

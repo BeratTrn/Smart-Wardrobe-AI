@@ -42,7 +42,13 @@ const webKombinOnerisi = async (req, res) => {
         }
 
         // 3. AI ile dolap + web ürünlerinden kombin seç
-        const aiKombin = await generateWebOutfitSuggestion(kiyafetler, webUrunleri, profile, havaBilgisi, etkinlik);
+        const userProfile = {
+            cinsiyet:   req.user.cinsiyet,
+            vucutSekli: req.user.vucut?.sekil,
+            vucutKalip: req.user.vucut?.kalip,
+            stilTonu:   req.user.stilTonu,
+        };
+        const aiKombin = await generateWebOutfitSuggestion(kiyafetler, webUrunleri, profile, havaBilgisi, etkinlik, userProfile);
 
         let onerilenKiyafetler = [];
         if (aiKombin.secilen_kiyafet_idleri?.length) {

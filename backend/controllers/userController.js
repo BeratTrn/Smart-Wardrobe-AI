@@ -4,9 +4,16 @@ const User = require('../models/User');
 // @access Private
 const updateProfile = async (req, res) => {
     try {
-        const { kullaniciAdi, tercihler, cinsiyet } = req.body;
+        const { kullaniciAdi, tercihler, cinsiyet, stilTonu } = req.body;
 
-        const update = { kullaniciAdi, tercihler };
+        // ÖNEMLİ: undefined değerli alanları update nesnesine HİÇ koyma.
+        // `{ kullaniciAdi: undefined }` gibi bir $set, Mongoose'un "required"
+        // validator'ını undefined/null göndererek tetikler ve tüm istek
+        // ValidationError ile 500 döner — stilTonu gibi gönderilen tek alan
+        // bile bu yüzden hiç kaydedilmeden hata fırlatılırdı.
+        const update = {};
+        if (kullaniciAdi !== undefined) update.kullaniciAdi = kullaniciAdi;
+        if (tercihler !== undefined) update.tercihler = tercihler;
 
         if (cinsiyet !== undefined) {
             const allowedCinsiyet = ['Erkek', 'Kadın', 'Belirtilmemiş'];
@@ -16,9 +23,21 @@ const updateProfile = async (req, res) => {
             update.cinsiyet = cinsiyet;
         }
 
+        if (stilTonu !== undefined) {
+            const allowedTon = ['professional', 'friendly', 'harsh', ''];
+            if (!allowedTon.includes(stilTonu)) {
+                return res.status(400).json({ mesaj: 'Geçersiz stil danışmanı tonu değeri.' });
+            }
+            update.stilTonu = stilTonu;
+        }
+
+        if (Object.keys(update).length === 0) {
+            return res.status(400).json({ mesaj: 'En az bir alan gönderilmelidir.' });
+        }
+
         const updatedUser = await User.findByIdAndUpdate(
             req.user._id,
-            update,
+            { $set: update },
             { new: true, runValidators: true }
         ).select('-sifre');
 
@@ -27,6 +46,7 @@ const updateProfile = async (req, res) => {
             kullanici: updatedUser
         });
     } catch (error) {
+        console.error('Profil Güncelleme Hatası:', error);
         res.status(500).json({ mesaj: 'Profil güncellenemedi.' });
     }
 };

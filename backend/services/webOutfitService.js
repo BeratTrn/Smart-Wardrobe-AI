@@ -1,4 +1,5 @@
 const Groq = require('groq-sdk');
+const { buildUserProfileContext } = require('./aiService');
 
 // generateOutfitSuggestion ile aynı AI sağlayıcısı; ayrı bir client örneği
 // kullanmak aiService.js'i bu özelliğe bağımlı kılmadan bağımsız geliştirip
@@ -23,9 +24,9 @@ const groq = new Groq({ apiKey: process.env.GROQ_API_KEY || 'dummy_key_for_build
  *   ipucu: string
  * }}
  */
-const generateWebOutfitSuggestion = async (userItems, webProducts, profile, havaDurumu, etkinlik = 'Günlük') => {
+const generateWebOutfitSuggestion = async (userItems, webProducts, profile, havaDurumu, etkinlik = 'Günlük', userProfile = {}) => {
 
-    // 1. LİSTELERİ HAZIRLA 
+    // 1. LİSTELERİ HAZIRLA
     const kiyafetListesi = userItems.length
         ? userItems
             .map((k) => `ID:${k._id} | KATEGORİ:${k.kategori} | Renk:${k.renk} | Mevsim:${k.mevsim} | Stil:${k.stil}`)
@@ -45,6 +46,8 @@ const generateWebOutfitSuggestion = async (userItems, webProducts, profile, hava
     const stilOzeti = (profile?.dominantStiller || []).join(', ') || 'Günlük';
     const renkOzeti = (profile?.dominantRenkler || []).join(', ') || 'belirsiz';
 
+    const { profilBlok, tonTalimati } = buildUserProfileContext(userProfile);
+
     // 2. PROMPT
     const prompt = `
 Sen bir profesyonel moda danışmanısın. Kullanıcının GARDIROBU ve WEB'DE BULUNAN ÜRÜNLER listelerinden, tam anlamıyla giyilebilir, gerçek hayata uygun bir kombin oluştur.
@@ -61,7 +64,7 @@ KOŞULLAR
 - Hava Durumu : ${havaDurumu.durum || 'Bilinmiyor'}, ${sicaklik}°C
 - Konum       : ${havaDurumu.konum || 'Türkiye'}
 - Etkinlik    : ${etkinlik}
-
+${profilBlok}
 ════════════════════════════════
 GARDIROP (kullanıcının kendi parçaları)
 ════════════════════════════════
@@ -114,14 +117,19 @@ MUTLAK YASAK KURALLAR
 3. "Üst Giyim" + "Elbise" kombinasyonu yasak (ikisi birden seçilemez).
 ${sogukHava ? '4. Hava 10°C altında: şort, kolsuz üst, ince yazlık KESİNLİKLE seçilmez.\n' : ''}${etkinlik === 'İş' ? '4. İş etkinliği: spor kıyafet ve aşırı rahat parçalar seçilmez.\n' : ''}
 ════════════════════════════════
+ANLATIM TONU — "aciklama" VE "ipucu" İÇİN ZORUNLU
+════════════════════════════════
+${tonTalimati}
+
+════════════════════════════════
 ÇIKTI FORMATI
 ════════════════════════════════
 Yanıtını YALNIZCA geçerli bir JSON nesnesi olarak ver. Markdown, açıklama, ön/son metin YASAK.
 {
-  "aciklama": "Seçilen kombinin neden bu hava, etkinlik ve kullanıcı stiline uygun olduğunu anlatan 2-3 cümle. Web'den bir parça seçtiysen nedenini belirt (Türkçe, samimi ve yardımsever bir dil)",
+  "aciklama": "Seçilen kombinin neden bu hava, etkinlik, kullanıcı stiline${profilBlok ? ' ve vücut profiline' : ''} uygun olduğunu anlatan 2-3 cümle. Web'den bir parça seçtiysen nedenini belirt (Türkçe; yukarıdaki ANLATIM TONU'na uy)",
   "secilen_kiyafet_idleri": ["<ID_gardrop>"],
   "secilen_web_urun_idleri": ["<WEBID>"],
-  "ipucu": "Tek cümlelik ek stil tavsiyesi (Türkçe)"
+  "ipucu": "Tek cümlelik ek stil tavsiyesi (Türkçe; ANLATIM TONU'na uy)"
 }
 `.trim();
 

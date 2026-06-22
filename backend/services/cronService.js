@@ -5,8 +5,9 @@ const TravelSuitcase = require('../models/TravelSuitcase');
 const { sehirHavaDurumu } = require('./weatherService');
 const { generateWeatherNotificationText } = require('./aiService');
 const { sendPushNotification } = require('./notificationService');
+const { getGenderItemFilter } = require('../utils/genderFilter');
 
-// Hava Durumu + AI Kombin Önerisi — Her gün 08:00 
+// Hava Durumu + AI Kombin Önerisi — Her gün 08:00
 const scheduleWeatherNotifications = () => {
     cron.schedule('0 8 * * *', async () => {
         console.log('🌤️  Cron [08:00] Hava durumu bildirimleri başlatılıyor...');
@@ -14,21 +15,30 @@ const scheduleWeatherNotifications = () => {
         const users = await User.find({
             'notificationPreferences.dailyWeatherAI': true,
             fcmTokens: { $exists: true, $not: { $size: 0 } },
-        }).select('_id defaultCity fcmTokens');
+        }).select('_id defaultCity fcmTokens vucut stilTonu cinsiyet');
 
         for (const user of users) {
             try {
                 const city = user.defaultCity || 'Istanbul';
                 const hava  = await sehirHavaDurumu(city);
 
-                const items = await Item.find({ kullanici: user._id })
+                const items = await Item.find({
+                    kullanici: user._id,
+                    ...getGenderItemFilter(user.cinsiyet),
+                })
                     .select('kategori renk mevsim stil')
                     .limit(30)
                     .lean();
 
                 if (items.length === 0) continue;
 
-                const notifText = await generateWeatherNotificationText(items, hava, city);
+                const userProfile = {
+                    cinsiyet:   user.cinsiyet,
+                    vucutSekli: user.vucut?.sekil,
+                    vucutKalip: user.vucut?.kalip,
+                    stilTonu:   user.stilTonu,
+                };
+                const notifText = await generateWeatherNotificationText(items, hava, city, userProfile);
 
                 await sendPushNotification(
                     user._id,

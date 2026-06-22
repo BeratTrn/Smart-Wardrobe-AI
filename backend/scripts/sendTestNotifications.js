@@ -16,6 +16,7 @@ const TravelSuitcase = require('../models/TravelSuitcase');
 const { sehirHavaDurumu } = require('../services/weatherService');
 const { generateWeatherNotificationText } = require('../services/aiService');
 const { sendPushNotification } = require('../services/notificationService');
+const { getGenderItemFilter } = require('../utils/genderFilter');
 
 const EMAIL = process.argv[2];
 
@@ -28,7 +29,7 @@ async function main() {
     await connectDB();
     initFirebase();
 
-    const user = await User.findOne({ email: EMAIL }).select('_id email defaultCity fcmTokens');
+    const user = await User.findOne({ email: EMAIL }).select('_id email defaultCity fcmTokens vucut stilTonu cinsiyet');
     if (!user) {
         console.error(`❌ Kullanıcı bulunamadı: ${EMAIL}`);
         process.exit(1);
@@ -38,15 +39,26 @@ async function main() {
         process.exit(1);
     }
     console.log(`✅ ${user.email} bulundu — ${user.fcmTokens.length} cihaz kayıtlı.\n`);
+    console.log(`   Profil → cinsiyet: ${user.cinsiyet || 'Belirtilmemiş'}, vücut şekli: ${user.vucut?.sekil || '—'}, kalıp: ${user.vucut?.kalip || '—'}, ton: ${user.stilTonu || '—'}\n`);
+
+    const userProfile = {
+        cinsiyet:   user.cinsiyet,
+        vucutSekli: user.vucut?.sekil,
+        vucutKalip: user.vucut?.kalip,
+        stilTonu:   user.stilTonu,
+    };
 
     // 1) Hava Durumu & Kombin (gerçek cron: her gün 08:00)
     try {
         const city = user.defaultCity || 'Istanbul';
         const hava = await sehirHavaDurumu(city);
-        const items = await Item.find({ kullanici: user._id }).select('kategori renk mevsim stil').limit(30).lean();
+        const items = await Item.find({
+            kullanici: user._id,
+            ...getGenderItemFilter(user.cinsiyet),
+        }).select('kategori renk mevsim stil').limit(30).lean();
 
         const notifText = items.length > 0
-            ? await generateWeatherNotificationText(items, hava, city)
+            ? await generateWeatherNotificationText(items, hava, city, userProfile)
             : `${city}'de bugün hava güzel! Dolabını doldurup ilk kombinini oluştur.`;
 
         await sendPushNotification(user._id, '🌤️ Günlük Kombin Önerin', notifText, { screen: 'outfit' });

@@ -34,6 +34,13 @@ const userSchema = new mongoose.Schema({
         sekil: { type: String, default: '' },  // kum_saati | armut | ters_ucgen | dikdortgen
         kalip: { type: String, default: '' },  // slim | regular | oversize
     },
+    // AI Asistanı'nın kullanıcıyla konuşurken (kombin açıklaması, ipucu, bildirim metni)
+    // kullanacağı ton. Hiç seçilmemişse boş kalır (varsayılan: samimi muamele görür).
+    stilTonu: {
+        type: String,
+        enum: ['professional', 'friendly', 'harsh', ''],
+        default: '',
+    },
     // Kombin önerilerinde (gardırop + web) cinsiyete uygun olmayan parçaları
     // (örn. erkek kullanıcıya kadın elbisesi) filtrelemek için kullanılır.
     cinsiyet: {

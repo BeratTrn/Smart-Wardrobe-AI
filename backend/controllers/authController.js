@@ -288,6 +288,7 @@ const getMe = async (req, res) => {
                 language: req.user.language ?? 'tr',
                 vucut: req.user.vucut,
                 cinsiyet: req.user.cinsiyet ?? 'Belirtilmemiş',
+                stilTonu: req.user.stilTonu ?? '',
                 defaultCity: req.user.defaultCity ?? 'Istanbul',
                 notificationPreferences: req.user.notificationPreferences ?? {
                     dailyWeatherAI:  true,

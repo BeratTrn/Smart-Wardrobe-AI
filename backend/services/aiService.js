@@ -58,6 +58,60 @@ const analyzeItem = async (fileOrUrl, originalname) => {
     };
 };
 
+// Vücut Profili + Stil Danışmanı Tonu — AI kombin açıklamalarında kullanılan etiketler
+
+const VUCUT_SEKLI_LABELS = {
+    kum_saati:   'Kum Saati (omuz ve kalça dengeli, bel belirgin)',
+    armut:       'Armut (kalça omuzdan biraz daha geniş)',
+    ters_ucgen:  'Ters Üçgen (omuz kalçadan daha geniş)',
+    dikdortgen:  'Dikdörtgen (omuz, bel ve kalça birbirine yakın)',
+};
+
+const KALIP_LABELS = {
+    slim:     'Slim-fit (vücuda yakın, dar kesimi sever)',
+    regular:  'Regular (standart, dengeli kesimi sever)',
+    oversize: 'Oversize (bol, rahat kesimi sever)',
+};
+
+const TON_TALIMATLARI = {
+    professional: 'Profesyonel: resmi, net ve kurumsal bir dil kullan; ölçülü ve saygılı bir danışman gibi yaz, şakacı ifadelerden kaçın.',
+    friendly:     'Samimi: sıcak, enerjik ve arkadaşça bir dille yaz; sanki yakın bir arkadaş tavsiye veriyormuş gibi içten ol.',
+    harsh:        'Sert / Moda Eleştirmeni: dürüst, doğrudan ve iddialı bir dille yaz; gerekirse seçimi nazikçe eleştir ama her zaman somut bir alternatif sun — kompromise girme, yumuşatma.',
+};
+
+/**
+ * Kullanıcının vücut profili + cinsiyet + stil danışmanı tonu bilgisinden
+ * AI prompt'una eklenecek metin bloğunu ve anlatım tonu talimatını üretir.
+ * Kullanıcı bu alanlardan hiçbirini seçmemişse ilgili satır prompt'a hiç eklenmez.
+ *
+ * @param {{cinsiyet?: string, vucutSekli?: string, vucutKalip?: string, stilTonu?: string}} userProfile
+ * @returns {{ profilBlok: string, tonTalimati: string }}
+ */
+const buildUserProfileContext = (userProfile = {}) => {
+    const { cinsiyet, vucutSekli, vucutKalip, stilTonu } = userProfile;
+    const satirlar = [];
+
+    if (cinsiyet && cinsiyet !== 'Belirtilmemiş') satirlar.push(`- Cinsiyet: ${cinsiyet}`);
+    if (vucutSekli && VUCUT_SEKLI_LABELS[vucutSekli]) satirlar.push(`- Vücut Şekli: ${VUCUT_SEKLI_LABELS[vucutSekli]}`);
+    if (vucutKalip && KALIP_LABELS[vucutKalip]) satirlar.push(`- Kalıp Tercihi: ${KALIP_LABELS[vucutKalip]}`);
+
+    const tonTalimati = TON_TALIMATLARI[stilTonu] || TON_TALIMATLARI.friendly;
+
+    if (satirlar.length === 0) return { profilBlok: '', tonTalimati };
+
+    const profilBlok = `
+════════════════════════════════
+KULLANICI VÜCUT PROFİLİ — "aciklama" VE "ipucu" METİNLERİNDE MUTLAKA KULLAN
+════════════════════════════════
+${satirlar.join('\n')}
+Bu bilgilere göre kombinin neden bu kullanıcıya yakışacağını somut bir gerekçeyle anlat
+(örn. bel vurgusu, omuz dengesi, kalıbın vücuda etkisi gibi). Kalıp tercihine sadık kal,
+ona ters bir kesim önerme.
+`;
+
+    return { profilBlok, tonTalimati };
+};
+
 // Kategori sabitleri
 const KAT = {
     UST:     'Üst Giyim',
@@ -118,7 +172,7 @@ const wardrobeOnKontrol = (items) => {
  * @returns {{ aciklama: string, secilen_kiyafet_idleri: string[], ipucu: string }}
  * @throws {Error} Dolap yetersizse veya AI parse başarısızsa
  */
-const generateOutfitSuggestion = async (userItems, havaDurumu, etkinlik = 'Günlük') => {
+const generateOutfitSuggestion = async (userItems, havaDurumu, etkinlik = 'Günlük', userProfile = {}) => {
 
     // 1. ÖN KONTROL
     const kontrol = wardrobeOnKontrol(userItems);
@@ -128,7 +182,7 @@ const generateOutfitSuggestion = async (userItems, havaDurumu, etkinlik = 'Günl
         throw err;
     }
 
-    // 2. DOLAP LİSTESİNİ HAZIRLA 
+    // 2. DOLAP LİSTESİNİ HAZIRLA
     // Kategori etiketini ID'nin yanına ekliyoruz ki AI hangi parçanın
     // hangi kategoride olduğunu net görsün.
     // Geçerli Stil değerleri: Günlük, Klasik, Spor, Sokak, Minimal, Şık, Resmi
@@ -142,6 +196,8 @@ const generateOutfitSuggestion = async (userItems, havaDurumu, etkinlik = 'Günl
     const sogukHava = sicaklik < 10;
     const sıcakHava = sicaklik > 25;
 
+    const { profilBlok, tonTalimati } = buildUserProfileContext(userProfile);
+
     // 3. PROMPT
     const prompt = `
 Sen bir profesyonel moda danışmanısın. Aşağıdaki DOLAP İÇERİĞİ listesinden tam anlamıyla giyilebilir, gerçek hayata uygun bir kombin oluştur.
@@ -152,7 +208,7 @@ KOŞULLAR
 - Hava Durumu : ${havaDurumu.durum || 'Bilinmiyor'}, ${sicaklik}°C
 - Konum       : ${havaDurumu.konum || 'Türkiye'}
 - Etkinlik    : ${etkinlik}
-
+${profilBlok}
 ════════════════════════════════
 DOLAP İÇERİĞİ (YALNIZCA BURADAN SEÇ)
 ════════════════════════════════
@@ -182,13 +238,18 @@ MUTLAK YASAK KURALLAR
 3. "Üst Giyim" + "Elbise" kombinasyonu yasak (ikisi birden seçilemez).
 ${sogukHava ? '4. Hava 10°C altında: şort, kolsuz üst, ince yazlık KESİNLİKLE seçilmez.\n' : ''}${etkinlik === 'İş' ? '4. İş etkinliği: spor kıyafet (Spor Giyim) ve aşırı rahat parçalar seçilmez.\n' : ''}
 ════════════════════════════════
+ANLATIM TONU — "aciklama" VE "ipucu" İÇİN ZORUNLU
+════════════════════════════════
+${tonTalimati}
+
+════════════════════════════════
 ÇIKTI FORMATI
 ════════════════════════════════
 Yanıtını YALNIZCA geçerli bir JSON nesnesi olarak ver. Markdown, açıklama, ön/son metin YASAK.
 {
-  "aciklama": "Seçilen kombininin neden bu hava ve etkinliğe uygun olduğunu anlatan 2-3 cümle (Türkçe, samimi ve yardımsever bir dil)",
+  "aciklama": "Seçilen kombinin neden bu hava, etkinlik${profilBlok ? ' ve kullanıcının vücut profiline' : ''} uygun olduğunu anlatan 2-3 cümle (Türkçe; yukarıdaki ANLATIM TONU'na uy)",
   "secilen_kiyafet_idleri": ["<ID_1>", "<ID_2>", "<ID_3>"],
-  "ipucu": "Tek cümlelik ek stil tavsiyesi (Türkçe)"
+  "ipucu": "Tek cümlelik ek stil tavsiyesi (Türkçe; ANLATIM TONU'na uy)"
 }
 `.trim();
 
@@ -335,9 +396,10 @@ YALNIZCA geçerli bir JSON nesnesi döndür. Markdown ve ek metin yasak.
  * @param {Array}  items  - wardrobe items (kategori, renk)
  * @param {Object} hava   - { sicaklik, durum, konum }
  * @param {string} sehir  - city name
+ * @param {{cinsiyet?: string, vucutSekli?: string, vucutKalip?: string, stilTonu?: string}} userProfile
  * @returns {string} notification body text
  */
-const generateWeatherNotificationText = async (items, hava, sehir) => {
+const generateWeatherNotificationText = async (items, hava, sehir, userProfile = {}) => {
     const sicaklik = hava.sicaklik ?? 20;
     const durum    = hava.durum    ?? 'güneşli';
 
@@ -359,13 +421,17 @@ const generateWeatherNotificationText = async (items, hava, sehir) => {
         })
         .join(' | ');
 
+    const { profilBlok, tonTalimati } = buildUserProfileContext(userProfile);
+
     const response = await groq.chat.completions.create({
         messages: [{
             role: 'user',
             content: `${sehir}'de bugün ${sicaklik}°C ve ${durum}. ` +
                      `Dolabımdaki gerçek parçalar şunlar: ${itemsList}. ` +
+                     (profilBlok ? `${profilBlok}\n` : '') +
                      `Bu hava için SADECE yukarıdaki listeden 2-3 gerçek parça seçerek kısa, sıcak ve doğal bir Türkçe ` +
                      `kombin önerisi push bildirimi yaz (tam olarak 1-2 cümle, en fazla ~140 karakter). ` +
+                     `Anlatım tonu: ${tonTalimati} ` +
                      `Kurallar: listede olmayan bir kıyafeti asla uydurma; renkleri ve kategori adlarını HİÇBİR ZAMAN ` +
                      `"#" ile başlayan hex kod olarak yazma, sadece verilen Türkçe renk adlarını kullan; ` +
                      `"renkli Üst Giyim" gibi mekanik/tekrarlayan kalıplar kurma — gerçek bir arkadaşın yazdığı gibi ` +
@@ -379,4 +445,4 @@ const generateWeatherNotificationText = async (items, hava, sehir) => {
     return response.choices[0].message.content.trim();
 };
 
-module.exports = { analyzeItem, wardrobeOnKontrol, generateOutfitSuggestion, generateSuitcaseSuggestion, generateWeatherNotificationText };
+module.exports = { analyzeItem, wardrobeOnKontrol, generateOutfitSuggestion, generateSuitcaseSuggestion, generateWeatherNotificationText, buildUserProfileContext };
