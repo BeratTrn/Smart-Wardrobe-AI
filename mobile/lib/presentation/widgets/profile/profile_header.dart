@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:smart_wardrobe_ai/core/constants/app_colors.dart';
 import 'package:smart_wardrobe_ai/core/theme/app_theme_extension.dart';
@@ -83,7 +84,7 @@ class ProfileHeader extends StatelessWidget {
                           end: Alignment.bottomRight,
                         ),
                         shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.bg, width: 2),
+                        border: Border.all(color: AppColorsExtension.of(context).bg, width: 2),
                         boxShadow: [
                           BoxShadow(
                             color: AppColors.gold.withValues(alpha: .50),
@@ -144,13 +145,13 @@ class ProfileHeader extends StatelessWidget {
                     Icon(
                       Icons.touch_app_outlined,
                       size: 10,
-                      color: AppColors.muted.withValues(alpha: .6),
+                      color: AppColorsExtension.of(context).muted.withValues(alpha: .6),
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      'Fotoğrafa dokun',
+                      'profile.tap_photo_hint'.tr(),
                       style: TextStyle(
-                        color: AppColors.muted.withValues(alpha: .7),
+                        color: AppColorsExtension.of(context).muted.withValues(alpha: .7),
                         fontSize: 10,
                         letterSpacing: .2,
                       ),

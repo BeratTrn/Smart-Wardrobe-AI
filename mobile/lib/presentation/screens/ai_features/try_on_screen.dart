@@ -5,9 +5,11 @@
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:smart_wardrobe_ai/core/constants/app_colors.dart';
+import 'package:smart_wardrobe_ai/core/theme/app_theme_extension.dart';
 import 'package:smart_wardrobe_ai/data/models/clothing_item.dart';
 import 'package:smart_wardrobe_ai/data/models/generated_outfit.dart';
 import 'package:smart_wardrobe_ai/data/services/api_service.dart';
@@ -221,7 +223,7 @@ class _TryOnScreenState extends State<TryOnScreen>
         SnackBar(
           content: Text(
             e is ApiException ? e.message : 'Kombin kaydedilemedi.',
-            style: const TextStyle(fontWeight: FontWeight.w500),
+            style: TextStyle(fontWeight: FontWeight.w500),
           ),
           backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
@@ -263,7 +265,7 @@ class _TryOnScreenState extends State<TryOnScreen>
         }
       },
       child: Scaffold(
-        backgroundColor: AppColors.bg,
+        backgroundColor: AppColorsExtension.of(context).bg,
         body: AppBackground(
           child: SafeArea(
             child: SingleChildScrollView(
@@ -375,7 +377,7 @@ class _LookbookHeader extends StatelessWidget {
                   ),
                   const SizedBox(width: 3),
                   Text(
-                    'Dolabım',
+                    'try_on.my_wardrobe'.tr(),
                     style: AppTextStyles.label.copyWith(
                       color: AppColors.gold,
                       fontSize: 12,
@@ -388,7 +390,7 @@ class _LookbookHeader extends StatelessWidget {
           ),
 
           // Başlık (ortada)
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -398,16 +400,16 @@ class _LookbookHeader extends StatelessWidget {
                     fontFamily: 'Cormorant',
                     fontSize: 21,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.text,
+                    color: AppColorsExtension.of(context).text,
                     letterSpacing: 4,
                   ),
                 ),
                 Text(
-                  'KİŞİSEL STİL YAYINI',
+                  'try_on.personal_style_feed'.tr(),
                   style: TextStyle(
                     fontSize: 8,
                     letterSpacing: 2.5,
-                    color: AppColors.muted,
+                    color: AppColorsExtension.of(context).muted,
                   ),
                 ),
               ],
@@ -481,11 +483,11 @@ class _UserPhotoPanel extends StatelessWidget {
               height: 300,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
-                color: AppColors.surface,
+                color: AppColorsExtension.of(context).surface,
                 border: Border.all(
                   color: hasPhoto
                       ? AppColors.gold.withValues(alpha: .55)
-                      : AppColors.border,
+                      : AppColorsExtension.of(context).border,
                   width: hasPhoto ? 1.5 : 1.0,
                 ),
                 // Altın halo gölgesi — yalnızca fotoğraf seçildiyse
@@ -543,10 +545,10 @@ class _PhotoPlaceholder extends StatelessWidget {
         ),
       ),
       const SizedBox(height: 14),
-      const Text(
-        'Fotoğrafınızı\nEkleyin',
+      Text(
+        'try_on.your_photo'.tr(),
         textAlign: TextAlign.center,
-        style: TextStyle(color: AppColors.textSub, fontSize: 12, height: 1.4),
+        style: TextStyle(color: AppColorsExtension.of(context).textSub, fontSize: 12, height: 1.4),
       ),
       const SizedBox(height: 6),
       Text(
@@ -584,17 +586,17 @@ class _WardrobeGallery extends StatelessWidget {
         tops.isEmpty && bottoms.isEmpty && shoes.isEmpty && others.isEmpty;
 
     if (isEmpty) {
-      return const SizedBox(
+      return SizedBox(
         height: 260,
         child: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.checkroom_outlined, color: AppColors.border, size: 32),
-              SizedBox(height: 10),
+              Icon(Icons.checkroom_outlined, color: AppColorsExtension.of(context).border, size: 32),
+              const SizedBox(height: 10),
               Text(
-                'Kombin öğesi yok.',
-                style: TextStyle(color: AppColors.muted, fontSize: 12),
+                'try_on.no_outfit_item'.tr(),
+                style: TextStyle(color: AppColorsExtension.of(context).muted, fontSize: 12),
               ),
             ],
           ),
@@ -830,7 +832,7 @@ class _MiniCard extends StatelessWidget {
       height: 78,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColorsExtension.of(context).border),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: .35),
@@ -857,10 +859,10 @@ class _ItemImage extends StatelessWidget {
   Widget build(BuildContext context) {
     if (url == null || url!.isEmpty) {
       return Container(
-        color: AppColors.surface,
-        child: const Icon(
+        color: AppColorsExtension.of(context).surface,
+        child: Icon(
           Icons.checkroom_outlined,
-          color: AppColors.muted,
+          color: AppColorsExtension.of(context).muted,
           size: 22,
         ),
       );
@@ -872,10 +874,10 @@ class _ItemImage extends StatelessWidget {
       loadingBuilder: (_, child, progress) =>
           progress == null ? child : const _ShimmerBox(),
       errorBuilder: (_, __, ___) => Container(
-        color: AppColors.surface,
-        child: const Icon(
+        color: AppColorsExtension.of(context).surface,
+        child: Icon(
           Icons.broken_image_outlined,
-          color: AppColors.muted,
+          color: AppColorsExtension.of(context).muted,
           size: 18,
         ),
       ),
@@ -1036,8 +1038,8 @@ class _StylistNoteCard extends StatelessWidget {
               end: Alignment.bottomRight,
               colors: [
                 AppColors.gold.withValues(alpha: .07),
-                AppColors.card.withValues(alpha: .85),
-                AppColors.surface.withValues(alpha: .60),
+                AppColorsExtension.of(context).card.withValues(alpha: .85),
+                AppColorsExtension.of(context).surface.withValues(alpha: .60),
               ],
             ),
             borderRadius: BorderRadius.circular(18),
@@ -1052,7 +1054,7 @@ class _StylistNoteCard extends StatelessWidget {
                   const Text('✨', style: TextStyle(fontSize: 13)),
                   const SizedBox(width: 6),
                   Text(
-                    'STİLİSTİN NOTU',
+                    'try_on.stylist_note'.tr(),
                     style: AppTextStyles.label.copyWith(
                       color: AppColors.gold,
                       fontSize: 9,
@@ -1067,8 +1069,8 @@ class _StylistNoteCard extends StatelessWidget {
               // AI açıklaması (italik, premium his)
               Text(
                 '"$note"',
-                style: const TextStyle(
-                  color: AppColors.textSub,
+                style: TextStyle(
+                  color: AppColorsExtension.of(context).textSub,
                   fontSize: 13,
                   height: 1.65,
                   fontStyle: FontStyle.italic,
@@ -1103,7 +1105,7 @@ class _StylistNoteCard extends StatelessWidget {
                       Expanded(
                         child: Text(
                           tip,
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: AppColors.gold,
                             fontSize: 12,
                             height: 1.45,
@@ -1157,9 +1159,9 @@ class _ActionRow extends StatelessWidget {
                         begin: Alignment.centerLeft,
                         end: Alignment.centerRight,
                       ),
-                color: inactive ? AppColors.surface : null,
+                color: inactive ? AppColorsExtension.of(context).surface : null,
                 borderRadius: BorderRadius.circular(14),
-                border: inactive ? Border.all(color: AppColors.border) : null,
+                border: inactive ? Border.all(color: AppColorsExtension.of(context).border) : null,
                 boxShadow: inactive
                     ? null
                     : [

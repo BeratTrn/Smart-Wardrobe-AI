@@ -63,7 +63,11 @@
     "logout": "Abmelden",
     "delete_account": "Konto dauerhaft löschen",
     "style_advisor_tone": "Stil-Berater Ton",
-    "body_profile": "Körperprofil & Präferenzen"
+    "body_profile": "Körperprofil & Präferenzen",
+    "tap_photo_hint": "Foto berühren",
+    "stat_items": "Kleidung",
+    "stat_outfits": "Outfits",
+    "stat_favorites": "Favoriten"
   },
   "language_select": "Sprache auswählen",
   "add_photo": "Foto hinzufügen",
@@ -85,7 +89,7 @@
   "privacy_policy_item1": "• Ihre Kleidungsfotos werden nur in Ihrem Kleiderschrank-Konto gespeichert.\n\n",
   "privacy_policy_item2": "• Keine Ihrer persönlichen Daten wird an Dritte weitergegeben.\n\n",
   "privacy_policy_item3": "• Wenn Sie Ihr Konto löschen, werden alle Ihre Daten dauerhaft entfernt.\n\n",
-  "privacy_policy_item4": "• Sicherer Zugriff wird durch JWT-basierte Authentifizierung gewährleistet.'",
+  "privacy_policy_item4": "• Sicherer Zugriff wird durch JWT-basierte Authentifizierung gewährleistet.",
   "privacy_policy_contact": "Wenn Sie Probleme haben, können Sie uns kontaktieren:\n\n",
   "privacy_policy_faq": "Für häufig gestellte Fragen und Bedienungsanleitungen besuchen Sie bitte unsere Website. ",
   "privacy_policy_response_time": "Unsere Antwortzeit beträgt in der Regel 24 Stunden.",
@@ -97,6 +101,7 @@
   "style_advisor_harsh_description": "Keine Kompromisse. Mutig, ehrlich und anspruchsvoll.",
   "style_advisor_tone": "Stil-Berater Ton",
   "style_advisor_tone_description": "Wählen Sie, wie die KI Sie anspricht",
+  "style_advisor_not_selected": "Nicht ausgewählt",
   "common": {
     "cancel": "Abbrechen",
     "save": "Speichern",
@@ -161,12 +166,18 @@
     "weather": "WETTER",
     "style": "STIL",
     "outfit_upper": "OUTFIT",
-    "outfit_generator": "KI Kombin Üretici",
+    "outfit_generator": "KI Outfit-Generator",
     "create_outfit": "Outfit erstellen",
     "recommended_outfit": "Empfohlenes Outfit",
     "outfit": "Outfit",
     "try_on": "Anprobieren",
-    "select_condition": "Wähle Zustand, Wetter und Stil – die KI wählt passende Outfits aus deinem Kleiderschrank."
+    "select_condition": "Wähle Zustand, Wetter und Stil – die KI wählt passende Outfits aus deinem Kleiderschrank.",
+    "suggest_from_web": "Auch aus dem Web vorschlagen",
+    "suggest_from_web_desc": "Falls dein Kleiderschrank nicht reicht, schlagen wir passende Produkte von Webseiten vor",
+    "web_suggestions": "Vorschläge aus dem Web",
+    "try_this_too": "Probier das auch",
+    "buy_now": "Jetzt kaufen",
+    "preparing": "Wird vorbereitet..."
   },
   "forgot_password": {
     "enter_your_email_address": "Geben Sie Ihre E-Mail-Adresse ein.",
@@ -258,7 +269,7 @@
     "ai_photo_analyzes": "AI Fotoanalyse — Du entscheidest, was in deinen Schrank kommt.",
     "select_from_gallery": "Aus Galerie wählen",
     "jpg_png_supported": "JPG, PNG unterstützt",
-    "camera": "camera öffnen",
+    "camera": "Kamera öffnen",
     "cnn_analyzes": "CNN-Modell erkennt Typ und Farbe — du bestätigst, bevor es im Kleiderschrank gespeichert wird.",
     "analyzing": "Analysieren...",
     "cnn_analyzing": "CNN-Modell analysiert Kategorie und Farbe.\nDas Ergebnis siehst du gleich und entscheidest dann.",
@@ -363,7 +374,7 @@
     "empty_category": "Keine Kleidungsstücke in dieser Kategorie",
     "add_garment_prompt": "Füge ein Kleidungsstück hinzu, indem du auf das + Symbol tippst",
     "delete_garment": "Kleidungsstück löschen",
-    "delete_garment_confirm": "Bist du sicher, dass du \"$name\" aus deinem Kleiderschrank löschen möchtest?",
+    "delete_garment_confirm": "wird aus deinem Kleiderschrank entfernt.",
     "cancel": "Abbrechen",
     "delete": "Löschen"
   },

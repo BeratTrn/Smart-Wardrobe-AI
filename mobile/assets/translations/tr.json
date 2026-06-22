@@ -63,7 +63,11 @@
     "logout": "Çıkış Yap",
     "delete_account": "Hesabı Kalıcı Olarak Sil",
     "style_advisor_tone": "Stil Danışmanı Tonu",
-    "body_profile": "Vücut Profili & Tercihler"
+    "body_profile": "Vücut Profili & Tercihler",
+    "tap_photo_hint": "Fotoğrafa dokun",
+    "stat_items": "Kıyafet",
+    "stat_outfits": "Kombin",
+    "stat_favorites": "Favori"
   },
   "language_select": "Dil Seç",
   "add_photo": "Fotoğraf Ekle",
@@ -85,7 +89,7 @@
   "privacy_policy_item1": "• Kıyafet fotoğraflarınız yalnızca sizin gardirop hesabınızda saklanır.\n\n",
   "privacy_policy_item2": "• Üçüncü taraflarla hiçbir kişisel veriniz paylaşılmaz.\n\n",
   "privacy_policy_item3": "• Hesabınızı sildiğinizde tüm verileriniz kalıcı olarak kaldırılır.\n\n",
-  "privacy_policy_item4": "• JWT tabanlı kimlik doğrulama ile güvenli erişim sağlanır.'",
+  "privacy_policy_item4": "• JWT tabanlı kimlik doğrulama ile güvenli erişim sağlanır.",
   "privacy_policy_contact": "Herhangi bir sorunla karşılaştığında bize ulaşabilirsin:\n\n",
   "privacy_policy_faq": "Sık sorulan sorular ve kullanım kılavuzu için web sitemizi ziyaret edebilirsin. ",
   "privacy_policy_response_time": "Yanıt süremiz genellikle 24 saattir.",
@@ -97,6 +101,7 @@
   "style_advisor_harsh_description": "Kompromi yok. Cesur, dürüst ve yüksek standartlı.",
   "style_advisor_tone": "Stil Danışmanı Tonu",
   "style_advisor_tone_description": "AI'ın sana nasıl hitap edeceğini seç",
+  "style_advisor_not_selected": "Seçilmedi",
   "common": {
     "cancel": "İptal",
     "save": "Kaydet",
@@ -155,7 +160,7 @@
     "chic": "Şık",
     "formal": "Resmi",
     "connection_error": "Sunucuya bağlanılamadı.",
-    "outfit_saved": "Kombin kaydedildi ✓'",
+    "outfit_saved": "Kombin kaydedildi ✓",
     "outfit_not_saved": "Kombin kaydedilemedi.",
     "status": "DURUM",
     "weather": "HAVA",
@@ -166,7 +171,13 @@
     "recommended_outfit": "Önerilen kombin",
     "outfit": "kombin",
     "try_on": "Üzerinde dene",
-    "select_condition": "Durum, hava ve stilini seç — AI dolabından senin için en uygun kombinleri seçsin."
+    "select_condition": "Durum, hava ve stilini seç — AI dolabından senin için en uygun kombinleri seçsin.",
+    "suggest_from_web": "Web'den de öner",
+    "suggest_from_web_desc": "Dolabın yetmezse tarzına uygun ürünler websitelerden önerilsin",
+    "web_suggestions": "Web'den Öneriler",
+    "try_this_too": "Bunu da dene",
+    "buy_now": "Satın Al",
+    "preparing": "Hazırlanıyor..."
   },
   "forgot_password": {
     "enter_your_email_address": "E-posta adresinizi girin.",

@@ -6,10 +6,12 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_wardrobe_ai/core/constants/api_constants.dart';
 import 'package:smart_wardrobe_ai/core/constants/app_colors.dart';
+import 'package:smart_wardrobe_ai/core/theme/app_theme_extension.dart';
 import 'package:smart_wardrobe_ai/data/models/clothing_item.dart';
 import 'package:smart_wardrobe_ai/data/models/generated_outfit.dart';
 import 'package:smart_wardrobe_ai/data/services/api_service.dart';
 import 'package:smart_wardrobe_ai/presentation/screens/ai_features/try_on_screen.dart';
+import 'package:smart_wardrobe_ai/presentation/widgets/outfits/web_product_card.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/shared/app_background.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/shared/app_text_styles.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/wardrobe/app_filter_chip.dart';
@@ -56,6 +58,9 @@ class _OutfitGeneratorScreenState extends State<OutfitGeneratorScreen>
   bool _generating = false;
   bool _hasGenerated = false;
   List<GeneratedOutfit> _outfits = [];
+  // Web'in OutfitGeneratorPanel'indeki "Web'den öner" anahtarıyla aynı —
+  // açıkken /outfits/web-recommend kullanılır (gardırop + web ürünleri).
+  bool _webdenOner = false;
 
   //  Animasyonlar
   late final AnimationController _shimmerCtrl;
@@ -101,6 +106,7 @@ class _OutfitGeneratorScreenState extends State<OutfitGeneratorScreen>
       final outfit = await ApiService.instance.generateOutfit(
         etkinlik: _occasion,
         // sehir varsayılan olarak 'Istanbul'; gelecekte konum izni eklenebilir
+        webdenOner: _webdenOner,
       );
 
       if (!mounted) return;
@@ -189,7 +195,7 @@ class _OutfitGeneratorScreenState extends State<OutfitGeneratorScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: AppColorsExtension.of(context).bg,
       body: AppBackground(
         child: SafeArea(
           child: Column(
@@ -222,6 +228,13 @@ class _OutfitGeneratorScreenState extends State<OutfitGeneratorScreen>
                         options: _styles,
                         selected: _style,
                         onSelect: (v) => setState(() => _style = v),
+                      ),
+                      const SizedBox(height: 18),
+
+                      // ── Web'den öner anahtarı
+                      _WebToggleRow(
+                        value: _webdenOner,
+                        onChanged: (v) => setState(() => _webdenOner = v),
                       ),
                       const SizedBox(height: 26),
 
@@ -280,11 +293,11 @@ class _Header extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   'outfit_generator.outfit_generator'.tr(),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Cormorant',
                     fontSize: 28,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.text,
+                    color: AppColorsExtension.of(context).text,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -299,13 +312,13 @@ class _Header extends StatelessWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: AppColors.surface,
+                color: AppColorsExtension.of(context).surface,
                 shape: BoxShape.circle,
-                border: Border.all(color: AppColors.border),
+                border: Border.all(color: AppColorsExtension.of(context).border),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.close_rounded,
-                color: AppColors.textSub,
+                color: AppColorsExtension.of(context).textSub,
                 size: 20,
               ),
             ),
@@ -387,6 +400,95 @@ class _FilterSection extends StatelessWidget {
               .toList(),
         ),
       ],
+    );
+  }
+}
+
+// WEB'DEN ÖNER ANAHTARI
+
+class _WebToggleRow extends StatelessWidget {
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  const _WebToggleRow({required this.value, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 250),
+      padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
+      decoration: BoxDecoration(
+        color: value ? AppColors.gold.withValues(alpha: .06) : AppColorsExtension.of(context).surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: value
+              ? AppColors.gold.withValues(alpha: .35)
+              : AppColorsExtension.of(context).border,
+          width: value ? 1.0 : .8,
+        ),
+      ),
+      child: Row(
+        children: [
+          // İkon
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: value ? AppColors.gold.withValues(alpha: .15) : AppColorsExtension.of(context).bg,
+              borderRadius: BorderRadius.circular(11),
+              border: Border.all(
+                color: value
+                    ? AppColors.gold.withValues(alpha: .35)
+                    : AppColorsExtension.of(context).border,
+              ),
+            ),
+            child: Icon(
+              Icons.public_rounded,
+              color: value ? AppColors.goldLight : AppColorsExtension.of(context).muted,
+              size: 18,
+            ),
+          ),
+          const SizedBox(width: 14),
+
+          // Metin
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'outfit_generator.suggest_from_web'.tr(),
+                  style: TextStyle(
+                    color: value ? AppColorsExtension.of(context).text : AppColorsExtension.of(context).muted,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  'outfit_generator.suggest_from_web_desc'.tr(),
+                  style: TextStyle(
+                    color: AppColorsExtension.of(context).muted,
+                    fontSize: 11,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+
+          // Anahtar
+          Switch(
+            value: value,
+            onChanged: onChanged,
+            activeThumbColor: AppColors.gold,
+            activeTrackColor: AppColors.gold.withValues(alpha: .3),
+            inactiveThumbColor: AppColorsExtension.of(context).muted,
+            inactiveTrackColor: AppColorsExtension.of(context).border,
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+        ],
+      ),
     );
   }
 }
@@ -483,7 +585,7 @@ class _ResultList extends StatelessWidget {
               Text(
                 'outfit_generator.recommended_outfit'.tr(),
                 style: TextStyle(
-                  color: AppColors.text,
+                  color: AppColorsExtension.of(context).text,
                   fontSize: 17,
                   fontWeight: FontWeight.w600,
                 ),
@@ -529,24 +631,26 @@ class _OutfitCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.card,
+        color: AppColorsExtension.of(context).card,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColorsExtension.of(context).border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Görsel satırı
+          // ── Görsel satırı (sabit küçük boy — az parça olsa da büyümez)
           if (outfit.items.isNotEmpty)
             Padding(
               padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
               child: Row(
+                mainAxisSize: MainAxisSize.min,
                 children: outfit.items
                     .take(3)
                     .map(
-                      (item) => Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.only(right: 8),
+                      (item) => Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: SizedBox(
+                          width: 84,
                           child: _ItemThumbnail(item: item),
                         ),
                       ),
@@ -566,8 +670,8 @@ class _OutfitCard extends StatelessWidget {
                     children: [
                       Text(
                         outfit.occasion,
-                        style: const TextStyle(
-                          color: AppColors.text,
+                        style: TextStyle(
+                          color: AppColorsExtension.of(context).text,
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
                         ),
@@ -614,6 +718,13 @@ class _OutfitCard extends StatelessWidget {
               ),
             ),
 
+          // Web'den önerilen ürünler (varsa)
+          if (outfit.disUrunler.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
+              child: WebProductsSection(products: outfit.disUrunler),
+            ),
+
           // "Üzerinde Dene" butonu
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
@@ -636,17 +747,17 @@ class _OutfitCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.person_search_rounded,
                       color: Colors.black,
                       size: 18,
                     ),
-                    SizedBox(width: 8),
+                    const SizedBox(width: 8),
                     Text(
-                      'Üzerinde Dene',
+                      'outfit_generator.try_on'.tr(),
                       style: TextStyle(
                         color: Colors.black,
                         fontSize: 14,
@@ -688,10 +799,10 @@ class _ItemThumbnail extends StatelessWidget {
 class _ThumbPlaceholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
-    color: AppColors.surface,
-    child: const Icon(
+    color: AppColorsExtension.of(context).surface,
+    child: Icon(
       Icons.checkroom_outlined,
-      color: AppColors.muted,
+      color: AppColorsExtension.of(context).muted,
       size: 22,
     ),
   );
@@ -726,9 +837,9 @@ class _ShimmerCard extends StatelessWidget {
       builder: (_, __) => Container(
         height: 170,
         decoration: BoxDecoration(
-          color: Color.lerp(AppColors.surface, AppColors.border, anim.value),
+          color: Color.lerp(AppColorsExtension.of(context).surface, AppColorsExtension.of(context).border, anim.value),
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: AppColorsExtension.of(context).border),
         ),
       ),
     );
@@ -745,9 +856,9 @@ class _InitialHint extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: AppColorsExtension.of(context).surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColorsExtension.of(context).border),
       ),
       child: Row(
         children: [
@@ -769,7 +880,7 @@ class _InitialHint extends StatelessWidget {
             child: Text(
               'outfit_generator.select_condition'.tr(),
               style: TextStyle(
-                color: AppColors.textSub,
+                color: AppColorsExtension.of(context).textSub,
                 fontSize: 13,
                 height: 1.5,
               ),

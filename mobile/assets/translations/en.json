@@ -63,7 +63,11 @@
     "logout": "Log Out",
     "delete_account": "Permanently Delete Account",
     "style_advisor_tone": "Style Advisor Tone",
-    "body_profile": "Body Profile & Preferences"
+    "body_profile": "Body Profile & Preferences",
+    "tap_photo_hint": "Tap photo",
+    "stat_items": "Items",
+    "stat_outfits": "Outfits",
+    "stat_favorites": "Favorites"
   },
   "language_select": "Select Language",
   "add_photo": "Add Photo",
@@ -85,7 +89,7 @@
   "privacy_policy_item1": "• Your clothing photos are stored only in your wardrobe account.\n\n",
   "privacy_policy_item2": "• None of your personal data is shared with third parties.\n\n",
   "privacy_policy_item3": "• When you delete your account, all your data is permanently removed.\n\n",
-  "privacy_policy_item4": "• Secure access is provided through JWT-based authentication.'",
+  "privacy_policy_item4": "• Secure access is provided through JWT-based authentication.",
   "privacy_policy_contact": "If you encounter any issues, you can contact us:\n\n",
   "privacy_policy_faq": "For frequently asked questions and usage instructions, you can visit our website. ",
   "privacy_policy_response_time": "Our response time is usually 24 hours.",
@@ -97,6 +101,7 @@
   "style_advisor_harsh_description": "No compromise. Bold, honest, and high-standard.",
   "style_advisor_tone": "Style Advisor Tone",
   "style_advisor_tone_description": "Choose how the AI addresses you",
+  "style_advisor_not_selected": "Not selected",
   "common": {
     "cancel": "Cancel",
     "save": "Save",
@@ -166,7 +171,13 @@
     "recommended_outfit": "Recommended outfit",
     "outfit": "outfit",
     "try_on": "Try on",
-    "select_condition": "Select condition, weather and style — AI will pick the best outfits for you from your wardrobe."
+    "select_condition": "Select condition, weather and style — AI will pick the best outfits for you from your wardrobe.",
+    "suggest_from_web": "Suggest from web too",
+    "suggest_from_web_desc": "If your wardrobe isn't enough, get product suggestions from websites that match your style",
+    "web_suggestions": "Web Suggestions",
+    "try_this_too": "Try this too",
+    "buy_now": "Buy Now",
+    "preparing": "Preparing..."
   },
   "forgot_password": {
     "enter_your_email_address": "Enter your email address.",
@@ -363,7 +374,7 @@
     "empty_category": "No garments in this category",
     "add_garment_prompt": "Add a garment by tapping the + button",
     "delete_garment": "Delete Garment",
-    "delete_garment_confirm": "Are you sure you want to delete \"$name\" from your wardrobe?",
+    "delete_garment_confirm": "will be removed from your wardrobe.",
     "cancel": "Cancel",
     "delete": "Delete"
   },

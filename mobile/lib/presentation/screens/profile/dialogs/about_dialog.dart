@@ -1,5 +1,7 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:smart_wardrobe_ai/core/constants/app_colors.dart';
+import 'package:smart_wardrobe_ai/core/theme/app_theme_extension.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/shared/app_text_styles.dart';
 
 /// "Smart Wardrobe AI hakkında" dialog
@@ -8,7 +10,7 @@ class ProfileAboutDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Dialog(
-    backgroundColor: AppColors.card,
+    backgroundColor: AppColorsExtension.of(context).card,
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
     child: Padding(
       padding: const EdgeInsets.all(28),
@@ -39,26 +41,26 @@ class ProfileAboutDialog extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           // Uygulama adı
-          const Text(
+          Text(
             'Smart Wardrobe AI',
             style: TextStyle(
               fontFamily: 'Cormorant',
               fontSize: 22,
               fontWeight: FontWeight.w700,
-              color: AppColors.text,
+              color: AppColorsExtension.of(context).text,
             ),
           ),
           const SizedBox(height: 6),
           Text(
-            'Versiyon' + ' 1.0.0',
-            style: AppTextStyles.caption.copyWith(color: AppColors.muted),
+            '${'about_dialog.version'.tr()} 1.0.0',
+            style: AppTextStyles.caption.copyWith(color: AppColorsExtension.of(context).muted),
           ),
           const SizedBox(height: 12),
           Text(
-            'AI destekli akıllı gardırop asistanın.\nHer gün en iyi kombinini seç.',
+            'about_dialog.about'.tr(),
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: AppColors.textSub,
+              color: AppColorsExtension.of(context).textSub,
               fontSize: 13,
               height: 1.5,
             ),
@@ -70,14 +72,14 @@ class ProfileAboutDialog extends StatelessWidget {
             child: Container(
               height: 44,
               decoration: BoxDecoration(
-                color: AppColors.surface,
+                color: AppColorsExtension.of(context).surface,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.border),
+                border: Border.all(color: AppColorsExtension.of(context).border),
               ),
               child: Center(
                 child: Text(
-                  'Kapat',
-                  style: TextStyle(color: AppColors.textSub, fontSize: 14),
+                  'about_dialog.close'.tr(),
+                  style: TextStyle(color: AppColorsExtension.of(context).textSub, fontSize: 14),
                 ),
               ),
             ),

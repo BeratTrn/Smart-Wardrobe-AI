@@ -1,6 +1,8 @@
 import 'dart:ui';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:smart_wardrobe_ai/core/constants/app_colors.dart';
+import 'package:smart_wardrobe_ai/core/theme/app_theme_extension.dart';
 import 'package:smart_wardrobe_ai/data/models/user_profile.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/shared/app_text_styles.dart';
 
@@ -20,7 +22,7 @@ class ProfileStatsRow extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 18),
           decoration: BoxDecoration(
-            color: AppColors.surface.withValues(alpha: .92),
+            color: AppColorsExtension.of(context).surface.withValues(alpha: .92),
             borderRadius: BorderRadius.circular(18),
             border: Border.all(
               color: AppColors.gold.withValues(alpha: .20),
@@ -39,19 +41,19 @@ class ProfileStatsRow extends StatelessWidget {
               _StatItem(
                 icon: Icons.checkroom_outlined,
                 value: '${profile.totalItems}',
-                label: 'Kıyafet',
+                label: 'profile.stat_items'.tr(),
               ),
               _VertDivider(),
               _StatItem(
                 icon: Icons.auto_awesome_rounded,
                 value: '${profile.totalOutfits}',
-                label: 'Kombin',
+                label: 'profile.stat_outfits'.tr(),
               ),
               _VertDivider(),
               _StatItem(
                 icon: Icons.favorite_border_rounded,
                 value: '${profile.totalFavorites}',
-                label: 'Favori',
+                label: 'profile.stat_favorites'.tr(),
               ),
             ],
           ),
@@ -111,6 +113,6 @@ class _VertDivider extends StatelessWidget {
   Widget build(BuildContext context) => Container(
         width: 1,
         height: 50,
-        color: AppColors.border,
+        color: AppColorsExtension.of(context).border,
       );
 }

@@ -27,9 +27,9 @@
     "add_to_wardrobe": "Appuyez sur + pour créer votre garde-robe",
     "loading": "Chargement...",
     "no_session": "Session expirée",
-    "location_disabled": "Location disabled",
-    "permission_denied": "Permission denied",
-    "permission_denied_permanently": "Permission denied permanently",
+    "location_disabled": "Localisation désactivée",
+    "permission_denied": "Permission refusée",
+    "permission_denied_permanently": "Permission refusée définitivement",
     "location_not_found": "Location non trouvée",
     "no_weather_info": "Météo indisponible",
     "connection_error": "Erreur de connexion",
@@ -63,7 +63,11 @@
     "logout": "Se déconnecter",
     "delete_account": "Supprimer définitivement le compte",
     "style_advisor_tone": "Ton du conseiller style",
-    "body_profile": "Profil corporel & Préférences"
+    "body_profile": "Profil corporel & Préférences",
+    "tap_photo_hint": "Touchez la photo",
+    "stat_items": "Vêtements",
+    "stat_outfits": "Tenues",
+    "stat_favorites": "Favoris"
   },
   "language_select": "Choisir la langue",
   "add_photo": "Ajouter une photo",
@@ -85,7 +89,7 @@
   "privacy_policy_item1": "• Vos photos de vêtements sont stockées uniquement dans votre compte garde-robe.\n\n",
   "privacy_policy_item2": "• Aucune de vos données personnelles n'est partagée avec des tiers.\n\n",
   "privacy_policy_item3": "• Lorsque vous supprimez votre compte, toutes vos données sont définitivement supprimées.\n\n",
-  "privacy_policy_item4": "• L'accès sécurisé est assuré grâce à l'authentification basée sur JWT.'",
+  "privacy_policy_item4": "• L'accès sécurisé est assuré grâce à l'authentification basée sur JWT.",
   "privacy_policy_contact": "Si vous rencontrez des problèmes, vous pouvez nous contacter:\n\n",
   "privacy_policy_faq": "Pour les questions fréquemment posées et les instructions d'utilisation, vous pouvez consulter notre site web. ",
   "privacy_policy_response_time": "Notre temps de réponse est généralement de 24 heures.",
@@ -97,6 +101,7 @@
   "style_advisor_harsh_description": "Aucun compromis. Audacieux, honnête et exigeant.",
   "style_advisor_tone": "Ton du conseiller style",
   "style_advisor_tone_description": "Choisissez comment l'IA s'adresse à vous",
+  "style_advisor_not_selected": "Non sélectionné",
   "common": {
     "cancel": "Annuler",
     "save": "Enregistrer",
@@ -166,7 +171,13 @@
     "recommended_outfit": "Tenue recommandée",
     "outfit": "tenue",
     "try_on": "Essayer",
-    "select_condition": "Sélectionne la condition, la météo et le style — l'IA choisira les tenues les plus adaptées de ta garde-robe."
+    "select_condition": "Sélectionne la condition, la météo et le style — l'IA choisira les tenues les plus adaptées de ta garde-robe.",
+    "suggest_from_web": "Suggérer aussi depuis le web",
+    "suggest_from_web_desc": "Si ta garde-robe ne suffit pas, des produits adaptés à ton style seront suggérés depuis des sites web",
+    "web_suggestions": "Suggestions du web",
+    "try_this_too": "Essaie aussi ceci",
+    "buy_now": "Acheter",
+    "preparing": "Préparation..."
   },
   "forgot_password": {
     "enter_your_email_address": "Entrez votre adresse e-mail.",
@@ -363,7 +374,7 @@
     "empty_category": "Aucun vêtement dans cette catégorie",
     "add_garment_prompt": "Ajoutez un vêtement en appuyant sur le bouton +",
     "delete_garment": "Supprimer le vêtement",
-    "delete_garment_confirm": "Êtes-vous sûr de vouloir supprimer \"$name\" de votre garde-robe?",
+    "delete_garment_confirm": "sera retiré de votre garde-robe.",
     "cancel": "Annuler",
     "delete": "Supprimer"
   },
