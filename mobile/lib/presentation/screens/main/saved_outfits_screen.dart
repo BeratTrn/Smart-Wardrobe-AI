@@ -383,7 +383,8 @@ class _SavedOutfitsScreenState extends State<SavedOutfitsScreen>
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Column(
+                      Flexible(
+                        child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
@@ -423,7 +424,8 @@ class _SavedOutfitsScreenState extends State<SavedOutfitsScreen>
                           ),
                         ],
                       ),
-                      const Spacer(),
+                      ),
+                      const SizedBox(width: 8),
                       // Counter badge — outfit count on tab 0, suitcase count on tab 1
                       AnimatedSwitcher(
                         duration: const Duration(milliseconds: 220),

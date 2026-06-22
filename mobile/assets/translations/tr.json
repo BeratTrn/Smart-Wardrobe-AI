@@ -240,10 +240,10 @@
     "resend_code": "Kodu tekrar gönder"
   },
   "add_item": {
-    "outerwear": "Üst Giyim",
-    "topwear": "Alt Giyim",
+    "outerwear": "Dış Giyim",
+    "topwear": "Üst Giyim",
     "dress": "Elbise",
-    "bottomwear": "Dış Giyim",
+    "bottomwear": "Alt Giyim",
     "shoes": "Ayakkabı",
     "accessories": "Aksesuar",
     "spring": "İlkbahar",

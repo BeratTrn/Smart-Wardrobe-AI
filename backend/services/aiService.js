@@ -21,9 +21,62 @@ const CATEGORY_MAP = {
     spor_giyim:  'Üst Giyim',  // sporu üst giyime düşür — enum dışında değer engellenir
 };
 
+const VALID_CATEGORIES = ['Üst Giyim', 'Alt Giyim', 'Elbise', 'Dış Giyim', 'Ayakkabı', 'Aksesuar'];
+
+/**
+ * Groq Vision ile kıyafet kategorisi + renk analizi.
+ * FastAPI erişilemez olduğunda (bulut ortamı) devreye girer.
+ */
+const analyzeItemWithGroq = async (fileBuffer, originalname) => {
+    const base64 = fileBuffer.toString('base64');
+    const mime = (originalname || '').endsWith('.png') ? 'image/png' : 'image/jpeg';
+
+    const completion = await groq.chat.completions.create({
+        model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+        messages: [{
+            role: 'user',
+            content: [
+                {
+                    type: 'image_url',
+                    image_url: { url: `data:${mime};base64,${base64}` },
+                },
+                {
+                    type: 'text',
+                    text: `Analyze this clothing/fashion item image. Reply ONLY with JSON:
+{"kategori":"<category>","renk":"<hex>"}
+
+Category rules (pick exactly one):
+- Üst Giyim: t-shirt, shirt, blouse, sweater, hoodie, top
+- Alt Giyim: pants, jeans, shorts, skirt, leggings
+- Elbise: dress, jumpsuit, romper
+- Dış Giyim: jacket, coat, blazer, vest, cardigan
+- Ayakkabı: shoes, boots, sneakers, sandals
+- Aksesuar: bag, hat, scarf, belt, jewelry, watch
+
+For renk: return the single most dominant color as a 6-digit hex code (e.g. "#3A5A99").
+Return ONLY the JSON object, no other text.`,
+                },
+            ],
+        }],
+        temperature: 0.1,
+        max_tokens: 80,
+    });
+
+    const text = completion.choices[0]?.message?.content?.trim() || '{}';
+    // JSON bloğu varsa çıkar
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    const parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : {};
+
+    const kategori = VALID_CATEGORIES.includes(parsed.kategori) ? parsed.kategori : 'Aksesuar';
+    const renk = /^#[0-9A-Fa-f]{6}$/.test(parsed.renk) ? parsed.renk : '#808080';
+
+    return { kategori, renk, aiDogrulandi: true };
+};
+
 /**
  * Sends an image buffer OR a Cloudinary URL to the FastAPI AI engine and returns
  * the dominant color (HEX) and mapped category.
+ * FastAPI başarısız olursa Groq Vision'a fallback yapar.
  * @param {Buffer|string} fileOrUrl - Raw image buffer OR Cloudinary image URL
  * @param {string} originalname  - original filename with extension
  * @returns {{ kategori: string, renk: string, aiDogrulandi: boolean }}
@@ -37,25 +90,28 @@ const analyzeItem = async (fileOrUrl, originalname) => {
         fileBuffer = Buffer.from(response.data);
     }
 
-    const form = new FormData();
-    form.append('file', fileBuffer, {
-        filename: originalname || 'image.jpg',
-        contentType: 'image/jpeg',
-    });
+    // 1. FastAPI dene (local dev için)
+    try {
+        const form = new FormData();
+        form.append('file', fileBuffer, {
+            filename: originalname || 'image.jpg',
+            contentType: 'image/jpeg',
+        });
 
-    const { data } = await axios.post(`${FASTAPI_URL}/analyze-item/`, form, {
-        headers: form.getHeaders(),
-        timeout: 30_000,
-    });
+        const { data } = await axios.post(`${FASTAPI_URL}/analyze-item/`, form, {
+            headers: form.getHeaders(),
+            timeout: 15_000,
+        });
 
-    const raw = data.analysis;
-    const kategori = CATEGORY_MAP[raw.category] || 'Aksesuar';
+        const raw = data.analysis;
+        const kategori = CATEGORY_MAP[raw.category] || 'Aksesuar';
+        return { kategori, renk: raw.dominant_color, aiDogrulandi: true };
+    } catch (_) {
+        // FastAPI erişilemez — Groq Vision'a geç
+    }
 
-    return {
-        kategori,
-        renk: raw.dominant_color,   // e.g. "#2D405C"
-        aiDogrulandi: true,
-    };
+    // 2. Groq Vision fallback (bulut ortamı)
+    return analyzeItemWithGroq(fileBuffer, originalname);
 };
 
 // Vücut Profili + Stil Danışmanı Tonu — AI kombin açıklamalarında kullanılan etiketler

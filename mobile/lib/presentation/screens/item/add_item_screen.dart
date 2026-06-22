@@ -46,13 +46,14 @@ class _AddItemScreenState extends State<AddItemScreen>
     ('Erkek', 'add_item.gender_male'.tr()),
   ];
 
-  final List<String> _categories = [
-    'add_item.outerwear'.tr(),
-    'add_item.topwear'.tr(),
-    'add_item.dress'.tr(),
-    'add_item.bottomwear'.tr(),
-    'add_item.shoes'.tr(),
-    'add_item.accessories'.tr(),
+  // Backend MongoDB enum değerleri — her zaman Türkçe kalmalı
+  static const List<String> _categories = [
+    'Dış Giyim',
+    'Üst Giyim',
+    'Elbise',
+    'Alt Giyim',
+    'Ayakkabı',
+    'Aksesuar',
   ];
   final List<String> _seasons = [
     'add_item.spring'.tr(),
@@ -143,7 +144,8 @@ class _AddItemScreenState extends State<AddItemScreen>
 
       // AI tahminlerini forma aktar
       setState(() {
-        if (result.kategori.isNotEmpty) _selectedCategory = result.kategori;
+        // Sadece geçerli backend enum değerlerini kabul et
+        if (_categories.contains(result.kategori)) _selectedCategory = result.kategori;
         if (result.renk.isNotEmpty) _colorCtrl.text = result.renk;
         _step = 'review';
       });
@@ -1094,7 +1096,7 @@ class _CategoryDropdown extends StatelessWidget {
                         size: 18,
                       ),
                       const SizedBox(width: 10),
-                      Text(o),
+                      Text(_categoryLabel(o)),
                     ],
                   ),
                 ),
@@ -1106,6 +1108,19 @@ class _CategoryDropdown extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// Backend Turkish değerini arayüz diline çevirir
+  String _categoryLabel(String backendValue) {
+    switch (backendValue) {
+      case 'Dış Giyim': return 'add_item.outerwear'.tr();
+      case 'Üst Giyim': return 'add_item.topwear'.tr();
+      case 'Elbise':    return 'add_item.dress'.tr();
+      case 'Alt Giyim': return 'add_item.bottomwear'.tr();
+      case 'Ayakkabı':  return 'add_item.shoes'.tr();
+      case 'Aksesuar':  return 'add_item.accessories'.tr();
+      default: return backendValue;
+    }
   }
 
   IconData _categoryIcon(String cat) {
