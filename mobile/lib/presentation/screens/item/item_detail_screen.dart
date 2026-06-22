@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_wardrobe_ai/core/constants/api_constants.dart';
 import 'package:smart_wardrobe_ai/core/constants/app_colors.dart';
+import 'package:smart_wardrobe_ai/core/theme/app_theme_extension.dart';
 import 'package:smart_wardrobe_ai/data/models/clothing_item.dart';
 
 class ItemDetailScreen extends StatefulWidget {
@@ -83,7 +84,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen>
   Widget build(BuildContext context) {
     final item = widget.item;
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: AppColorsExtension.of(context).bg,
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -98,13 +99,13 @@ class _ItemDetailScreenState extends State<ItemDetailScreen>
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: AppColors.bg.withValues(alpha: .7),
+              color: AppColorsExtension.of(context).bg.withValues(alpha: .7),
               shape: BoxShape.circle,
-              border: Border.all(color: AppColors.border),
+              border: Border.all(color: AppColorsExtension.of(context).border),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.arrow_back_ios_new_rounded,
-              color: AppColors.text,
+              color: AppColorsExtension.of(context).text,
               size: 18,
             ),
           ),
@@ -119,12 +120,12 @@ class _ItemDetailScreenState extends State<ItemDetailScreen>
               decoration: BoxDecoration(
                 color: _isFav
                     ? const Color(0xFFE05C5C).withValues(alpha: .15)
-                    : AppColors.bg.withValues(alpha: .7),
+                    : AppColorsExtension.of(context).bg.withValues(alpha: .7),
                 shape: BoxShape.circle,
                 border: Border.all(
                   color: _isFav
                       ? const Color(0xFFE05C5C).withValues(alpha: .5)
-                      : AppColors.border,
+                      : AppColorsExtension.of(context).border,
                 ),
               ),
               child: _toggling
@@ -146,7 +147,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen>
                         key: ValueKey(_isFav),
                         color: _isFav
                             ? const Color(0xFFE05C5C)
-                            : AppColors.muted,
+                            : AppColorsExtension.of(context).muted,
                         size: 22,
                       ),
                     ),
@@ -216,17 +217,18 @@ class _ItemDetailScreenState extends State<ItemDetailScreen>
                       ],
                     ),
 
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 16),
 
                     // İsim
                     Text(
                       item.name,
-                      style: const TextStyle(
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
                         fontFamily: 'Cormorant',
                         fontSize: 32,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.text,
-                        height: 1.1,
+                        color: AppColorsExtension.of(context).text,
                       ),
                     ),
 
@@ -234,15 +236,15 @@ class _ItemDetailScreenState extends State<ItemDetailScreen>
                       const SizedBox(height: 4),
                       Text(
                         item.marka!,
-                        style: const TextStyle(
-                          color: AppColors.muted,
+                        style: TextStyle(
+                          color: AppColorsExtension.of(context).muted,
                           fontSize: 13,
                           letterSpacing: .5,
                         ),
                       ),
                     ],
 
-                    const SizedBox(height: 28),
+                    const SizedBox(height: 12),
 
                     // Detay Kartları
                     _DetailGrid(item: item, accentColor: _accentColor),
@@ -271,12 +273,12 @@ class _ItemDetailScreenState extends State<ItemDetailScreen>
                                   ],
                                 )
                               : null,
-                          color: _isFav ? null : AppColors.surface,
+                          color: _isFav ? null : AppColorsExtension.of(context).surface,
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
                             color: _isFav
                                 ? Colors.transparent
-                                : AppColors.border,
+                                : AppColorsExtension.of(context).border,
                           ),
                         ),
                         child: Row(
@@ -286,7 +288,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen>
                               _isFav
                                   ? Icons.favorite_rounded
                                   : Icons.favorite_border_rounded,
-                              color: _isFav ? Colors.white : AppColors.muted,
+                              color: _isFav ? Colors.white : AppColorsExtension.of(context).muted,
                               size: 20,
                             ),
                             const SizedBox(width: 8),
@@ -297,7 +299,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen>
                               style: TextStyle(
                                 color: _isFav
                                     ? Colors.white
-                                    : AppColors.textSub,
+                                    : AppColorsExtension.of(context).textSub,
                                 fontWeight: FontWeight.w600,
                                 fontSize: 15,
                               ),
@@ -336,7 +338,7 @@ class _HeroImage extends StatelessWidget {
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [accentColor.withValues(alpha: .18), AppColors.bg],
+                colors: [accentColor.withValues(alpha: .18), AppColorsExtension.of(context).bg],
               ),
             ),
           ),
@@ -362,7 +364,7 @@ class _HeroImage extends StatelessWidget {
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [Colors.transparent, AppColors.bg],
+                  colors: [Colors.transparent, AppColorsExtension.of(context).bg],
                 ),
               ),
             ),
@@ -436,7 +438,7 @@ class _DetailGrid extends StatelessWidget {
         _DetailTile(
           icon: Icons.wb_sunny_outlined,
           label: 'item_detail.season'.tr(),
-          value: item.season!,
+          value: '${_seasonIcons[item.season] ?? '🌀'} ${item.season}',
         ),
       );
     }
@@ -445,22 +447,51 @@ class _DetailGrid extends StatelessWidget {
         _DetailTile(
           icon: Icons.style_outlined,
           label: 'item_detail.style'.tr(),
-          value: item.stil!,
+          value: '${_styleIcons[item.stil] ?? '🎨'} ${item.stil}',
         ),
       );
     }
     if (tiles.isEmpty) return const SizedBox.shrink();
 
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: 12,
-      crossAxisSpacing: 12,
-      childAspectRatio: 2.4,
-      children: tiles
-          .map((t) => _DetailCard(tile: t, accentColor: accentColor))
-          .toList(),
+    // GridView.count + childAspectRatio KALDIRILDI — `childAspectRatio: 2.4`
+    // tahmini, gerçek ekran genişliğiyle uyuşmadığında hücreleri içerikten
+    // çok daha uzun render ediyordu (kart küçük, hücre devasa → görünmeyen
+    // boşluk). Satır bazlı bu yapı her kartı SADECE içeriğinin gerektirdiği
+    // kadar yükseklikte gösterir, tahmine ihtiyaç yok.
+    final rows = <Widget>[];
+    for (var i = 0; i < tiles.length; i += 2) {
+      final isLastRow = i + 2 >= tiles.length;
+      final rowTiles = tiles.sublist(
+        i,
+        (i + 2 > tiles.length) ? tiles.length : i + 2,
+      );
+      rows.add(
+        Padding(
+          padding: EdgeInsets.only(bottom: isLastRow ? 0 : 12),
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (var j = 0; j < rowTiles.length; j++) ...[
+                  if (j > 0) const SizedBox(width: 12),
+                  Expanded(
+                    child: _DetailCard(
+                      tile: rowTiles[j],
+                      accentColor: accentColor,
+                    ),
+                  ),
+                ],
+                if (rowTiles.length == 1) const Spacer(),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: rows,
     );
   }
 }
@@ -487,9 +518,9 @@ class _DetailCard extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
     decoration: BoxDecoration(
-      color: AppColors.surface,
+      color: AppColorsExtension.of(context).surface,
       borderRadius: BorderRadius.circular(14),
-      border: Border.all(color: AppColors.border),
+      border: Border.all(color: AppColorsExtension.of(context).border),
     ),
     child: Row(
       children: [
@@ -510,8 +541,8 @@ class _DetailCard extends StatelessWidget {
             children: [
               Text(
                 tile.label,
-                style: const TextStyle(
-                  color: AppColors.muted,
+                style: TextStyle(
+                  color: AppColorsExtension.of(context).muted,
                   fontSize: 10,
                   letterSpacing: .5,
                 ),
@@ -524,7 +555,7 @@ class _DetailCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: tile.swatchColor,
                     shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.border, width: 1.5),
+                    border: Border.all(color: AppColorsExtension.of(context).border, width: 1.5),
                     boxShadow: [
                       BoxShadow(
                         color: tile.swatchColor!.withValues(alpha: .4),
@@ -539,8 +570,8 @@ class _DetailCard extends StatelessWidget {
                   tile.value,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: AppColors.text,
+                  style: TextStyle(
+                    color: AppColorsExtension.of(context).text,
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                   ),
@@ -563,21 +594,21 @@ class _NotlarCard extends StatelessWidget {
     width: double.infinity,
     padding: const EdgeInsets.all(16),
     decoration: BoxDecoration(
-      color: AppColors.surface,
+      color: AppColorsExtension.of(context).surface,
       borderRadius: BorderRadius.circular(14),
-      border: Border.all(color: AppColors.border),
+      border: Border.all(color: AppColorsExtension.of(context).border),
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            Icon(Icons.notes_rounded, color: AppColors.muted, size: 15),
+            Icon(Icons.notes_rounded, color: AppColorsExtension.of(context).muted, size: 15),
             SizedBox(width: 6),
             Text(
               'item_detail.notes'.tr(),
               style: TextStyle(
-                color: AppColors.muted,
+                color: AppColorsExtension.of(context).muted,
                 fontSize: 11,
                 letterSpacing: .5,
               ),
@@ -587,8 +618,8 @@ class _NotlarCard extends StatelessWidget {
         const SizedBox(height: 8),
         Text(
           notlar,
-          style: const TextStyle(
-            color: AppColors.textSub,
+          style: TextStyle(
+            color: AppColorsExtension.of(context).textSub,
             fontSize: 13,
             height: 1.5,
           ),
@@ -597,6 +628,25 @@ class _NotlarCard extends StatelessWidget {
     ),
   );
 }
+
+// Mevsim/Stil ikonları — web'deki ItemDetailModal.tsx (SEASON_ICONS / STYLE_ICONS)
+// ile aynı emoji eşlemesi.
+const Map<String, String> _seasonIcons = {
+  'Yaz': '☀️',
+  'Kış': '❄️',
+  'İlkbahar': '🌸',
+  'Sonbahar': '🍂',
+  'Tüm Mevsimler': '🌍',
+};
+const Map<String, String> _styleIcons = {
+  'Günlük': '👕',
+  'Spor': '🏃',
+  'Şık': '✨',
+  'Klasik': '👔',
+  'Sokak': '🛹',
+  'Minimal': '⬜',
+  'Resmi': '👔',
+};
 
 // HEX → Flutter Color
 Color? _hexToColor(String raw) {

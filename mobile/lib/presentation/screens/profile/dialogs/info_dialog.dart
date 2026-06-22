@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:smart_wardrobe_ai/core/constants/app_colors.dart';
+import 'package:smart_wardrobe_ai/core/theme/app_theme_extension.dart';
 
 /// Gizlilik Politikası veya Yardım & Destek için bilgi diyaloğu
 class ProfileInfoDialog extends StatelessWidget {
@@ -17,7 +18,7 @@ class ProfileInfoDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Dialog(
-    backgroundColor: AppColors.card,
+    backgroundColor: AppColorsExtension.of(context).card,
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
     child: Padding(
       padding: const EdgeInsets.all(24),
@@ -41,24 +42,24 @@ class ProfileInfoDialog extends StatelessWidget {
               Expanded(
                 child: Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Cormorant',
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.text,
+                    color: AppColorsExtension.of(context).text,
                   ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 16),
-          const Divider(height: 1, color: AppColors.border),
+          Divider(height: 1, color: AppColorsExtension.of(context).border),
           const SizedBox(height: 16),
           // ── İçerik
           Text(
             content,
-            style: const TextStyle(
-              color: AppColors.textSub,
+            style: TextStyle(
+              color: AppColorsExtension.of(context).textSub,
               fontSize: 13,
               height: 1.6,
             ),
@@ -70,14 +71,14 @@ class ProfileInfoDialog extends StatelessWidget {
             child: Container(
               height: 44,
               decoration: BoxDecoration(
-                color: AppColors.surface,
+                color: AppColorsExtension.of(context).surface,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.border),
+                border: Border.all(color: AppColorsExtension.of(context).border),
               ),
               child: Center(
                 child: Text(
                   'confirm.ok'.tr(),
-                  style: TextStyle(color: AppColors.textSub, fontSize: 14),
+                  style: TextStyle(color: AppColorsExtension.of(context).textSub, fontSize: 14),
                 ),
               ),
             ),

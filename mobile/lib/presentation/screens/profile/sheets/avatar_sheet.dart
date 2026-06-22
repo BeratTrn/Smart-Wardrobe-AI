@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:smart_wardrobe_ai/core/constants/app_colors.dart';
+import 'package:smart_wardrobe_ai/core/theme/app_theme_extension.dart';
 import 'package:smart_wardrobe_ai/core/utils/avatar_manager.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/profile/profile_shared_widgets.dart';
 
@@ -28,8 +29,8 @@ class _AvatarSheetState extends State<AvatarSheet> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
+      decoration: BoxDecoration(
+        color: AppColorsExtension.of(context).surface,
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       padding: EdgeInsets.fromLTRB(
@@ -81,14 +82,14 @@ class _AvatarSheetState extends State<AvatarSheet> {
                       fontFamily: 'Cormorant',
                       fontSize: 21,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.text,
+                      color: AppColorsExtension.of(context).text,
                       letterSpacing: -.2,
                     ),
                   ),
                   Text(
                     'avatar.subtitle'.tr(),
                     style: TextStyle(
-                      color: AppColors.muted,
+                      color: AppColorsExtension.of(context).muted,
                       fontSize: 11,
                       letterSpacing: .2,
                     ),
@@ -189,7 +190,7 @@ class _AvatarCell extends StatelessWidget {
           border: Border.all(
             color: isSelected
                 ? AppColors.gold.withValues(alpha: .85)
-                : AppColors.border,
+                : AppColorsExtension.of(context).border,
             width: isSelected ? 2.5 : 1.5,
           ),
           boxShadow: isSelected
@@ -255,8 +256,8 @@ class _SectionLabel extends StatelessWidget {
       const SizedBox(width: 6),
       Text(
         text,
-        style: const TextStyle(
-          color: AppColors.muted,
+        style: TextStyle(
+          color: AppColorsExtension.of(context).muted,
           fontSize: 9,
           fontWeight: FontWeight.w600,
           letterSpacing: 2.5,

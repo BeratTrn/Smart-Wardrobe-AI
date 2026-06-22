@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:smart_wardrobe_ai/core/constants/app_colors.dart';
+import 'package:smart_wardrobe_ai/core/theme/app_theme_extension.dart';
 
 /// Alt sheet'lerde kullanılan tutamaç çubuğu
 class ProfileSheetHandle extends StatelessWidget {
@@ -11,7 +12,7 @@ class ProfileSheetHandle extends StatelessWidget {
       width: 36,
       height: 4,
       decoration: BoxDecoration(
-        color: AppColors.border,
+        color: AppColorsExtension.of(context).border,
         borderRadius: BorderRadius.circular(2),
       ),
     ),
@@ -93,20 +94,20 @@ class ProfilePasswordField extends StatelessWidget {
   Widget build(BuildContext context) => TextField(
     controller: ctrl,
     obscureText: obscure,
-    style: const TextStyle(color: AppColors.text, fontSize: 14),
+    style: TextStyle(color: AppColorsExtension.of(context).text, fontSize: 14),
     decoration: InputDecoration(
       labelText: label,
-      labelStyle: const TextStyle(color: AppColors.muted, fontSize: 13),
+      labelStyle: TextStyle(color: AppColorsExtension.of(context).muted, fontSize: 13),
       filled: true,
-      fillColor: AppColors.bg,
+      fillColor: AppColorsExtension.of(context).bg,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.border),
+        borderSide: BorderSide(color: AppColorsExtension.of(context).border),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.border),
+        borderSide: BorderSide(color: AppColorsExtension.of(context).border),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
@@ -116,7 +117,7 @@ class ProfilePasswordField extends StatelessWidget {
         onTap: onToggle,
         child: Icon(
           obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-          color: AppColors.muted,
+          color: AppColorsExtension.of(context).muted,
           size: 18,
         ),
       ),
@@ -152,11 +153,11 @@ class ProfileGlassButton extends StatelessWidget {
       width: 38,
       height: 38,
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: AppColorsExtension.of(context).surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColorsExtension.of(context).border),
       ),
-      child: Icon(icon, color: AppColors.textSub, size: 16),
+      child: Icon(icon, color: AppColorsExtension.of(context).textSub, size: 16),
     ),
   );
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:smart_wardrobe_ai/core/constants/app_colors.dart';
+import 'package:smart_wardrobe_ai/core/theme/app_theme_extension.dart';
 
 class AppFilterChip extends StatelessWidget {
   final String label;
@@ -21,10 +22,10 @@ class AppFilterChip extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: selected ? AppColors.gold : AppColors.surface,
+          color: selected ? AppColors.gold : AppColorsExtension.of(context).surface,
           borderRadius: BorderRadius.circular(30),
           border: Border.all(
-            color: selected ? AppColors.gold : AppColors.border,
+            color: selected ? AppColors.gold : AppColorsExtension.of(context).border,
             width: 1.5,
           ),
         ),
@@ -33,7 +34,7 @@ class AppFilterChip extends StatelessWidget {
           style: TextStyle(
             fontSize: 13,
             fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-            color: selected ? Colors.black : AppColors.textSub,
+            color: selected ? Colors.black : AppColorsExtension.of(context).textSub,
             letterSpacing: .3,
           ),
         ),

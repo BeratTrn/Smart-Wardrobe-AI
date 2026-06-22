@@ -13,6 +13,7 @@ import 'package:smart_wardrobe_ai/core/theme/app_theme_extension.dart';
 import 'package:smart_wardrobe_ai/core/utils/nav_transitions.dart';
 import 'package:smart_wardrobe_ai/data/models/clothing_item.dart';
 import 'package:smart_wardrobe_ai/data/models/saved_outfit.dart';
+import 'package:smart_wardrobe_ai/data/services/notification_service.dart';
 import 'package:smart_wardrobe_ai/data/services/saved_outfits_store.dart';
 import 'package:smart_wardrobe_ai/presentation/screens/item/add_item_screen.dart';
 import 'package:smart_wardrobe_ai/presentation/screens/main/favorites_screen.dart';
@@ -27,6 +28,31 @@ import 'package:smart_wardrobe_ai/presentation/widgets/shared/app_text_styles.da
 
 bool _isCat(String cat, List<String> keys) =>
     keys.any((k) => cat.toLowerCase().contains(k));
+
+// Ağ isteği — tek seferlik otomatik tekrar deneme
+//
+// Bazı emülatörlerde/cihazlarda uygulama soğuk başlatıldığında (ilk açılış)
+// ağ arayüzü/DNS henüz tam hazır olmuyor; initState'te paralel ateşlenen ilk
+// istek grubu (items/outfits/profile/weather) bu yüzden başarısız oluyor,
+// ama kullanıcı birkaç saniye sonra elle "aşağı kaydır" (refresh) yaptığında
+// ağ artık hazır olduğu için aynı istek başarılı oluyor — kullanıcıya "veriler
+// hemen gelmiyor, kaydırınca geliyor" gibi görünüyor. Kalıcı bir çözüm için
+// ilk denemenin başarısız olması durumunda kısa bir gecikmeyle bir kez daha
+// deniyoruz; böylece kullanıcı manuel yenilemeye gerek kalmadan veriyi görür.
+Future<T> _withRetry<T>(
+  Future<T> Function() action, {
+  int retries = 1,
+  Duration delay = const Duration(milliseconds: 900),
+}) async {
+  for (var attempt = 0; ; attempt++) {
+    try {
+      return await action();
+    } catch (e) {
+      if (attempt >= retries) rethrow;
+      await Future.delayed(delay);
+    }
+  }
+}
 
 Color _categoryColor(String cat) {
   final c = cat.toLowerCase();
@@ -98,6 +124,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
 
     _loadData();
+
+    // Push bildirimleri — izin iste, FCM token'ı al ve backend'e kaydet.
+    // Web'deki AppShell.tsx'in mobil karşılığı: kullanıcı giriş yaptıktan
+    // sonra (HomeScreen her açılışta) çalışır, token yoksa/değiştiyse
+    // backend'e gönderir; izin zaten verilmişse sessizce tazeler.
+    NotificationService.instance.init();
   }
 
   @override
@@ -155,15 +187,17 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   Future<void> _fetchItems(String token) async {
     try {
-      final res = await http
-          .get(
-            Uri.parse('${ApiConstants.baseUrl}/items'),
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer $token',
-            },
-          )
-          .timeout(const Duration(seconds: 10));
+      final res = await _withRetry(
+        () => http
+            .get(
+              Uri.parse('${ApiConstants.baseUrl}/items'),
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer $token',
+              },
+            )
+            .timeout(const Duration(seconds: 10)),
+      );
 
       if (!mounted) return;
 
@@ -197,12 +231,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   Future<void> _fetchProfile(String token) async {
     try {
-      final res = await http
-          .get(
-            Uri.parse('${ApiConstants.baseUrl}/auth/me'),
-            headers: {'Authorization': 'Bearer $token'},
-          )
-          .timeout(const Duration(seconds: 8));
+      final res = await _withRetry(
+        () => http
+            .get(
+              Uri.parse('${ApiConstants.baseUrl}/auth/me'),
+              headers: {'Authorization': 'Bearer $token'},
+            )
+            .timeout(const Duration(seconds: 8)),
+      );
 
       if (!mounted || res.statusCode != 200) return;
 
@@ -273,15 +309,21 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         }
       }
 
-      final res = await http
-          .get(
-            Uri.parse(
-              '${ApiConstants.baseUrl}/weather'
-              '?enlem=${pos.latitude}&boylam=${pos.longitude}',
-            ),
-            headers: {'Authorization': 'Bearer $token'},
-          )
-          .timeout(const Duration(seconds: 8));
+      // pos burada her zaman non-null (yukarıdaki dallar null ise erken
+      // return ediyor) ama closure içinde Dart bunu otomatik daraltamıyor —
+      // closure'a sabit bir non-null kopya yakalatıyoruz.
+      final safePos = pos;
+      final res = await _withRetry(
+        () => http
+            .get(
+              Uri.parse(
+                '${ApiConstants.baseUrl}/weather'
+                '?enlem=${safePos.latitude}&boylam=${safePos.longitude}',
+              ),
+              headers: {'Authorization': 'Bearer $token'},
+            )
+            .timeout(const Duration(seconds: 8)),
+      );
 
       if (res.statusCode == 200) {
         _parseWeather(res.body);
@@ -393,7 +435,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: AppColorsExtension.of(context).bg,
       extendBody: true,
       bottomNavigationBar: AppBottomNav(
         currentIndex: _navIndex,
@@ -406,7 +448,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             opacity: _fadeAnim,
             child: RefreshIndicator(
               color: AppColors.gold,
-              backgroundColor: AppColors.surface,
+              backgroundColor: AppColorsExtension.of(context).surface,
               onRefresh: _loadData,
               child: CustomScrollView(
                 physics: const BouncingScrollPhysics(
@@ -471,7 +513,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   // Lookbook carousel — driven by SavedOutfitsStore
                   SliverToBoxAdapter(
                     child: SizedBox(
-                      height: 300,
+                      height: 242,
                       child: _outfitsLoading
                           ? const _GoldShimmerRow(itemWidth: 280)
                           : ValueListenableBuilder<List<SavedOutfit>>(
@@ -590,14 +632,35 @@ class _LookbookCard extends StatelessWidget {
     return words.isNotEmpty && words.first.isNotEmpty ? words.first : 'Kombin';
   }
 
+  // Toplam parça sayısı — web'deki RecentOutfits.tsx ile aynı mantık:
+  // gardırop kıyafetleri + (varsa) web'den seçilen ürünler toplanır.
+  // "Web'den öner" kullanılmış olsun olmasın aynı şekilde hesaplanır.
+  int get _toplamParca => outfit.kiyafetler.length + outfit.disUrunler.length;
+
+  // Resim alanının sabit yüksekliği — 1 parçalık kombinler (örn. web
+  // destekli öneriler) tüm kartı doldurup orantısız büyümesin, her zaman
+  // kompakt ve tutarlı görünsün (web'deki küçük önizleme ile aynı mantık).
+  static const double _mosaicHeight = 150;
+
+  // Kolaj görselleri — gardırop kıyafetleri + (varsa) web'den seçilen
+  // ürünler birlikte gösterilir (web'deki OutfitCollage ile aynı mantık).
+  List<_CollageImage> get _collageImages => [
+    ...outfit.kiyafetler.map(
+      (k) => _CollageImage(src: k.imageUrl, category: k.category),
+    ),
+    ...outfit.disUrunler.map(
+      (p) => _CollageImage(src: p.resimUrl, isWeb: true),
+    ),
+  ].where((img) => img.src != null && img.src!.isNotEmpty).toList();
+
   @override
   Widget build(BuildContext context) {
-    final items = outfit.kiyafetler;
+    final images = _collageImages;
 
     return Container(
       width: 280,
       decoration: BoxDecoration(
-        color: AppColors.card,
+        color: AppColorsExtension.of(context).card,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
           color: AppColors.gold.withValues(alpha: .22),
@@ -616,172 +679,135 @@ class _LookbookCard extends StatelessWidget {
           ),
         ],
       ),
-      child: Stack(
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Mosaic of clothing images
-          ClipRRect(
-            borderRadius: BorderRadius.circular(24),
-            child: _OutfitMosaic(items: items),
-          ),
+          // ── Resim alanı (sabit boy + rozetler)
+          SizedBox(
+            height: _mosaicHeight,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                _OutfitMosaic(images: images),
 
-          // Bottom gradient
-          Positioned.fill(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(24),
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.transparent,
-                      Colors.black.withValues(alpha: .12),
-                      Colors.black.withValues(alpha: .82),
-                    ],
-                    stops: const [0.30, 0.55, 1.0],
-                  ),
-                ),
-              ),
-            ),
-          ),
-
-          // KAYITLI badge — top right
-          Positioned(
-            top: 12,
-            right: 12,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(20),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 5,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.gold.withValues(alpha: .18),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: AppColors.gold.withValues(alpha: .4),
-                      width: .8,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text('✨', style: TextStyle(fontSize: 11)),
-                      SizedBox(width: 4),
-                      Text(
-                        'home.saved'.tr(),
-                        style: TextStyle(
-                          color: AppColors.goldLight,
-                          fontSize: 9,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 1.1,
-                        ),
+                // Hafif alt gradyan — sadece rozetlerin okunabilirliği için
+                const Positioned.fill(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [Colors.transparent, Color(0x33000000)],
+                        stops: [0.55, 1.0],
                       ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-
-          // Style tag — top left
-          Positioned(
-            top: 12,
-            left: 12,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: .45),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: .1),
-                  width: .8,
-                ),
-              ),
-              child: Text(
-                _styleTag.toUpperCase(),
-                style: const TextStyle(
-                  color: AppColors.textSub,
-                  fontSize: 9,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 1.2,
-                ),
-              ),
-            ),
-          ),
-
-          // Bottom info strip
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(14, 0, 14, 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Outfit title
-                  Text(
-                    outfit.baslik.isNotEmpty ? outfit.baslik : 'Kombin',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontFamily: 'Cormorant',
-                      color: AppColors.text,
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: -.3,
                     ),
                   ),
+                ),
 
-                  // Tip preview
-                  if (outfit.ipucu.isNotEmpty) ...[
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.lightbulb_outline_rounded,
-                          color: AppColors.gold,
-                          size: 11,
+                // KAYITLI badge — top right
+                Positioned(
+                  top: 12,
+                  right: 12,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 5,
                         ),
-                        const SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            outfit.ipucu,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: AppColors.gold,
-                              fontSize: 10,
-                              fontStyle: FontStyle.italic,
-                            ),
+                        decoration: BoxDecoration(
+                          color: AppColors.gold.withValues(alpha: .18),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: AppColors.gold.withValues(alpha: .4),
+                            width: .8,
                           ),
                         ),
-                      ],
-                    ),
-                  ] else if (outfit.aciklama.isNotEmpty) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      outfit.aciklama,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: AppColors.textSub,
-                        fontSize: 10,
-                        fontStyle: FontStyle.italic,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text('✨', style: TextStyle(fontSize: 11)),
+                            SizedBox(width: 4),
+                            Text(
+                              'home.saved'.tr(),
+                              style: TextStyle(
+                                color: AppColors.goldLight,
+                                fontSize: 9,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 1.1,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ],
+                  ),
+                ),
 
-                  const SizedBox(height: 10),
+                // Style tag — top left
+                Positioned(
+                  top: 12,
+                  left: 12,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 9,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: .45),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: .1),
+                        width: .8,
+                      ),
+                    ),
+                    child: Text(
+                      _styleTag.toUpperCase(),
+                      style: TextStyle(
+                        color: AppColorsExtension.of(context).textSub,
+                        fontSize: 9,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
 
-                  // Piece count pill
-                  if (items.isNotEmpty) _ItemCountPill(count: items.length),
-                ],
-              ),
+          // ── Bilgi paneli (düz kart zemini üzerinde — fotoğrafın üstüne
+          // bindirilmiyor, web'deki kompakt kart görünümüyle aynı: sadece
+          // başlık + parça sayısı, ipucu/açıklama metni yok)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Outfit title
+                Text(
+                  outfit.baslik.isNotEmpty ? outfit.baslik : 'Kombin',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontFamily: 'Cormorant',
+                    color: AppColorsExtension.of(context).text,
+                    fontSize: 19,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -.3,
+                  ),
+                ),
+                const SizedBox(height: 8),
+
+                // Parça sayısı — web'deki gibi gardırop + web'den seçilen
+                // ürünlerin toplamı (Web'den öner kullanılsın kullanılmasın
+                // aynı mantık: kiyafetler.length + disUrunler.length).
+                if (_toplamParca > 0) _ItemCountPill(count: _toplamParca),
+              ],
             ),
           ),
         ],
@@ -816,7 +842,7 @@ class _ItemCountPill extends StatelessWidget {
         const SizedBox(width: 4),
         Text(
           '$count ' + 'home.items'.tr(),
-          style: const TextStyle(
+          style: TextStyle(
             color: AppColors.goldLight,
             fontSize: 10,
             fontWeight: FontWeight.w600,
@@ -828,46 +854,55 @@ class _ItemCountPill extends StatelessWidget {
   );
 }
 
+// Kolaj görseli — gardırop kıyafeti veya web'den seçilen ürün olabilir.
+// Web kaynaklıysa küçük bir 🛍️ rozetiyle işaretlenir (web'deki WebBadge ile aynı).
+class _CollageImage {
+  final String? src;
+  final bool isWeb;
+  final String category;
+  const _CollageImage({this.src, this.isWeb = false, this.category = ''});
+}
+
 // Outfit image mosaic
-//  0 items  → full placeholder
-//  1 item   → single full-frame
-//  2 items  → top 60% / bottom 40%  (full width each)
-//  3+ items → top 60% / bottom-left + bottom-right at 40%
+//  0 görsel  → full placeholder
+//  1 görsel  → single full-frame
+//  2 görsel  → top 60% / bottom 40%  (full width each)
+//  3+ görsel → top 60% / bottom-left + bottom-right at 40%
 
 class _OutfitMosaic extends StatelessWidget {
-  final List<ClothingItem> items;
-  const _OutfitMosaic({required this.items});
+  final List<_CollageImage> images;
+  const _OutfitMosaic({required this.images});
 
   @override
   Widget build(BuildContext context) {
-    if (items.isEmpty) {
+    if (images.isEmpty) {
       return const _MosaicPlaceholder(
         icon: Icons.checkroom_outlined,
         color: AppColors.gold,
       );
     }
-    if (items.length == 1) return _MosaicCell(item: items[0]);
+    if (images.length == 1) return _MosaicCell(image: images[0]);
 
-    final top = items[0];
-    final mid = items[1];
-    final bottom = items.length > 2 ? items[2] : null;
+    final top = images[0];
+    final mid = images[1];
+    final bottom = images.length > 2 ? images[2] : null;
 
     return Column(
       children: [
-        Expanded(flex: 6, child: _MosaicCell(item: top)),
+        Expanded(flex: 6, child: _MosaicCell(image: top)),
         Expanded(
           flex: 4,
           child: Row(
             children: [
               Expanded(
                 child: _MosaicCell(
-                  item: mid,
+                  image: mid,
                   topBorder: true,
                   rightBorder: bottom != null,
                 ),
               ),
               if (bottom != null)
-                Expanded(child: _MosaicCell(item: bottom, topBorder: true)),
+                Expanded(child: _MosaicCell(image: bottom, topBorder: true)),
             ],
           ),
         ),
@@ -877,49 +912,74 @@ class _OutfitMosaic extends StatelessWidget {
 }
 
 class _MosaicCell extends StatelessWidget {
-  final ClothingItem item;
+  final _CollageImage image;
   final bool topBorder;
   final bool rightBorder;
 
   const _MosaicCell({
-    required this.item,
+    required this.image,
     this.topBorder = false,
     this.rightBorder = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    final url = item.imageUrl;
-    final color = _categoryColor(item.category);
-    return Container(
-      decoration: BoxDecoration(
-        border: Border(
-          top: topBorder
-              ? BorderSide(color: AppColors.bg.withValues(alpha: .7), width: 2)
-              : BorderSide.none,
-          right: rightBorder
-              ? BorderSide(color: AppColors.bg.withValues(alpha: .7), width: 2)
-              : BorderSide.none,
+    final url = image.src;
+    final color = _categoryColor(image.category);
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            border: Border(
+              top: topBorder
+                  ? BorderSide(color: AppColorsExtension.of(context).bg.withValues(alpha: .7), width: 2)
+                  : BorderSide.none,
+              right: rightBorder
+                  ? BorderSide(color: AppColorsExtension.of(context).bg.withValues(alpha: .7), width: 2)
+                  : BorderSide.none,
+            ),
+          ),
+          child: (url != null && url.isNotEmpty)
+              ? Image.network(
+                  url,
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  height: double.infinity,
+                  errorBuilder: (_, __, ___) => _MosaicPlaceholder(
+                    icon: Icons.checkroom_outlined,
+                    color: color,
+                  ),
+                  loadingBuilder: (_, child, prog) => prog == null
+                      ? child
+                      : _MosaicPlaceholder(
+                          icon: Icons.checkroom_outlined,
+                          color: color,
+                        ),
+                )
+              : _MosaicPlaceholder(icon: Icons.checkroom_outlined, color: color),
         ),
-      ),
-      child: (url != null && url.isNotEmpty)
-          ? Image.network(
-              url,
-              fit: BoxFit.cover,
-              width: double.infinity,
-              height: double.infinity,
-              errorBuilder: (_, __, ___) => _MosaicPlaceholder(
-                icon: Icons.checkroom_outlined,
-                color: color,
+
+        // Web'den seçildiğini gösteren küçük rozet — web'deki WebBadge ile aynı
+        if (image.isWeb)
+          Positioned(
+            top: 4,
+            right: 4,
+            child: Container(
+              width: 18,
+              height: 18,
+              decoration: BoxDecoration(
+                color: AppColors.gold.withValues(alpha: .92),
+                shape: BoxShape.circle,
               ),
-              loadingBuilder: (_, child, prog) => prog == null
-                  ? child
-                  : _MosaicPlaceholder(
-                      icon: Icons.checkroom_outlined,
-                      color: color,
-                    ),
-            )
-          : _MosaicPlaceholder(icon: Icons.checkroom_outlined, color: color),
+              child: const Icon(
+                Icons.shopping_bag_rounded,
+                color: Colors.black,
+                size: 10,
+              ),
+            ),
+          ),
+      ],
     );
   }
 }
@@ -1044,18 +1104,18 @@ class _StyleScorecardCard extends StatelessWidget {
                     children: [
                       Text(
                         'home.style_profile_title'.tr(),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: 'Cormorant',
                           fontSize: 20,
                           fontWeight: FontWeight.w700,
-                          color: AppColors.text,
+                          color: AppColorsExtension.of(context).text,
                           letterSpacing: -.3,
                         ),
                       ),
                       Text(
                         'home.style_profile_subtitle'.tr(),
-                        style: const TextStyle(
-                          color: AppColors.muted,
+                        style: TextStyle(
+                          color: AppColorsExtension.of(context).muted,
                           fontSize: 11,
                           letterSpacing: .3,
                         ),
@@ -1066,7 +1126,7 @@ class _StyleScorecardCard extends StatelessWidget {
               ),
 
               const SizedBox(height: 18),
-              const Divider(color: Color(0xFF272720), height: 1),
+              Divider(color: AppColorsExtension.of(context).border, height: 1),
               const SizedBox(height: 18),
 
               // Donut + özet satırı
@@ -1085,6 +1145,7 @@ class _StyleScorecardCard extends StatelessWidget {
                           painter: _DoughnutPainter(
                             slices: slices,
                             total: total,
+                            trackColor: AppColorsExtension.of(context).surface,
                           ),
                         ),
                         Column(
@@ -1092,8 +1153,8 @@ class _StyleScorecardCard extends StatelessWidget {
                           children: [
                             Text(
                               '$total',
-                              style: const TextStyle(
-                                color: AppColors.text,
+                              style: TextStyle(
+                                color: AppColorsExtension.of(context).text,
                                 fontSize: 22,
                                 fontWeight: FontWeight.w700,
                                 fontFamily: 'Cormorant',
@@ -1101,8 +1162,8 @@ class _StyleScorecardCard extends StatelessWidget {
                             ),
                             Text(
                               'home.pieces'.tr(),
-                              style: const TextStyle(
-                                color: AppColors.muted,
+                              style: TextStyle(
+                                color: AppColorsExtension.of(context).muted,
                                 fontSize: 9,
                                 letterSpacing: .5,
                               ),
@@ -1134,7 +1195,7 @@ class _StyleScorecardCard extends StatelessWidget {
                           value: 'home.total_items_count'.tr(
                             namedArgs: {'count': '$total'},
                           ),
-                          valueColor: AppColors.text,
+                          valueColor: AppColorsExtension.of(context).text,
                         ),
                       ],
                     ),
@@ -1145,7 +1206,7 @@ class _StyleScorecardCard extends StatelessWidget {
               // Stil dağılımı — progress bar'lı liste
               if (slices.isNotEmpty) ...[
                 const SizedBox(height: 20),
-                const Divider(color: Color(0xFF272720), height: 1),
+                Divider(color: AppColorsExtension.of(context).border, height: 1),
                 const SizedBox(height: 16),
                 ...slices.take(4).map((s) {
                   final pct = total > 0 ? s.count / total : 0.0;
@@ -1259,15 +1320,15 @@ class _StatRow extends StatelessWidget {
   Widget build(BuildContext context) => Row(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      Icon(icon, color: AppColors.muted, size: 13),
+      Icon(icon, color: AppColorsExtension.of(context).muted, size: 13),
       const SizedBox(width: 6),
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             label,
-            style: const TextStyle(
-              color: AppColors.muted,
+            style: TextStyle(
+              color: AppColorsExtension.of(context).muted,
               fontSize: 9,
               letterSpacing: .5,
             ),
@@ -1321,9 +1382,9 @@ class _RecentItemCard extends StatelessWidget {
       width: 130,
       // height is constrained by the SizedBox(height: 170) parent
       decoration: BoxDecoration(
-        color: AppColors.card,
+        color: AppColorsExtension.of(context).card,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColorsExtension.of(context).border),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: .3),
@@ -1394,8 +1455,8 @@ class _RecentItemCard extends StatelessWidget {
                   item.name,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: AppColors.text,
+                  style: TextStyle(
+                    color: AppColorsExtension.of(context).text,
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                     letterSpacing: .1,
@@ -1470,17 +1531,17 @@ class _GoldShimmerRowState extends State<_GoldShimmerRow>
               borderRadius: BorderRadius.circular(20),
               gradient: LinearGradient(
                 colors: [
-                  AppColors.surface,
+                  AppColorsExtension.of(context).surface,
                   Color.lerp(
-                    AppColors.surface,
+                    AppColorsExtension.of(context).surface,
                     AppColors.gold.withValues(alpha: .08),
                     _anim.value,
                   )!,
-                  AppColors.surface,
+                  AppColorsExtension.of(context).surface,
                 ],
                 stops: const [0.0, 0.5, 1.0],
               ),
-              border: Border.all(color: AppColors.border),
+              border: Border.all(color: AppColorsExtension.of(context).border),
             ),
           ),
         ),
@@ -1527,17 +1588,17 @@ class _GoldShimmerCardState extends State<_GoldShimmerCard>
         borderRadius: BorderRadius.circular(24),
         gradient: LinearGradient(
           colors: [
-            AppColors.surface,
+            AppColorsExtension.of(context).surface,
             Color.lerp(
-              AppColors.surface,
+              AppColorsExtension.of(context).surface,
               AppColors.gold.withValues(alpha: .08),
               _anim.value,
             )!,
-            AppColors.surface,
+            AppColorsExtension.of(context).surface,
           ],
           stops: const [0.0, 0.5, 1.0],
         ),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColorsExtension.of(context).border),
       ),
     ),
   );
@@ -1553,7 +1614,7 @@ class _EmptyLookbook extends StatelessWidget {
     padding: const EdgeInsets.symmetric(horizontal: 22),
     child: Container(
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: AppColorsExtension.of(context).surface,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: AppColors.gold.withValues(alpha: .15)),
       ),
@@ -1576,8 +1637,8 @@ class _EmptyLookbook extends StatelessWidget {
           const SizedBox(height: 14),
           Text(
             'home.empty_lookbook'.tr(),
-            style: const TextStyle(
-              color: AppColors.textSub,
+            style: TextStyle(
+              color: AppColorsExtension.of(context).textSub,
               fontSize: 13,
               fontWeight: FontWeight.w500,
             ),
@@ -1588,8 +1649,8 @@ class _EmptyLookbook extends StatelessWidget {
             child: Text(
               'home.empty_lookbook_subtitle'.tr(),
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: AppColors.muted,
+              style: TextStyle(
+                color: AppColorsExtension.of(context).muted,
                 fontSize: 11,
                 height: 1.5,
               ),
@@ -1627,7 +1688,7 @@ class _EmptyLookbook extends StatelessWidget {
                   const SizedBox(width: 7),
                   Text(
                     'home.go_to_wardrobe'.tr(),
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: Colors.black,
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
@@ -1652,27 +1713,27 @@ class _EmptyWardrobe extends StatelessWidget {
     child: Container(
       height: 140,
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: AppColorsExtension.of(context).surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColorsExtension.of(context).border),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(
+          Icon(
             Icons.checkroom_outlined,
-            color: AppColors.muted,
+            color: AppColorsExtension.of(context).muted,
             size: 30,
           ),
           const SizedBox(height: 10),
           Text(
             'home.empty_items'.tr(),
-            style: const TextStyle(color: AppColors.muted, fontSize: 13),
+            style: TextStyle(color: AppColorsExtension.of(context).muted, fontSize: 13),
           ),
           const SizedBox(height: 4),
           Text(
             'home.add_to_wardrobe'.tr(),
-            style: const TextStyle(color: AppColors.muted, fontSize: 11),
+            style: TextStyle(color: AppColorsExtension.of(context).muted, fontSize: 11),
           ),
         ],
       ),
@@ -1929,7 +1990,7 @@ class _SectionHeader extends StatelessWidget {
             ),
             child: Text(
               action!,
-              style: const TextStyle(
+              style: TextStyle(
                 color: AppColors.gold,
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
@@ -1957,7 +2018,12 @@ class _DonutSlice {
 class _DoughnutPainter extends CustomPainter {
   final List<_DonutSlice> slices;
   final int total;
-  const _DoughnutPainter({required this.slices, required this.total});
+  final Color trackColor;
+  const _DoughnutPainter({
+    required this.slices,
+    required this.total,
+    required this.trackColor,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -1969,7 +2035,7 @@ class _DoughnutPainter extends CustomPainter {
       center,
       radius,
       Paint()
-        ..color = AppColors.surface
+        ..color = trackColor
         ..style = PaintingStyle.stroke
         ..strokeWidth = sw,
     );
@@ -2061,7 +2127,7 @@ class _WeatherDetailDialog extends StatelessWidget {
                       width: 32,
                       height: 3,
                       decoration: BoxDecoration(
-                        color: AppColors.border,
+                        color: AppColorsExtension.of(context).border,
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
@@ -2100,17 +2166,17 @@ class _WeatherDetailDialog extends StatelessWidget {
                               if (city.isNotEmpty)
                                 Text(
                                   city,
-                                  style: const TextStyle(
-                                    color: AppColors.muted,
+                                  style: TextStyle(
+                                    color: AppColorsExtension.of(context).muted,
                                     fontSize: 10,
                                     letterSpacing: .6,
                                   ),
                                 ),
                               Text(
                                 desc.isNotEmpty ? desc : 'Hava Durumu',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontFamily: 'Cormorant',
-                                  color: AppColors.text,
+                                  color: AppColorsExtension.of(context).text,
                                   fontSize: 18,
                                   fontWeight: FontWeight.w700,
                                   letterSpacing: -.2,
@@ -2121,9 +2187,9 @@ class _WeatherDetailDialog extends StatelessWidget {
                         ),
                         Text(
                           temp,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: 'Cormorant',
-                            color: AppColors.text,
+                            color: AppColorsExtension.of(context).text,
                             fontSize: 42,
                             fontWeight: FontWeight.w700,
                             letterSpacing: -1.5,
@@ -2152,7 +2218,7 @@ class _WeatherDetailDialog extends StatelessWidget {
                         Container(
                           width: 1,
                           height: 48,
-                          color: AppColors.border,
+                          color: AppColorsExtension.of(context).border,
                         ),
                         Expanded(
                           child: _WeatherMetric(
@@ -2164,7 +2230,7 @@ class _WeatherDetailDialog extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 4),
-                    Divider(color: AppColors.border, height: 1),
+                    Divider(color: AppColorsExtension.of(context).border, height: 1),
                     const SizedBox(height: 4),
                     Row(
                       children: [
@@ -2178,7 +2244,7 @@ class _WeatherDetailDialog extends StatelessWidget {
                         Container(
                           width: 1,
                           height: 48,
-                          color: AppColors.border,
+                          color: AppColorsExtension.of(context).border,
                         ),
                         Expanded(
                           child: _WeatherMetric(
@@ -2198,7 +2264,7 @@ class _WeatherDetailDialog extends StatelessWidget {
                     Text(
                       'home.tap_outside_to_close'.tr(),
                       style: TextStyle(
-                        color: AppColors.muted.withValues(alpha: .5),
+                        color: AppColorsExtension.of(context).muted.withValues(alpha: .5),
                         fontSize: 9,
                         letterSpacing: .4,
                       ),
@@ -2247,16 +2313,16 @@ class _WeatherMetric extends StatelessWidget {
           children: [
             Text(
               label,
-              style: const TextStyle(
-                color: AppColors.muted,
+              style: TextStyle(
+                color: AppColorsExtension.of(context).muted,
                 fontSize: 9,
                 letterSpacing: .5,
               ),
             ),
             Text(
               value,
-              style: const TextStyle(
-                color: AppColors.text,
+              style: TextStyle(
+                color: AppColorsExtension.of(context).text,
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
                 letterSpacing: -.2,

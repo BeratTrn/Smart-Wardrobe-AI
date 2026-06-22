@@ -1,4 +1,5 @@
 import 'package:smart_wardrobe_ai/data/models/clothing_item.dart';
+import 'package:smart_wardrobe_ai/data/models/web_product.dart';
 
 /// Backend /api/saved-outfits yanıtındaki tek bir kayıtlı kombini temsil eder.
 /// kiyafetler, backend tarafından populate edilmiş tam ClothingItem nesneleridir.
@@ -9,6 +10,8 @@ class SavedOutfit {
   final String ipucu;
   final WeatherContext? havaDurumu;
   final List<ClothingItem> kiyafetler;
+  // "Web'den öner" ile kaydedilen kombinlerde gardırop dışından seçilen ürünler
+  final List<WebProduct> disUrunler;
   final String kullaniciFoto;
   final DateTime? createdAt;
 
@@ -19,6 +22,7 @@ class SavedOutfit {
     this.ipucu = '',
     this.havaDurumu,
     this.kiyafetler = const [],
+    this.disUrunler = const [],
     this.kullaniciFoto = '',
     this.createdAt,
   });
@@ -34,6 +38,7 @@ class SavedOutfit {
       kiyafetler: ((j['kiyafetler']) as List? ?? [])
           .map((e) => ClothingItem.fromJson(e as Map<String, dynamic>))
           .toList(),
+      disUrunler: WebProduct.listFromJson(j['disUrunler']),
       kullaniciFoto: j['kullaniciFoto'] as String? ?? '',
       createdAt: j['createdAt'] != null
           ? DateTime.tryParse(j['createdAt'] as String)

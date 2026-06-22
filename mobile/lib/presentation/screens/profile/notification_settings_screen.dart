@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_wardrobe_ai/core/constants/api_constants.dart';
 import 'package:smart_wardrobe_ai/core/constants/app_colors.dart';
+import 'package:smart_wardrobe_ai/core/theme/app_theme_extension.dart';
 import 'package:smart_wardrobe_ai/data/services/api_service.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/shared/app_background.dart';
 
@@ -146,7 +147,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
         _travelReminders = prevTravel;
         _weeklyStyle = prevWeekly;
       });
-      _showSnack('notifications.change_could_not_be_saved'.tr(), isError: true);
+      _showSnack('notifications.changes_could_not_be_saved'.tr(), isError: true);
     }
   }
 
@@ -189,7 +190,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(msg),
-        backgroundColor: AppColors.surface,
+        backgroundColor: AppColorsExtension.of(context).surface,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
@@ -208,7 +209,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: AppColorsExtension.of(context).bg,
       body: AppBackground(
         child: SafeArea(
           child: FadeTransition(
@@ -258,7 +259,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
               fontFamily: 'Cormorant',
               fontSize: 22,
               fontWeight: FontWeight.w700,
-              color: AppColors.text,
+              color: AppColorsExtension.of(context).text,
               letterSpacing: -.3,
             ),
           ),
@@ -324,7 +325,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                       fontFamily: 'Cormorant',
                       fontSize: 17,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.text,
+                      color: AppColorsExtension.of(context).text,
                     ),
                   ),
                   SizedBox(height: 3),
@@ -332,7 +333,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                     'notifications.personalized_recommendations_based_on_your_real_wardrobe_and_weather'
                         .tr(),
                     style: TextStyle(
-                      color: AppColors.muted,
+                      color: AppColorsExtension.of(context).muted,
                       fontSize: 11,
                       height: 1.5,
                     ),
@@ -400,24 +401,24 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
           const SizedBox(height: 10),
           Container(
             decoration: BoxDecoration(
-              color: AppColors.surface,
+              color: AppColorsExtension.of(context).surface,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.border),
+              border: Border.all(color: AppColorsExtension.of(context).border),
             ),
             padding: const EdgeInsets.fromLTRB(16, 4, 8, 4),
             child: Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.location_city_outlined,
-                  color: AppColors.muted,
+                  color: AppColorsExtension.of(context).muted,
                   size: 20,
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: TextField(
                     controller: _cityCtrl,
-                    style: const TextStyle(
-                      color: AppColors.text,
+                    style: TextStyle(
+                      color: AppColorsExtension.of(context).text,
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),
@@ -425,7 +426,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                       border: InputBorder.none,
                       hintText: 'notifications.e_g_istanbul_ankara'.tr(),
                       hintStyle: TextStyle(
-                        color: AppColors.muted,
+                        color: AppColorsExtension.of(context).muted,
                         fontSize: 13,
                       ),
                       isDense: true,
@@ -478,7 +479,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
             child: Text(
               'notifications.morning_weather_notifications_are_sent_according_to_this_city'
                   .tr(),
-              style: TextStyle(color: AppColors.muted, fontSize: 11),
+              style: TextStyle(color: AppColorsExtension.of(context).muted, fontSize: 11),
             ),
           ),
         ],
@@ -496,8 +497,8 @@ class _SectionLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Text(
     label,
-    style: const TextStyle(
-      color: AppColors.muted,
+    style: TextStyle(
+      color: AppColorsExtension.of(context).muted,
       fontSize: 10,
       fontWeight: FontWeight.w600,
       letterSpacing: 1.2,
@@ -530,12 +531,12 @@ class _NotifTile extends StatelessWidget {
       decoration: BoxDecoration(
         color: value
             ? AppColors.gold.withValues(alpha: .06)
-            : AppColors.surface,
+            : AppColorsExtension.of(context).surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: value
               ? AppColors.gold.withValues(alpha: .35)
-              : AppColors.border,
+              : AppColorsExtension.of(context).border,
           width: value ? 1.0 : .8,
         ),
       ),
@@ -548,17 +549,17 @@ class _NotifTile extends StatelessWidget {
             decoration: BoxDecoration(
               color: value
                   ? AppColors.gold.withValues(alpha: .15)
-                  : AppColors.bg,
+                  : AppColorsExtension.of(context).bg,
               borderRadius: BorderRadius.circular(11),
               border: Border.all(
                 color: value
                     ? AppColors.gold.withValues(alpha: .35)
-                    : AppColors.border,
+                    : AppColorsExtension.of(context).border,
               ),
             ),
             child: Icon(
               icon,
-              color: value ? AppColors.goldLight : AppColors.muted,
+              color: value ? AppColors.goldLight : AppColorsExtension.of(context).muted,
               size: 18,
             ),
           ),
@@ -574,7 +575,7 @@ class _NotifTile extends StatelessWidget {
                     Text(
                       title,
                       style: TextStyle(
-                        color: value ? AppColors.text : AppColors.muted,
+                        color: value ? AppColorsExtension.of(context).text : AppColorsExtension.of(context).muted,
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                       ),
@@ -594,7 +595,7 @@ class _NotifTile extends StatelessWidget {
                         ),
                         child: Text(
                           badge!,
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: Colors.black,
                             fontSize: 9,
                             fontWeight: FontWeight.w800,
@@ -608,8 +609,8 @@ class _NotifTile extends StatelessWidget {
                 const SizedBox(height: 3),
                 Text(
                   subtitle,
-                  style: const TextStyle(
-                    color: AppColors.muted,
+                  style: TextStyle(
+                    color: AppColorsExtension.of(context).muted,
                     fontSize: 11,
                     height: 1.4,
                   ),
@@ -625,8 +626,8 @@ class _NotifTile extends StatelessWidget {
             onChanged: onChanged,
             activeThumbColor: AppColors.gold,
             activeTrackColor: AppColors.gold.withValues(alpha: .3),
-            inactiveThumbColor: AppColors.muted,
-            inactiveTrackColor: AppColors.border,
+            inactiveThumbColor: AppColorsExtension.of(context).muted,
+            inactiveTrackColor: AppColorsExtension.of(context).border,
             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
         ],
@@ -647,11 +648,11 @@ class _GlassButton extends StatelessWidget {
       width: 38,
       height: 38,
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: AppColorsExtension.of(context).surface,
         borderRadius: BorderRadius.circular(11),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColorsExtension.of(context).border),
       ),
-      child: Icon(icon, color: AppColors.muted, size: 17),
+      child: Icon(icon, color: AppColorsExtension.of(context).muted, size: 17),
     ),
   );
 }

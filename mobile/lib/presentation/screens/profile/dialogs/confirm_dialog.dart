@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:smart_wardrobe_ai/core/constants/app_colors.dart';
+import 'package:smart_wardrobe_ai/core/theme/app_theme_extension.dart';
 
 /// Standart onay / iptal iletişim kutusu
 class ProfileConfirmDialog extends StatelessWidget {
@@ -19,7 +20,7 @@ class ProfileConfirmDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Dialog(
-    backgroundColor: AppColors.card,
+    backgroundColor: AppColorsExtension.of(context).card,
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
     child: Padding(
       padding: const EdgeInsets.all(24),
@@ -48,11 +49,11 @@ class ProfileConfirmDialog extends StatelessWidget {
           // Başlık
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Cormorant',
               fontSize: 22,
               fontWeight: FontWeight.w700,
-              color: AppColors.text,
+              color: AppColorsExtension.of(context).text,
             ),
           ),
           const SizedBox(height: 8),
@@ -60,8 +61,8 @@ class ProfileConfirmDialog extends StatelessWidget {
           Text(
             body,
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: AppColors.textSub,
+            style: TextStyle(
+              color: AppColorsExtension.of(context).textSub,
               fontSize: 13,
               height: 1.5,
             ),
@@ -76,15 +77,15 @@ class ProfileConfirmDialog extends StatelessWidget {
                   child: Container(
                     height: 46,
                     decoration: BoxDecoration(
-                      color: AppColors.surface,
+                      color: AppColorsExtension.of(context).surface,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.border),
+                      border: Border.all(color: AppColorsExtension.of(context).border),
                     ),
                     child: Center(
                       child: Text(
                         'confirm.cancel'.tr(),
                         style: TextStyle(
-                          color: AppColors.textSub,
+                          color: AppColorsExtension.of(context).textSub,
                           fontSize: 14,
                         ),
                       ),

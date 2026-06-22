@@ -120,7 +120,7 @@ class _FavoritesScreenState extends State<FavoritesScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: AppColorsExtension.of(context).bg,
       extendBody: true,
       bottomNavigationBar: AppBottomNav(currentIndex: 1, onTap: _onNavTap),
       body: AppBackground(
@@ -186,7 +186,7 @@ class _FavoritesScreenState extends State<FavoritesScreen>
                       ? const _EmptyFavorites()
                       : RefreshIndicator(
                           color: AppColors.gold,
-                          backgroundColor: AppColors.surface,
+                          backgroundColor: AppColorsExtension.of(context).surface,
                           onRefresh: _fetch,
                           child: _viewMode == 'grid'
                               ? _GridFavorites(
@@ -216,9 +216,9 @@ class _ViewToggle extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
     decoration: BoxDecoration(
-      color: AppColors.surface,
+      color: AppColorsExtension.of(context).surface,
       borderRadius: BorderRadius.circular(12),
-      border: Border.all(color: AppColors.border),
+      border: Border.all(color: AppColorsExtension.of(context).border),
     ),
     child: Row(
       children: [
@@ -260,7 +260,7 @@ class _ToggleBtn extends StatelessWidget {
       ),
       child: Icon(
         icon,
-        color: active ? Colors.black : AppColors.muted,
+        color: active ? Colors.black : AppColorsExtension.of(context).muted,
         size: 18,
       ),
     ),
@@ -310,7 +310,7 @@ class _GridFavorites extends StatelessWidget {
                 width: 30,
                 height: 30,
                 decoration: BoxDecoration(
-                  color: AppColors.bg.withValues(alpha: .75),
+                  color: AppColorsExtension.of(context).bg.withValues(alpha: .75),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -342,9 +342,9 @@ class _ListFavorites extends StatelessWidget {
       return Container(
         margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
-          color: AppColors.card,
+          color: AppColorsExtension.of(context).card,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: AppColorsExtension.of(context).border),
         ),
         child: Row(
           children: [
@@ -383,8 +383,8 @@ class _ListFavorites extends StatelessWidget {
                 children: [
                   Text(
                     item.name,
-                    style: const TextStyle(
-                      color: AppColors.text,
+                    style: TextStyle(
+                      color: AppColorsExtension.of(context).text,
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),
@@ -440,25 +440,25 @@ class _EmptyFavorites extends StatelessWidget {
           width: 76,
           height: 76,
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: AppColorsExtension.of(context).surface,
             shape: BoxShape.circle,
-            border: Border.all(color: AppColors.border),
+            border: Border.all(color: AppColorsExtension.of(context).border),
           ),
-          child: const Icon(
+          child: Icon(
             Icons.favorite_border_rounded,
-            color: AppColors.muted,
+            color: AppColorsExtension.of(context).muted,
             size: 32,
           ),
         ),
         const SizedBox(height: 14),
         Text(
           'favorites.empty_title'.tr(),
-          style: TextStyle(color: AppColors.textSub, fontSize: 15),
+          style: TextStyle(color: AppColorsExtension.of(context).textSub, fontSize: 15),
         ),
         const SizedBox(height: 5),
         Text(
           'favorites.empty_body'.tr(),
-          style: TextStyle(color: AppColors.muted, fontSize: 13),
+          style: TextStyle(color: AppColorsExtension.of(context).muted, fontSize: 13),
         ),
       ],
     ),

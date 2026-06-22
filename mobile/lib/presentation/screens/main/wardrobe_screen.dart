@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_wardrobe_ai/core/constants/api_constants.dart';
 import 'package:smart_wardrobe_ai/core/constants/app_colors.dart';
+import 'package:smart_wardrobe_ai/core/theme/app_theme_extension.dart';
 import 'package:smart_wardrobe_ai/core/utils/nav_transitions.dart';
 import 'package:smart_wardrobe_ai/data/models/clothing_item.dart';
 import 'package:smart_wardrobe_ai/presentation/screens/ai_features/outfit_generator_screen.dart';
@@ -157,7 +158,7 @@ class _WardrobeScreenState extends State<WardrobeScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: AppColorsExtension.of(context).bg,
       extendBody: true,
       bottomNavigationBar: AppBottomNav(currentIndex: 4, onTap: _onNavTap),
       body: AppBackground(
@@ -188,7 +189,7 @@ class _WardrobeScreenState extends State<WardrobeScreen>
                               fontFamily: 'Cormorant',
                               fontSize: 30,
                               fontWeight: FontWeight.w700,
-                              color: AppColors.text,
+                              color: AppColorsExtension.of(context).text,
                             ),
                           ),
                         ],
@@ -271,7 +272,7 @@ class _WardrobeScreenState extends State<WardrobeScreen>
                       ? _EmptyState(filter: _activeFilter)
                       : RefreshIndicator(
                           color: AppColors.gold,
-                          backgroundColor: AppColors.surface,
+                          backgroundColor: AppColorsExtension.of(context).surface,
                           onRefresh: _fetch,
                           child: GridView.builder(
                             padding: const EdgeInsets.fromLTRB(22, 0, 22, 100),
@@ -353,13 +354,13 @@ class _EmptyState extends StatelessWidget {
           width: 70,
           height: 70,
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: AppColorsExtension.of(context).surface,
             shape: BoxShape.circle,
-            border: Border.all(color: AppColors.border),
+            border: Border.all(color: AppColorsExtension.of(context).border),
           ),
-          child: const Icon(
+          child: Icon(
             Icons.checkroom_outlined,
-            color: AppColors.muted,
+            color: AppColorsExtension.of(context).muted,
             size: 30,
           ),
         ),
@@ -368,12 +369,12 @@ class _EmptyState extends StatelessWidget {
           filter == 'wardrobe.all'.tr()
               ? 'wardrobe.empty_wardrobe'.tr()
               : '"$filter" ' + 'wardrobe.empty_category'.tr(),
-          style: const TextStyle(color: AppColors.textSub, fontSize: 14),
+          style: TextStyle(color: AppColorsExtension.of(context).textSub, fontSize: 14),
         ),
         const SizedBox(height: 5),
         Text(
           'wardrobe.add_garment_prompt'.tr(),
-          style: TextStyle(color: AppColors.muted, fontSize: 12),
+          style: TextStyle(color: AppColorsExtension.of(context).muted, fontSize: 12),
         ),
       ],
     ),
@@ -387,7 +388,7 @@ class _DeleteDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Dialog(
-    backgroundColor: AppColors.card,
+    backgroundColor: AppColorsExtension.of(context).card,
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
     child: Padding(
       padding: const EdgeInsets.all(24),
@@ -414,15 +415,15 @@ class _DeleteDialog extends StatelessWidget {
               fontFamily: 'Cormorant',
               fontSize: 22,
               fontWeight: FontWeight.w700,
-              color: AppColors.text,
+              color: AppColorsExtension.of(context).text,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             '"$name" ' + 'wardrobe.delete_garment_confirm'.tr(),
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: AppColors.textSub,
+            style: TextStyle(
+              color: AppColorsExtension.of(context).textSub,
               fontSize: 14,
               height: 1.4,
             ),
@@ -436,14 +437,14 @@ class _DeleteDialog extends StatelessWidget {
                   child: Container(
                     height: 46,
                     decoration: BoxDecoration(
-                      color: AppColors.surface,
+                      color: AppColorsExtension.of(context).surface,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.border),
+                      border: Border.all(color: AppColorsExtension.of(context).border),
                     ),
                     child: Center(
                       child: Text(
                         'wardrobe.cancel'.tr(),
-                        style: TextStyle(color: AppColors.textSub),
+                        style: TextStyle(color: AppColorsExtension.of(context).textSub),
                       ),
                     ),
                   ),

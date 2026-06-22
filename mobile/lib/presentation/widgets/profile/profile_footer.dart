@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:smart_wardrobe_ai/core/constants/app_colors.dart';
+import 'package:smart_wardrobe_ai/core/theme/app_theme_extension.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/shared/app_text_styles.dart';
 
 /// Sayfanın alt kısmındaki logo + versiyon footer'ı
@@ -34,19 +35,19 @@ class ProfileFooter extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 10),
-          const Text(
+          Text(
             'Smart Wardrobe AI',
             style: TextStyle(
               fontFamily: 'Cormorant',
               fontSize: 15,
               fontWeight: FontWeight.w600,
-              color: AppColors.textSub,
+              color: AppColorsExtension.of(context).textSub,
             ),
           ),
           const SizedBox(height: 3),
           Text(
             'v1.0.0',
-            style: AppTextStyles.caption.copyWith(fontSize: 11, color: AppColors.muted),
+            style: AppTextStyles.caption.copyWith(fontSize: 11, color: AppColorsExtension.of(context).muted),
           ),
         ],
       ),

@@ -18,6 +18,7 @@ import 'package:smart_wardrobe_ai/presentation/screens/item/add_item_screen.dart
 import 'package:smart_wardrobe_ai/presentation/screens/main/favorites_screen.dart';
 import 'package:smart_wardrobe_ai/presentation/screens/main/home_screen.dart';
 import 'package:smart_wardrobe_ai/presentation/screens/main/wardrobe_screen.dart';
+import 'package:smart_wardrobe_ai/presentation/widgets/outfits/web_product_card.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/shared/app_background.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/shared/app_bottom_nav.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/shared/app_text_styles.dart';
@@ -129,7 +130,7 @@ class _SavedOutfitsScreenState extends State<SavedOutfitsScreen>
   void _confirmDeleteSuitcase(BuildContext ctx, TravelSuitcase suitcase) {
     showModalBottomSheet(
       context: ctx,
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppColorsExtension.of(context).surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -144,7 +145,7 @@ class _SavedOutfitsScreenState extends State<SavedOutfitsScreen>
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: AppColors.border,
+                  color: AppColorsExtension.of(context).border,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -156,14 +157,14 @@ class _SavedOutfitsScreenState extends State<SavedOutfitsScreen>
                 fontFamily: 'Cormorant',
                 fontSize: 22,
                 fontWeight: FontWeight.w700,
-                color: AppColors.text,
+                color: AppColorsExtension.of(context).text,
               ),
             ),
             const SizedBox(height: 6),
             Text(
               '"${suitcase.sehir}" ' + 'saved_outfits.delete_bag_confirm'.tr(),
-              style: const TextStyle(
-                color: AppColors.textSub,
+              style: TextStyle(
+                color: AppColorsExtension.of(context).textSub,
                 fontSize: 13,
                 height: 1.5,
               ),
@@ -177,15 +178,15 @@ class _SavedOutfitsScreenState extends State<SavedOutfitsScreen>
                     child: Container(
                       height: 48,
                       decoration: BoxDecoration(
-                        color: AppColors.bg,
+                        color: AppColorsExtension.of(context).bg,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.border),
+                        border: Border.all(color: AppColorsExtension.of(context).border),
                       ),
                       child: Center(
                         child: Text(
                           'saved_outfits.cancel'.tr(),
                           style: TextStyle(
-                            color: AppColors.textSub,
+                            color: AppColorsExtension.of(context).textSub,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -232,7 +233,7 @@ class _SavedOutfitsScreenState extends State<SavedOutfitsScreen>
   void _confirmDelete(BuildContext ctx, SavedOutfit outfit) {
     showModalBottomSheet(
       context: ctx,
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppColorsExtension.of(context).surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -247,7 +248,7 @@ class _SavedOutfitsScreenState extends State<SavedOutfitsScreen>
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: AppColors.border,
+                  color: AppColorsExtension.of(context).border,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -259,15 +260,15 @@ class _SavedOutfitsScreenState extends State<SavedOutfitsScreen>
                 fontFamily: 'Cormorant',
                 fontSize: 22,
                 fontWeight: FontWeight.w700,
-                color: AppColors.text,
+                color: AppColorsExtension.of(context).text,
               ),
             ),
             const SizedBox(height: 6),
             Text(
               '"${outfit.baslik}" ' +
                   'saved_outfits.delete_outfit_confirm'.tr(),
-              style: const TextStyle(
-                color: AppColors.textSub,
+              style: TextStyle(
+                color: AppColorsExtension.of(context).textSub,
                 fontSize: 13,
                 height: 1.5,
               ),
@@ -281,15 +282,15 @@ class _SavedOutfitsScreenState extends State<SavedOutfitsScreen>
                     child: Container(
                       height: 48,
                       decoration: BoxDecoration(
-                        color: AppColors.bg,
+                        color: AppColorsExtension.of(context).bg,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.border),
+                        border: Border.all(color: AppColorsExtension.of(context).border),
                       ),
                       child: Center(
                         child: Text(
                           'saved_outfits.cancel'.tr(),
                           style: TextStyle(
-                            color: AppColors.textSub,
+                            color: AppColorsExtension.of(context).textSub,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -347,9 +348,9 @@ class _SavedOutfitsScreenState extends State<SavedOutfitsScreen>
                 '${suitcase.sehir} ' +
                     'saved_outfits.outfit_bag_ready'.tr() +
                     ' 🧳',
-                style: const TextStyle(color: AppColors.text),
+                style: TextStyle(color: AppColorsExtension.of(context).text),
               ),
-              backgroundColor: AppColors.surface,
+              backgroundColor: AppColorsExtension.of(context).surface,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -365,7 +366,7 @@ class _SavedOutfitsScreenState extends State<SavedOutfitsScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: AppColorsExtension.of(context).bg,
       extendBody: true,
       bottomNavigationBar: AppBottomNav(currentIndex: 3, onTap: _onNavTap),
       body: AppBackground(
@@ -475,13 +476,13 @@ class _SavedOutfitsScreenState extends State<SavedOutfitsScreen>
                       indicatorSize: TabBarIndicatorSize.tab,
                       dividerColor: Colors.transparent,
                       labelColor: Colors.black,
-                      unselectedLabelColor: AppColors.muted,
-                      labelStyle: const TextStyle(
+                      unselectedLabelColor: AppColorsExtension.of(context).muted,
+                      labelStyle: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
                         letterSpacing: .1,
                       ),
-                      unselectedLabelStyle: const TextStyle(
+                      unselectedLabelStyle: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w500,
                       ),
@@ -711,7 +712,7 @@ class _TravelBannerCard extends StatelessWidget {
                         fontFamily: 'Cormorant',
                         fontSize: 26,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.text,
+                        color: AppColorsExtension.of(context).text,
                         letterSpacing: -.3,
                         height: 1.2,
                       ),
@@ -723,7 +724,7 @@ class _TravelBannerCard extends StatelessWidget {
                       'saved_outfits.choose_destination_and_date'.tr() +
                           'saved_outfits.prepare_capsule_wardrobe'.tr(),
                       style: TextStyle(
-                        color: AppColors.textSub,
+                        color: AppColorsExtension.of(context).textSub,
                         fontSize: 13,
                         height: 1.65,
                         letterSpacing: .1,
@@ -849,7 +850,7 @@ class _TravelPlanSheetState extends State<_TravelPlanSheet> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('saved_outfits.please_enter_destination_and_date'.tr()),
-          backgroundColor: AppColors.surface,
+          backgroundColor: AppColorsExtension.of(context).surface,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -876,9 +877,9 @@ class _TravelPlanSheetState extends State<_TravelPlanSheet> {
         SnackBar(
           content: Text(
             e.toString().replaceFirst('Exception: ', ''),
-            style: const TextStyle(color: AppColors.text),
+            style: TextStyle(color: AppColorsExtension.of(context).text),
           ),
-          backgroundColor: AppColors.surface,
+          backgroundColor: AppColorsExtension.of(context).surface,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -921,7 +922,7 @@ class _TravelPlanSheetState extends State<_TravelPlanSheet> {
                       width: 40,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: AppColors.border,
+                        color: AppColorsExtension.of(context).border,
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
@@ -974,7 +975,7 @@ class _TravelPlanSheetState extends State<_TravelPlanSheet> {
                               fontFamily: 'Cormorant',
                               fontSize: 22,
                               fontWeight: FontWeight.w700,
-                              color: AppColors.text,
+                              color: AppColorsExtension.of(context).text,
                               letterSpacing: -.2,
                             ),
                           ),
@@ -991,20 +992,20 @@ class _TravelPlanSheetState extends State<_TravelPlanSheet> {
                     style: AppTextStyles.label.copyWith(
                       fontSize: 9,
                       letterSpacing: 1.5,
-                      color: AppColors.muted,
+                      color: AppColorsExtension.of(context).muted,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Container(
                     decoration: BoxDecoration(
-                      color: AppColors.surface,
+                      color: AppColorsExtension.of(context).surface,
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: AppColors.border),
+                      border: Border.all(color: AppColorsExtension.of(context).border),
                     ),
                     child: TextField(
                       controller: _cityCtrl,
-                      style: const TextStyle(
-                        color: AppColors.text,
+                      style: TextStyle(
+                        color: AppColorsExtension.of(context).text,
                         fontSize: 15,
                         fontWeight: FontWeight.w500,
                       ),
@@ -1014,7 +1015,7 @@ class _TravelPlanSheetState extends State<_TravelPlanSheet> {
                         hintText: 'saved_outfits.destination_city_placeholder'
                             .tr(),
                         hintStyle: TextStyle(
-                          color: AppColors.muted.withValues(alpha: .6),
+                          color: AppColorsExtension.of(context).muted.withValues(alpha: .6),
                           fontSize: 14,
                         ),
                         prefixIcon: const Icon(
@@ -1039,7 +1040,7 @@ class _TravelPlanSheetState extends State<_TravelPlanSheet> {
                     style: AppTextStyles.label.copyWith(
                       fontSize: 9,
                       letterSpacing: 1.5,
-                      color: AppColors.muted,
+                      color: AppColorsExtension.of(context).muted,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -1052,12 +1053,12 @@ class _TravelPlanSheetState extends State<_TravelPlanSheet> {
                         vertical: 15,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.surface,
+                        color: AppColorsExtension.of(context).surface,
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
                           color: _dateRange != null
                               ? AppColors.gold.withValues(alpha: .45)
-                              : AppColors.border,
+                              : AppColorsExtension.of(context).border,
                         ),
                       ),
                       child: Row(
@@ -1066,7 +1067,7 @@ class _TravelPlanSheetState extends State<_TravelPlanSheet> {
                             Icons.date_range_rounded,
                             color: _dateRange != null
                                 ? AppColors.gold
-                                : AppColors.muted,
+                                : AppColorsExtension.of(context).muted,
                             size: 20,
                           ),
                           const SizedBox(width: 12),
@@ -1075,8 +1076,8 @@ class _TravelPlanSheetState extends State<_TravelPlanSheet> {
                               _dateLabel,
                               style: TextStyle(
                                 color: _dateRange != null
-                                    ? AppColors.text
-                                    : AppColors.muted.withValues(alpha: .6),
+                                    ? AppColorsExtension.of(context).text
+                                    : AppColorsExtension.of(context).muted.withValues(alpha: .6),
                                 fontSize: _dateRange != null ? 15 : 14,
                                 fontWeight: _dateRange != null
                                     ? FontWeight.w600
@@ -1107,7 +1108,7 @@ class _TravelPlanSheetState extends State<_TravelPlanSheet> {
                           else
                             Icon(
                               Icons.chevron_right_rounded,
-                              color: AppColors.muted.withValues(alpha: .5),
+                              color: AppColorsExtension.of(context).muted.withValues(alpha: .5),
                               size: 18,
                             ),
                         ],
@@ -1229,7 +1230,7 @@ class _LoadingSpinner extends StatelessWidget {
           Text(
             'saved_outfits.outfits_loading'.tr(),
             style: TextStyle(
-              color: AppColors.textSub,
+              color: AppColorsExtension.of(context).textSub,
               fontSize: 13,
               letterSpacing: .3,
             ),
@@ -1276,7 +1277,7 @@ class _EmptyState extends StatelessWidget {
                 fontFamily: 'Cormorant',
                 fontSize: 24,
                 fontWeight: FontWeight.w700,
-                color: AppColors.text,
+                color: AppColorsExtension.of(context).text,
               ),
             ),
 
@@ -1286,7 +1287,7 @@ class _EmptyState extends StatelessWidget {
               'saved_outfits.empty_closet_message'.tr(),
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: AppColors.textSub,
+                color: AppColorsExtension.of(context).textSub,
                 fontSize: 13,
                 height: 1.6,
               ),
@@ -1371,9 +1372,9 @@ class _OutfitCardState extends State<_OutfitCard> {
         filter: ui.ImageFilter.blur(sigmaX: 0, sigmaY: 0),
         child: Container(
           decoration: BoxDecoration(
-            color: AppColors.card,
+            color: AppColorsExtension.of(context).card,
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: AppColors.border),
+            border: Border.all(color: AppColorsExtension.of(context).border),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1433,8 +1434,8 @@ class _OutfitCardState extends State<_OutfitCard> {
                                     overflow: _isExpanded
                                         ? TextOverflow.visible
                                         : TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      color: AppColors.textSub,
+                                    style: TextStyle(
+                                      color: AppColorsExtension.of(context).textSub,
                                       fontSize: 12,
                                       height: 1.55,
                                       fontStyle: FontStyle.italic,
@@ -1473,7 +1474,7 @@ class _OutfitCardState extends State<_OutfitCard> {
                                         Expanded(
                                           child: Text(
                                             widget.outfit.ipucu,
-                                            style: const TextStyle(
+                                            style: TextStyle(
                                               color: AppColors.gold,
                                               fontSize: 11,
                                               height: 1.45,
@@ -1502,7 +1503,7 @@ class _OutfitCardState extends State<_OutfitCard> {
                                           widget.outfit.ipucu,
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             color: AppColors.gold,
                                             fontSize: 11,
                                             fontStyle: FontStyle.italic,
@@ -1589,6 +1590,13 @@ class _OutfitCardState extends State<_OutfitCard> {
                   ],
                 ),
               ),
+
+              // Web'den önerilen ürünler (varsa)
+              if (widget.outfit.disUrunler.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+                  child: WebProductsSection(products: widget.outfit.disUrunler),
+                ),
             ],
           ),
         ),
@@ -1603,31 +1611,36 @@ class _ItemStrip extends StatelessWidget {
   final List<ClothingItem> items;
   const _ItemStrip({required this.items});
 
+  // Sabit küçük boy — kıyafet sayısı az olsa da (örn. 1 parça) şeridin
+  // tüm kart genişliğine gerilip orantısız büyümesini önler.
+  static const double _tileWidth = 64;
+  static const double _tileHeight = 78;
+
   @override
   Widget build(BuildContext context) {
     final shown = items.take(4).toList();
     final extra = items.length - shown.length;
 
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
         ...shown.map(
-          (item) => Expanded(
-            child: Padding(
-              padding: const EdgeInsets.only(right: 6),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: AspectRatio(
-                  aspectRatio: .82,
-                  child: item.imageUrl != null
-                      ? Image.network(
-                          item.imageUrl!,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => _Placeholder(),
-                          loadingBuilder: (_, child, progress) =>
-                              progress == null ? child : _Placeholder(),
-                        )
-                      : _Placeholder(),
-                ),
+          (item) => Padding(
+            padding: const EdgeInsets.only(right: 6),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: SizedBox(
+                width: _tileWidth,
+                height: _tileHeight,
+                child: item.imageUrl != null
+                    ? Image.network(
+                        item.imageUrl!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => _Placeholder(),
+                        loadingBuilder: (_, child, progress) =>
+                            progress == null ? child : _Placeholder(),
+                      )
+                    : _Placeholder(),
               ),
             ),
           ),
@@ -1636,17 +1649,17 @@ class _ItemStrip extends StatelessWidget {
         if (extra > 0)
           Container(
             width: 40,
-            height: 48,
+            height: _tileHeight,
             decoration: BoxDecoration(
-              color: AppColors.surface,
+              color: AppColorsExtension.of(context).surface,
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: AppColors.border),
+              border: Border.all(color: AppColorsExtension.of(context).border),
             ),
             child: Center(
               child: Text(
                 '+$extra',
-                style: const TextStyle(
-                  color: AppColors.muted,
+                style: TextStyle(
+                  color: AppColorsExtension.of(context).muted,
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                 ),
@@ -1661,10 +1674,10 @@ class _ItemStrip extends StatelessWidget {
 class _Placeholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
-    color: AppColors.surface,
-    child: const Icon(
+    color: AppColorsExtension.of(context).surface,
+    child: Icon(
       Icons.checkroom_outlined,
-      color: AppColors.muted,
+      color: AppColorsExtension.of(context).muted,
       size: 20,
     ),
   );
@@ -1726,9 +1739,9 @@ class _SuitcaseCardState extends State<_SuitcaseCard> {
       borderRadius: BorderRadius.circular(18),
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.card,
+          color: AppColorsExtension.of(context).card,
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: AppColorsExtension.of(context).border),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1755,27 +1768,27 @@ class _SuitcaseCardState extends State<_SuitcaseCard> {
                       children: [
                         Text(
                           s.sehir.toUpperCase(),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: 'Cormorant',
                             fontSize: 22,
                             fontWeight: FontWeight.w700,
-                            color: AppColors.text,
+                            color: AppColorsExtension.of(context).text,
                             letterSpacing: -.3,
                           ),
                         ),
                         const SizedBox(height: 3),
                         Row(
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.date_range_rounded,
-                              color: AppColors.muted,
+                              color: AppColorsExtension.of(context).muted,
                               size: 12,
                             ),
                             const SizedBox(width: 4),
                             Text(
                               dateLabel,
-                              style: const TextStyle(
-                                color: AppColors.textSub,
+                              style: TextStyle(
+                                color: AppColorsExtension.of(context).textSub,
                                 fontSize: 12,
                                 letterSpacing: .1,
                               ),
@@ -1814,9 +1827,9 @@ class _SuitcaseCardState extends State<_SuitcaseCard> {
                             vertical: 6,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.surface,
+                            color: AppColorsExtension.of(context).surface,
                             borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: AppColors.border),
+                            border: Border.all(color: AppColorsExtension.of(context).border),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -1824,8 +1837,8 @@ class _SuitcaseCardState extends State<_SuitcaseCard> {
                               if (s.havaSicakligi != null)
                                 Text(
                                   '${s.havaSicakligi!.round()}°C',
-                                  style: const TextStyle(
-                                    color: AppColors.text,
+                                  style: TextStyle(
+                                    color: AppColorsExtension.of(context).text,
                                     fontSize: 13,
                                     fontWeight: FontWeight.w700,
                                   ),
@@ -1834,8 +1847,8 @@ class _SuitcaseCardState extends State<_SuitcaseCard> {
                                 const SizedBox(width: 6),
                               Text(
                                 s.havaDurumuOzeti,
-                                style: const TextStyle(
-                                  color: AppColors.textSub,
+                                style: TextStyle(
+                                  color: AppColorsExtension.of(context).textSub,
                                   fontSize: 11,
                                 ),
                               ),
@@ -1847,7 +1860,7 @@ class _SuitcaseCardState extends State<_SuitcaseCard> {
                           Text(
                             'saved_outfits.estimated_weather'.tr(),
                             style: TextStyle(
-                              color: AppColors.muted.withValues(alpha: .6),
+                              color: AppColorsExtension.of(context).muted.withValues(alpha: .6),
                               fontSize: 9,
                               letterSpacing: .3,
                             ),
@@ -1904,8 +1917,8 @@ class _SuitcaseCardState extends State<_SuitcaseCard> {
                         overflow: _isExpanded
                             ? TextOverflow.visible
                             : TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: AppColors.textSub,
+                        style: TextStyle(
+                          color: AppColorsExtension.of(context).textSub,
                           fontSize: 12,
                           height: 1.55,
                           fontStyle: FontStyle.italic,
@@ -1938,7 +1951,7 @@ class _SuitcaseCardState extends State<_SuitcaseCard> {
                             Expanded(
                               child: Text(
                                 s.aiIpucu,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: AppColors.gold,
                                   fontSize: 11,
                                   height: 1.45,
@@ -1964,7 +1977,7 @@ class _SuitcaseCardState extends State<_SuitcaseCard> {
                               s.aiIpucu,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: AppColors.gold,
                                 fontSize: 11,
                                 fontStyle: FontStyle.italic,
@@ -2126,7 +2139,7 @@ class _DateRangePickerDialogState extends State<_DateRangePickerDialog> {
                           Text(
                             'saved_outfits.travel_dates'.tr(),
                             style: TextStyle(
-                              color: AppColors.muted,
+                              color: AppColorsExtension.of(context).muted,
                               fontSize: 9,
                               fontWeight: FontWeight.w600,
                               letterSpacing: 1.4,
@@ -2139,7 +2152,7 @@ class _DateRangePickerDialogState extends State<_DateRangePickerDialog> {
                               fontFamily: 'Cormorant',
                               fontSize: 19,
                               fontWeight: FontWeight.w700,
-                              color: AppColors.text,
+                              color: AppColorsExtension.of(context).text,
                               letterSpacing: -.2,
                             ),
                           ),
@@ -2152,13 +2165,13 @@ class _DateRangePickerDialogState extends State<_DateRangePickerDialog> {
                           width: 30,
                           height: 30,
                           decoration: BoxDecoration(
-                            color: AppColors.surface,
+                            color: AppColorsExtension.of(context).surface,
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: AppColors.border),
+                            border: Border.all(color: AppColorsExtension.of(context).border),
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.close_rounded,
-                            color: AppColors.muted,
+                            color: AppColorsExtension.of(context).muted,
                             size: 15,
                           ),
                         ),
@@ -2167,7 +2180,8 @@ class _DateRangePickerDialogState extends State<_DateRangePickerDialog> {
                   ),
                 ),
 
-                // Calendar
+                // Calendar — bilerek her zaman dark stil (sabit AppColors), uygulama
+                // temasından bağımsız; çünkü surface de sabit koyu (0xFF111111).
                 Theme(
                   data: ThemeData.dark().copyWith(
                     colorScheme: const ColorScheme.dark(
@@ -2264,7 +2278,7 @@ class _DateRangePickerDialogState extends State<_DateRangePickerDialog> {
                           const SizedBox(width: 6),
                           Text(
                             '${DateFormat('d MMM', 'tr_TR').format(_value[0]!)}  →  ${DateFormat('d MMM', 'tr_TR').format(_value[1]!)}',
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: AppColors.gold,
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
@@ -2284,7 +2298,7 @@ class _DateRangePickerDialogState extends State<_DateRangePickerDialog> {
                             child: Text(
                               '${_value[1]!.difference(_value[0]!).inDays} ' +
                                   'saved_outfits.days'.tr(),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: AppColors.goldLight,
                                 fontSize: 10,
                                 fontWeight: FontWeight.w700,
@@ -2307,15 +2321,15 @@ class _DateRangePickerDialogState extends State<_DateRangePickerDialog> {
                           child: Container(
                             height: 46,
                             decoration: BoxDecoration(
-                              color: AppColors.surface,
+                              color: AppColorsExtension.of(context).surface,
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: AppColors.border),
+                              border: Border.all(color: AppColorsExtension.of(context).border),
                             ),
                             child: Center(
                               child: Text(
                                 'saved_outfits.cancel'.tr(),
                                 style: TextStyle(
-                                  color: AppColors.muted,
+                                  color: AppColorsExtension.of(context).muted,
                                   fontWeight: FontWeight.w500,
                                   fontSize: 14,
                                 ),
@@ -2342,11 +2356,11 @@ class _DateRangePickerDialogState extends State<_DateRangePickerDialog> {
                                   : null,
                               color: _isRangeComplete
                                   ? null
-                                  : AppColors.surface,
+                                  : AppColorsExtension.of(context).surface,
                               borderRadius: BorderRadius.circular(12),
                               border: _isRangeComplete
                                   ? null
-                                  : Border.all(color: AppColors.border),
+                                  : Border.all(color: AppColorsExtension.of(context).border),
                               boxShadow: _isRangeComplete
                                   ? [
                                       BoxShadow(
@@ -2365,7 +2379,7 @@ class _DateRangePickerDialogState extends State<_DateRangePickerDialog> {
                                 style: TextStyle(
                                   color: _isRangeComplete
                                       ? Colors.black
-                                      : AppColors.muted,
+                                      : AppColorsExtension.of(context).muted,
                                   fontWeight: FontWeight.w700,
                                   fontSize: 14,
                                 ),

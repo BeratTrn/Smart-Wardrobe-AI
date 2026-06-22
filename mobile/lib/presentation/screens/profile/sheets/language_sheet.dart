@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:smart_wardrobe_ai/core/constants/app_colors.dart';
+import 'package:smart_wardrobe_ai/core/theme/app_theme_extension.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/profile/profile_shared_widgets.dart';
 
 /// Dil seçim bottom sheet'i
@@ -27,8 +28,8 @@ class LanguageSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
+      decoration: BoxDecoration(
+        color: AppColorsExtension.of(context).surface,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: const EdgeInsets.fromLTRB(22, 24, 22, 40),
@@ -40,11 +41,11 @@ class LanguageSheet extends StatelessWidget {
           const SizedBox(height: 20),
           Text(
             'language_select'.tr(),
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Cormorant',
               fontSize: 22,
               fontWeight: FontWeight.w700,
-              color: AppColors.text,
+              color: AppColorsExtension.of(context).text,
             ),
           ),
           const SizedBox(height: 16),
@@ -85,22 +86,22 @@ class _LanguageItem extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: isSelected ? AppColors.gold.withValues(alpha: .10) : AppColors.bg,
+        color: isSelected ? AppColors.gold.withValues(alpha: .10) : AppColorsExtension.of(context).bg,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: isSelected ? AppColors.gold : AppColors.border,
+          color: isSelected ? AppColors.gold : AppColorsExtension.of(context).border,
           width: isSelected ? 1.5 : 1,
         ),
       ),
       child: Row(
         children: [
-          Text(flag, style: const TextStyle(fontSize: 20)),
+          Text(flag, style: TextStyle(fontSize: 20)),
           const SizedBox(width: 14),
           Expanded(
             child: Text(
               lang,
               style: TextStyle(
-                color: isSelected ? AppColors.gold : AppColors.text,
+                color: isSelected ? AppColors.gold : AppColorsExtension.of(context).text,
                 fontSize: 15,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
               ),

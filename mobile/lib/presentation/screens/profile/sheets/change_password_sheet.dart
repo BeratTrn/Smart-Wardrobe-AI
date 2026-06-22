@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_wardrobe_ai/core/constants/api_constants.dart';
 import 'package:smart_wardrobe_ai/core/constants/app_colors.dart';
+import 'package:smart_wardrobe_ai/core/theme/app_theme_extension.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/profile/profile_shared_widgets.dart';
 
 /// Bottom sheet — PUT /api/auth/change-password { mevcutSifre, yeniSifre }
@@ -113,8 +114,8 @@ class _ChangePasswordSheetState extends State<ChangePasswordSheet> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
+      decoration: BoxDecoration(
+        color: AppColorsExtension.of(context).surface,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: EdgeInsets.fromLTRB(
@@ -135,13 +136,13 @@ class _ChangePasswordSheetState extends State<ChangePasswordSheet> {
               fontFamily: 'Cormorant',
               fontSize: 22,
               fontWeight: FontWeight.w700,
-              color: AppColors.text,
+              color: AppColorsExtension.of(context).text,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             'change_password.verify_current_password'.tr(),
-            style: TextStyle(color: AppColors.muted, fontSize: 12),
+            style: TextStyle(color: AppColorsExtension.of(context).muted, fontSize: 12),
           ),
           const SizedBox(height: 20),
           ProfilePasswordField(

@@ -253,7 +253,7 @@ class _AddItemScreenState extends State<AddItemScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: AppColorsExtension.of(context).bg,
       body: AppBackground(
         child: SafeArea(
           child: AnimatedSwitcher(
@@ -374,7 +374,7 @@ class _PickStep extends StatelessWidget {
               height: 190,
               width: double.infinity,
               decoration: BoxDecoration(
-                color: AppColors.surface,
+                color: AppColorsExtension.of(context).surface,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(color: AppColors.goldDim, width: 1.5),
               ),
@@ -403,7 +403,7 @@ class _PickStep extends StatelessWidget {
                   Text(
                     'add_item.select_from_gallery'.tr(),
                     style: TextStyle(
-                      color: AppColors.text,
+                      color: AppColorsExtension.of(context).text,
                       fontSize: 15,
                       fontWeight: FontWeight.w500,
                     ),
@@ -411,7 +411,7 @@ class _PickStep extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     'add_item.jpg_png_supported'.tr(),
-                    style: TextStyle(color: AppColors.muted, fontSize: 12),
+                    style: TextStyle(color: AppColorsExtension.of(context).muted, fontSize: 12),
                   ),
                 ],
               ),
@@ -423,9 +423,9 @@ class _PickStep extends StatelessWidget {
             child: Container(
               height: 54,
               decoration: BoxDecoration(
-                color: AppColors.surface,
+                color: AppColorsExtension.of(context).surface,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.border, width: 1.5),
+                border: Border.all(color: AppColorsExtension.of(context).border, width: 1.5),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -439,7 +439,7 @@ class _PickStep extends StatelessWidget {
                   Text(
                     'add_item.camera'.tr(),
                     style: TextStyle(
-                      color: AppColors.text,
+                      color: AppColorsExtension.of(context).text,
                       fontSize: 15,
                       fontWeight: FontWeight.w500,
                     ),
@@ -542,7 +542,7 @@ class _AnalyzingStep extends StatelessWidget {
                     height: 130,
                     child: imageBytes != null
                         ? Image.memory(imageBytes!, fit: BoxFit.cover)
-                        : Container(color: AppColors.surface),
+                        : Container(color: AppColorsExtension.of(context).surface),
                   ),
                 ),
                 Positioned(
@@ -590,7 +590,7 @@ class _AnalyzingStep extends StatelessWidget {
             SizedBox(
               width: 180,
               child: LinearProgressIndicator(
-                backgroundColor: AppColors.border,
+                backgroundColor: AppColorsExtension.of(context).border,
                 valueColor: const AlwaysStoppedAnimation<Color>(AppColors.gold),
                 minHeight: 2,
               ),
@@ -706,7 +706,7 @@ class _ReviewStep extends StatelessWidget {
                     'add_item.ai_prediction_wrong'.tr() +
                         'add_item.when_add_to_closet'.tr(),
                     style: TextStyle(
-                      color: AppColors.textSub,
+                      color: AppColorsExtension.of(context).textSub,
                       fontSize: 12,
                       height: 1.4,
                     ),
@@ -728,7 +728,7 @@ class _ReviewStep extends StatelessWidget {
                   height: 145,
                   child: imageBytes != null
                       ? Image.memory(imageBytes!, fit: BoxFit.cover)
-                      : Container(color: AppColors.surface),
+                      : Container(color: AppColorsExtension.of(context).surface),
                 ),
               ),
               const SizedBox(width: 14),
@@ -765,7 +765,7 @@ class _ReviewStep extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             'add_item.ai_prediction_wrong_fill_correct'.tr(),
-            style: AppTextStyles.caption.copyWith(color: AppColors.muted),
+            style: AppTextStyles.caption.copyWith(color: AppColorsExtension.of(context).muted),
           ),
           const SizedBox(height: 10),
           _CategoryDropdown(
@@ -828,7 +828,7 @@ class _ReviewStep extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             'add_item.gender_hint'.tr(),
-            style: AppTextStyles.caption.copyWith(color: AppColors.muted),
+            style: AppTextStyles.caption.copyWith(color: AppColorsExtension.of(context).muted),
           ),
           const SizedBox(height: 10),
           Wrap(
@@ -1018,15 +1018,15 @@ class _DoneStep extends StatelessWidget {
                 height: 50,
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
+                  color: AppColorsExtension.of(context).surface,
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: AppColors.border, width: 1.5),
+                  border: Border.all(color: AppColorsExtension.of(context).border, width: 1.5),
                 ),
                 child: Center(
                   child: Text(
                     'add_item.add_another'.tr(),
                     style: TextStyle(
-                      color: AppColors.textSub,
+                      color: AppColorsExtension.of(context).textSub,
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),
@@ -1059,7 +1059,7 @@ class _CategoryDropdown extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: AppColorsExtension.of(context).surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: selected.isEmpty
@@ -1072,14 +1072,14 @@ class _CategoryDropdown extends StatelessWidget {
         child: DropdownButton<String>(
           value: selected.isEmpty ? null : selected,
           isExpanded: true,
-          dropdownColor: AppColors.card,
+          dropdownColor: AppColorsExtension.of(context).card,
           iconEnabledColor: AppColors.gold,
-          iconDisabledColor: AppColors.muted,
+          iconDisabledColor: AppColorsExtension.of(context).muted,
           hint: Text(
             'add_item.select_category'.tr(),
-            style: TextStyle(color: AppColors.muted, fontSize: 14),
+            style: TextStyle(color: AppColorsExtension.of(context).muted, fontSize: 14),
           ),
-          style: const TextStyle(color: AppColors.text, fontSize: 14),
+          style: TextStyle(color: AppColorsExtension.of(context).text, fontSize: 14),
           items: options
               .map(
                 (o) => DropdownMenuItem(
@@ -1090,7 +1090,7 @@ class _CategoryDropdown extends StatelessWidget {
                         _categoryIcon(o),
                         color: selected == o
                             ? AppColors.gold
-                            : AppColors.textSub,
+                            : AppColorsExtension.of(context).textSub,
                         size: 18,
                       ),
                       const SizedBox(width: 10),
@@ -1196,17 +1196,17 @@ class _DarkField extends StatelessWidget {
   @override
   Widget build(BuildContext context) => TextField(
     controller: controller,
-    style: const TextStyle(color: AppColors.text, fontSize: 14),
+    style: TextStyle(color: AppColorsExtension.of(context).text, fontSize: 14),
     cursorColor: AppColors.gold,
     decoration: InputDecoration(
       hintText: hint,
-      hintStyle: const TextStyle(color: AppColors.muted, fontSize: 14),
+      hintStyle: TextStyle(color: AppColorsExtension.of(context).muted, fontSize: 14),
       filled: true,
-      fillColor: AppColors.surface,
+      fillColor: AppColorsExtension.of(context).surface,
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.border),
+        borderSide: BorderSide(color: AppColorsExtension.of(context).border),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
@@ -1227,13 +1227,13 @@ class _BackBtn extends StatelessWidget {
       width: 44,
       height: 44,
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: AppColorsExtension.of(context).surface,
         shape: BoxShape.circle,
-        border: Border.all(color: AppColors.border, width: 1.5),
+        border: Border.all(color: AppColorsExtension.of(context).border, width: 1.5),
       ),
-      child: const Icon(
+      child: Icon(
         Icons.arrow_back_ios_new_rounded,
-        color: AppColors.text,
+        color: AppColorsExtension.of(context).text,
         size: 16,
       ),
     ),

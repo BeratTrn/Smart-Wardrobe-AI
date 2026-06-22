@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:smart_wardrobe_ai/core/constants/app_colors.dart';
+import 'package:smart_wardrobe_ai/core/theme/app_theme_extension.dart';
 
 class ClothingCard extends StatelessWidget {
   final String name;
@@ -27,9 +28,9 @@ class ClothingCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.card,
+          color: AppColorsExtension.of(context).card,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: AppColorsExtension.of(context).border),
         ),
         child: Stack(children: [
           _CardContent(
@@ -90,8 +91,8 @@ class _CardContent extends StatelessWidget {
                 name,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: AppColors.text,
+                style: TextStyle(
+                  color: AppColorsExtension.of(context).text,
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
                 ),
@@ -140,11 +141,11 @@ class _RemoveButton extends StatelessWidget {
         child: Container(
           width: 28, height: 28,
           decoration: BoxDecoration(
-            color: AppColors.bg.withValues(alpha: .8),
+            color: AppColorsExtension.of(context).bg.withValues(alpha: .8),
             shape: BoxShape.circle,
           ),
-          child: const Icon(Icons.close_rounded,
-              color: AppColors.textSub, size: 16),
+          child: Icon(Icons.close_rounded,
+              color: AppColorsExtension.of(context).textSub, size: 16),
         ),
       );
 }

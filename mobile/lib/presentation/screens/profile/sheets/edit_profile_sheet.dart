@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_wardrobe_ai/core/constants/api_constants.dart';
 import 'package:smart_wardrobe_ai/core/constants/app_colors.dart';
+import 'package:smart_wardrobe_ai/core/theme/app_theme_extension.dart';
 import 'package:smart_wardrobe_ai/data/models/user_profile.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/profile/profile_shared_widgets.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/wardrobe/app_filter_chip.dart';
@@ -116,8 +117,8 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
+      decoration: BoxDecoration(
+        color: AppColorsExtension.of(context).surface,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: EdgeInsets.fromLTRB(
@@ -138,41 +139,41 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
               fontFamily: 'Cormorant',
               fontSize: 22,
               fontWeight: FontWeight.w700,
-              color: AppColors.text,
+              color: AppColorsExtension.of(context).text,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             'edit_profile.change_username'.tr(),
-            style: TextStyle(color: AppColors.muted, fontSize: 12),
+            style: TextStyle(color: AppColorsExtension.of(context).muted, fontSize: 12),
           ),
           const SizedBox(height: 20),
           // Kullanıcı adı alanı
           TextField(
             controller: _nameCtrl,
-            style: const TextStyle(color: AppColors.text, fontSize: 14),
+            style: TextStyle(color: AppColorsExtension.of(context).text, fontSize: 14),
             textCapitalization: TextCapitalization.words,
             decoration: InputDecoration(
               labelText: 'edit_profile.username'.tr(),
-              labelStyle: const TextStyle(color: AppColors.muted, fontSize: 13),
-              prefixIcon: const Icon(
+              labelStyle: TextStyle(color: AppColorsExtension.of(context).muted, fontSize: 13),
+              prefixIcon: Icon(
                 Icons.person_outline_rounded,
-                color: AppColors.muted,
+                color: AppColorsExtension.of(context).muted,
                 size: 18,
               ),
               filled: true,
-              fillColor: AppColors.bg,
+              fillColor: AppColorsExtension.of(context).bg,
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 16,
                 vertical: 14,
               ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppColors.border),
+                borderSide: BorderSide(color: AppColorsExtension.of(context).border),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppColors.border),
+                borderSide: BorderSide(color: AppColorsExtension.of(context).border),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -184,8 +185,8 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
           // Cinsiyet seçici
           Text(
             'edit_profile.gender'.tr(),
-            style: const TextStyle(
-              color: AppColors.muted,
+            style: TextStyle(
+              color: AppColorsExtension.of(context).muted,
               fontSize: 13,
               fontWeight: FontWeight.w500,
             ),
@@ -193,7 +194,7 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
           const SizedBox(height: 4),
           Text(
             'edit_profile.gender_hint'.tr(),
-            style: const TextStyle(color: AppColors.muted, fontSize: 11),
+            style: TextStyle(color: AppColorsExtension.of(context).muted, fontSize: 11),
           ),
           const SizedBox(height: 10),
           Wrap(

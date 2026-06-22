@@ -1,4 +1,5 @@
 import 'package:smart_wardrobe_ai/data/models/clothing_item.dart';
+import 'package:smart_wardrobe_ai/data/models/web_product.dart';
 
 class GeneratedOutfit {
   final String id;
@@ -6,6 +7,8 @@ class GeneratedOutfit {
   final String description; // aciklama
   final String ipucu;       // AI style tip
   final List<ClothingItem> items;
+  // "Web'den öner" açıkken AI'ın gardırop dışından seçtiği ürünler (varsa)
+  final List<WebProduct> disUrunler;
 
   const GeneratedOutfit({
     required this.id,
@@ -13,6 +16,7 @@ class GeneratedOutfit {
     required this.description,
     this.ipucu = '',
     required this.items,
+    this.disUrunler = const [],
   });
 
   factory GeneratedOutfit.fromJson(Map<String, dynamic> j) => GeneratedOutfit(
@@ -31,5 +35,6 @@ class GeneratedOutfit {
     items: ((j['kiyafetler'] ?? j['parcalar'] ?? j['items']) as List? ?? [])
         .map((e) => ClothingItem.fromJson(e as Map<String, dynamic>))
         .toList(),
+    disUrunler: WebProduct.listFromJson(j['disUrunler']),
   );
 }
