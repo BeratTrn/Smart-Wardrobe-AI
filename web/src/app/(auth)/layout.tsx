@@ -15,7 +15,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   return (
     <div
       className="relative min-h-screen flex items-center justify-center overflow-hidden px-4 py-12"
-      style={{ background: "#0A0A0A" }}
+      style={{ background: "var(--color-bg)" }}
     >
       {/* ── Ambient gold orbs ── */}
       <div aria-hidden className="pointer-events-none select-none absolute inset-0">
@@ -23,21 +23,21 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         <div
           className="absolute -top-60 -left-60 w-[700px] h-[700px] rounded-full"
           style={{
-            background: "radial-gradient(circle, rgba(201,168,76,0.10) 0%, transparent 65%)",
+            background: "radial-gradient(circle, var(--color-gold-dim) 0%, transparent 65%)",
           }}
         />
         {/* Bottom-right orb */}
         <div
           className="absolute -bottom-40 -right-40 w-[550px] h-[550px] rounded-full"
           style={{
-            background: "radial-gradient(circle, rgba(201,168,76,0.07) 0%, transparent 65%)",
+            background: "radial-gradient(circle, var(--color-gold-dim) 0%, transparent 65%)",
           }}
         />
         {/* Centre faint glow */}
         <div
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] rounded-full"
           style={{
-            background: "radial-gradient(ellipse, rgba(201,168,76,0.04) 0%, transparent 65%)",
+            background: "radial-gradient(ellipse, var(--color-gold-dim) 0%, transparent 65%)",
           }}
         />
       </div>
