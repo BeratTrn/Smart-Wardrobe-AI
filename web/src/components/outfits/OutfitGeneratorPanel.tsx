@@ -3,10 +3,23 @@
 import { useState } from "react";
 import { Sparkles, Lightbulb, Globe } from "lucide-react";
 import type { Season, OutfitGeneratePayload, WeatherData } from "@/types";
+import { useT } from "@/lib/i18n";
 
 const EVENTS   = ["Günlük","İş","Parti","Spor","Romantik","Seyahat"];
 const WEATHER_FEELS = ["Sıcak","Ilık","Serin","Soğuk"];
 const STYLES   = ["Günlük","Klasik","Spor","Sokak","Minimal","Şık","Resmi"];
+
+const EVENT_KEY: Record<string, string> = {
+  "Günlük": "outfit_generator.daily", "İş": "outfit_generator.work", "Parti": "outfit_generator.party",
+  "Spor": "outfit_generator.sport", "Romantik": "outfit_generator.romantic", "Seyahat": "outfit_generator.travel",
+};
+const WEATHER_FEEL_KEY: Record<string, string> = {
+  "Sıcak": "outfit_generator.hot", "Ilık": "outfit_generator.warm", "Serin": "outfit_generator.cool", "Soğuk": "outfit_generator.cold",
+};
+const STYLE_KEY: Record<string, string> = {
+  "Günlük": "add_item.casual", "Klasik": "add_item.classic", "Spor": "add_item.sport",
+  "Sokak": "add_item.street", "Minimal": "add_item.minimal", "Şık": "add_item.chic", "Resmi": "add_item.formal",
+};
 
 const WEATHER_TO_SEASON: Record<string, Season> = {
   "Sıcak": "Yaz",
@@ -15,11 +28,11 @@ const WEATHER_TO_SEASON: Record<string, Season> = {
   "Soğuk": "Kış",
 };
 
-const BG  = "#111110";
-const SBG = "#161614";
-const BDR = "1px solid #1E1E18";
-const ABD = "1px solid rgba(201,168,76,0.25)";
-const IBG = "rgba(201,168,76,0.12)";
+const BG  = "var(--color-bg)";
+const SBG = "var(--color-surface)";
+const BDR = "1px solid var(--color-border)";
+const ABD = "1px solid var(--color-gold-border)";
+const IBG = "var(--color-gold-dim)";
 
 interface OutfitGeneratorPanelProps {
   onGenerate: (payload: OutfitGeneratePayload, webdenOner: boolean) => void;
@@ -49,6 +62,7 @@ function PillBtn({ label, active, onClick }: { label: string; active: boolean; o
 }
 
 export function OutfitGeneratorPanel({ onGenerate, isLoading, weather }: OutfitGeneratorPanelProps) {
+  const { t } = useT();
   const [event,   setEvent]   = useState("Günlük");
   const [hava,    setHava]    = useState("Ilık");
   const [stil,    setStil]    = useState("Günlük");
@@ -67,9 +81,9 @@ export function OutfitGeneratorPanel({ onGenerate, isLoading, weather }: OutfitG
     <div className="rounded-2xl p-6 space-y-6" style={{ background: BG, border: BDR }}>
       {/* Header */}
       <div>
-        <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-muted mb-1">KOMBİN</p>
+        <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-muted mb-1">{t("outfit_generator.outfit_upper")}</p>
         <div className="flex items-start justify-between gap-3">
-          <h2 className="text-xl font-black text-text leading-tight">AI Kombin Üretici</h2>
+          <h2 className="text-xl font-black text-text leading-tight">{t("outfit_generator.outfit_generator")}</h2>
           <div
             className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold text-gold flex-shrink-0"
             style={{ background: IBG, border: ABD }}
@@ -81,24 +95,24 @@ export function OutfitGeneratorPanel({ onGenerate, isLoading, weather }: OutfitG
 
       {/* DURUM */}
       <div>
-        <SectionLabel>DURUM</SectionLabel>
+        <SectionLabel>{t("outfit_generator.status")}</SectionLabel>
         <div className="flex flex-wrap gap-2">
           {EVENTS.map((ev) => (
-            <PillBtn key={ev} label={ev} active={event === ev} onClick={() => setEvent(ev)} />
+            <PillBtn key={ev} label={t(EVENT_KEY[ev])} active={event === ev} onClick={() => setEvent(ev)} />
           ))}
         </div>
       </div>
 
       {/* HAVA */}
       <div>
-        <SectionLabel>HAVA</SectionLabel>
+        <SectionLabel>{t("outfit_generator.weather")}</SectionLabel>
         {weather && (
           <div className="flex items-center gap-2 mb-3">
             <button
               type="button"
               onClick={() => setUseCurrentWeather((v) => !v)}
               className="relative h-5 w-9 rounded-full transition-colors flex-shrink-0"
-              style={{ background: useCurrentWeather ? "var(--color-gold)" : "#2A2A22" }}
+              style={{ background: useCurrentWeather ? "var(--color-gold)" : "var(--color-border)" }}
             >
               <span
                 className="absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform"
@@ -106,23 +120,23 @@ export function OutfitGeneratorPanel({ onGenerate, isLoading, weather }: OutfitG
               />
             </button>
             <span className="text-[12px] text-muted">
-              Şu anki hava: {weather.sehir}, {weather.sicaklik}°C
+              {t("web.outfits.current_weather", { city: weather.sehir, temp: weather.sicaklik })}
             </span>
           </div>
         )}
         <div className="flex flex-wrap gap-2">
           {WEATHER_FEELS.map((h) => (
-            <PillBtn key={h} label={h} active={hava === h} onClick={() => setHava(h)} />
+            <PillBtn key={h} label={t(WEATHER_FEEL_KEY[h])} active={hava === h} onClick={() => setHava(h)} />
           ))}
         </div>
       </div>
 
       {/* STİL */}
       <div>
-        <SectionLabel>STİL</SectionLabel>
+        <SectionLabel>{t("outfit_generator.style")}</SectionLabel>
         <div className="flex flex-wrap gap-2">
           {STYLES.map((s) => (
-            <PillBtn key={s} label={s} active={stil === s} onClick={() => setStil(s)} />
+            <PillBtn key={s} label={t(STYLE_KEY[s])} active={stil === s} onClick={() => setStil(s)} />
           ))}
         </div>
       </div>
@@ -134,15 +148,15 @@ export function OutfitGeneratorPanel({ onGenerate, isLoading, weather }: OutfitG
             <Globe className="h-3.5 w-3.5 text-gold" />
           </div>
           <div>
-            <p className="text-[13px] font-semibold text-text leading-tight">Web'den de öner</p>
-            <p className="text-[11px] text-muted leading-snug">Dolabın yetmezse tarzına uygun ürünler websitelerden önerilsin</p>
+            <p className="text-[13px] font-semibold text-text leading-tight">{t("web.outfits.suggest_from_web")}</p>
+            <p className="text-[11px] text-muted leading-snug">{t("web.outfits.suggest_from_web_desc")}</p>
           </div>
         </div>
         <button
           type="button"
           onClick={() => setWebdenOner((v) => !v)}
           className="relative h-5 w-9 rounded-full transition-colors flex-shrink-0"
-          style={{ background: webdenOner ? "var(--color-gold)" : "#2A2A22" }}
+          style={{ background: webdenOner ? "var(--color-gold)" : "var(--color-border)" }}
         >
           <span
             className="absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform"
@@ -161,10 +175,10 @@ export function OutfitGeneratorPanel({ onGenerate, isLoading, weather }: OutfitG
         {isLoading ? (
           <>
             <span className="h-4 w-4 rounded-full border-2 border-black/30 border-t-black animate-spin" />
-            Kombinler hazırlanıyor…
+            {t("web.outfits.preparing")}
           </>
         ) : (
-          <><Sparkles className="h-4 w-4" /> Kombin Oluştur</>
+          <><Sparkles className="h-4 w-4" /> {t("outfit_generator.create_outfit")}</>
         )}
       </button>
 
@@ -174,7 +188,7 @@ export function OutfitGeneratorPanel({ onGenerate, isLoading, weather }: OutfitG
           <Lightbulb className="h-3.5 w-3.5 text-gold" />
         </div>
         <p className="text-[12px] text-muted leading-relaxed">
-          Durum, hava ve stilini seç — AI dolabından senin için en uygun kombinleri seçsin.
+          {t("outfit_generator.select_condition")}
         </p>
       </div>
     </div>

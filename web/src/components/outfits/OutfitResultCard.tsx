@@ -6,11 +6,17 @@ import { Bookmark, ThumbsUp, ThumbsDown, Shirt, Sparkles, Lightbulb, ShoppingBag
 import { cn } from "@/lib/utils/cn";
 import { WebProductCard } from "@/components/outfits/WebProductCard";
 import type { Outfit, OutfitRecommendation, PopulatedItem, WeatherData, WebProduct } from "@/types";
+import { useT } from "@/lib/i18n";
 
-const BDR = "1px solid #1E1E18";
-const SBG = "#161614";
-const IBG = "rgba(201,168,76,0.12)";
-const ABD = "1px solid rgba(201,168,76,0.25)";
+const BDR = "1px solid var(--color-border)";
+const SBG = "var(--color-surface)";
+const IBG = "var(--color-gold-dim)";
+const ABD = "1px solid var(--color-gold-border)";
+
+const CAT_KEY: Record<string, string> = {
+  "Üst Giyim": "wardrobe.topwear", "Alt Giyim": "wardrobe.bottomwear", "Elbise": "wardrobe.dress",
+  "Dış Giyim": "wardrobe.outerwear", "Ayakkabı": "wardrobe.shoes", "Aksesuar": "wardrobe.accessories",
+};
 
 interface NormalizedOutfit {
   id: string; baslik: string; aciklama: string; ipucu: string;
@@ -41,6 +47,7 @@ export function OutfitResultCard({ outfit, showActions = false, isFresh = false,
   highlight = false, onFeedback, onSave, onRemove, onTryOn, showRemove = false,
   isFeedbackLoading, isSaveLoading, isRemoveLoading }: OutfitResultCardProps) {
 
+  const { t } = useT();
   const [isExpanded, setIsExpanded] = useState(false);
 
   if (!outfit) return null;
@@ -51,7 +58,7 @@ export function OutfitResultCard({ outfit, showActions = false, isFresh = false,
   return (
     <article
       className={cn("rounded-2xl overflow-hidden transition-all duration-300", isFresh && "ring-1 ring-gold/30", highlight && "ring-1 ring-gold")}
-      style={{ background: "#111110", border: BDR }}
+      style={{ background: "var(--color-bg)", border: BDR }}
     >
       {/* Gold top bar on fresh results */}
       {(isFresh || highlight) && <div className="h-0.5 w-full bg-gold-gradient" />}
@@ -74,7 +81,7 @@ export function OutfitResultCard({ outfit, showActions = false, isFresh = false,
                   className="text-[9px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full"
                   style={{ background: "rgba(0,0,0,0.65)", color: "#B0A898", backdropFilter: "blur(6px)" }}
                 >
-                  {item.kategori}
+                  {CAT_KEY[item.kategori] ? t(CAT_KEY[item.kategori]) : item.kategori}
                 </span>
               </div>
               {idx === 0 && (
@@ -94,7 +101,7 @@ export function OutfitResultCard({ outfit, showActions = false, isFresh = false,
               {(data.etkinlik || data.baslik) && (
                 <span
                   className="text-[11px] font-semibold px-2.5 py-1 rounded-lg"
-                  style={{ background: "transparent", border: "1px solid rgba(201,168,76,0.3)", color: "var(--color-gold)" }}
+                  style={{ background: "transparent", border: "1px solid var(--color-gold-border)", color: "var(--color-gold)" }}
                 >
                   {data.baslik || data.etkinlik}
                 </span>
@@ -104,7 +111,7 @@ export function OutfitResultCard({ outfit, showActions = false, isFresh = false,
                   className="inline-flex items-center gap-1 text-[10px] font-semibold px-2.5 py-0.5 rounded-full text-gold"
                   style={{ background: IBG, border: ABD }}
                 >
-                  <Sparkles className="h-2.5 w-2.5" /> Yeni
+                  <Sparkles className="h-2.5 w-2.5" /> {t("web.outfits.new_badge")}
                 </span>
               )}
             </div>
@@ -135,7 +142,7 @@ export function OutfitResultCard({ outfit, showActions = false, isFresh = false,
         <div className={cn("space-y-3", !showRemove && "rounded-xl p-4")} style={!showRemove ? { background: SBG, border: BDR } : {}}>
           {!showRemove && (
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted flex items-center gap-1.5">
-              <Sparkles className="h-3 w-3 text-gold" /> STİLİSTİN NOTU
+              <Sparkles className="h-3 w-3 text-gold" /> {t("try_on.stylist_note")}
             </p>
           )}
           <p
@@ -145,7 +152,7 @@ export function OutfitResultCard({ outfit, showActions = false, isFresh = false,
             {data.aciklama}
           </p>
           {(isExpanded || !showRemove) && data.ipucu && (
-            <div className="flex items-start gap-2.5 rounded-lg px-3 py-2.5" style={{ background: IBG, border: "1px solid rgba(201,168,76,0.15)" }}>
+            <div className="flex items-start gap-2.5 rounded-lg px-3 py-2.5" style={{ background: IBG, border: "1px solid var(--color-gold-dim)" }}>
               <Lightbulb className="h-3.5 w-3.5 text-gold flex-shrink-0 mt-0.5" />
               <p className="text-[12px] leading-relaxed italic" style={{ color: "var(--color-gold)" }}>
                 {data.ipucu}
@@ -158,7 +165,7 @@ export function OutfitResultCard({ outfit, showActions = false, isFresh = false,
               className="text-[11px] font-semibold flex items-center gap-1 mt-1 hover:opacity-80 transition"
               style={{ color: "var(--color-gold)" }}
             >
-              {isExpanded ? "Daralt ^" : "Devamını Oku ∨"}
+              {isExpanded ? `${t("saved_outfits.narrow_down")} ^` : `${t("saved_outfits.read_more")} ∨`}
             </button>
           )}
         </div>
@@ -167,7 +174,7 @@ export function OutfitResultCard({ outfit, showActions = false, isFresh = false,
         {data.kiyafetler.length > 0 && (
           <div className="flex items-center gap-1.5">
             <Shirt className="h-3.5 w-3.5 text-muted" />
-            <span className="text-[12px] text-muted">{data.kiyafetler.length} parça</span>
+            <span className="text-[12px] text-muted">{data.kiyafetler.length} {t("home.items")}</span>
           </div>
         )}
 
@@ -175,7 +182,7 @@ export function OutfitResultCard({ outfit, showActions = false, isFresh = false,
         {data.disUrunler && data.disUrunler.length > 0 && (
           <div className="space-y-2.5">
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted flex items-center gap-1.5">
-              <ShoppingBag className="h-3 w-3 text-gold" /> WEB'DEN ÖNERİLER
+              <ShoppingBag className="h-3 w-3 text-gold" /> {t("web.outfits.web_suggestions")}
             </p>
             <div className="grid grid-cols-2 gap-2.5">
               {data.disUrunler.map((urun, idx) => (
@@ -187,13 +194,13 @@ export function OutfitResultCard({ outfit, showActions = false, isFresh = false,
 
         {/* Actions */}
         {(showActions || onTryOn) && (
-          <div className="pt-2 border-t mt-2" style={{ borderColor: "#1E1E18" }}>
+          <div className="pt-2 border-t mt-2" style={{ borderColor: "var(--color-border)" }}>
             {onTryOn && (
               <button
                 onClick={() => onTryOn(data.id)}
                 className="w-full py-3 rounded-xl bg-gold-gradient text-black font-bold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
               >
-                👤 Üzerinde Dene
+                👤 {t("outfit_generator.try_on")}
               </button>
             )}
             
@@ -210,7 +217,7 @@ export function OutfitResultCard({ outfit, showActions = false, isFresh = false,
                   )}
                   style={{ border: data.begeniyor === true ? "1px solid rgba(74,140,92,0.4)" : BDR }}
                 >
-                  <ThumbsUp className="h-3.5 w-3.5" /> Beğen
+                  <ThumbsUp className="h-3.5 w-3.5" /> {t("web.outfits.like")}
                 </button>
                 <button
                   onClick={() => onFeedback?.(data.id, false)}
@@ -223,7 +230,7 @@ export function OutfitResultCard({ outfit, showActions = false, isFresh = false,
                   )}
                   style={{ border: data.begeniyor === false ? "1px solid rgba(176,64,64,0.4)" : BDR }}
                 >
-                  <ThumbsDown className="h-3.5 w-3.5" /> Beğenme
+                  <ThumbsDown className="h-3.5 w-3.5" /> {t("web.outfits.dislike")}
                 </button>
                 <button
                   onClick={() => {
@@ -241,7 +248,7 @@ export function OutfitResultCard({ outfit, showActions = false, isFresh = false,
                   style={data.kaydedildi ? { border: ABD, background: IBG } : {}}
                 >
                   <Bookmark className="h-3.5 w-3.5" fill={data.kaydedildi ? "currentColor" : "none"} />
-                  {data.kaydedildi ? "Kaydedildi" : "Stilimi Kaydet"}
+                  {data.kaydedildi ? t("try_on.saved") : t("try_on.save_outfit")}
                 </button>
               </div>
             )}

@@ -7,10 +7,10 @@ import {
 } from "lucide-react";
 import type { Outfit, OutfitRecommendation, PopulatedItem, WeatherData, WebProduct } from "@/types";
 
-const BDR = "1px solid #1E1E18";
-const SBG = "#161614";
-const IBG = "rgba(201,168,76,0.12)";
-const ABD = "1px solid rgba(201,168,76,0.25)";
+const BDR = "1px solid var(--color-border)";
+const SBG = "var(--color-surface)";
+const IBG = "var(--color-gold-dim)";
+const ABD = "1px solid var(--color-gold-border)";
 
 // Map category -> label + icon
 function slotMeta(kategori: string): { label: string; icon: React.ElementType } {
@@ -68,7 +68,7 @@ export function LookbookResultCard({ outfit, onSave, isSaveLoading }: LookbookRe
   return (
     <article
       className="rounded-2xl overflow-hidden"
-      style={{ background: "#111110", border: BDR }}
+      style={{ background: "var(--color-bg)", border: BDR }}
     >
       {/* Gold top accent */}
       <div className="h-0.5 w-full bg-gold-gradient" />
@@ -100,7 +100,7 @@ export function LookbookResultCard({ outfit, onSave, isSaveLoading }: LookbookRe
           style={{
             height: "320px",
             background: SBG,
-            border: userPhoto ? "1px solid rgba(201,168,76,0.4)" : "1px solid #2A2A22",
+            border: userPhoto ? "1px solid var(--color-gold-border)" : "1px solid var(--color-border)",
           }}
         >
           {uploading ? (
@@ -202,7 +202,7 @@ export function LookbookResultCard({ outfit, onSave, isSaveLoading }: LookbookRe
                     sizes="200px"
                   />
                 ) : (
-                  <div className="absolute inset-0 flex items-center justify-center bg-[#161614]">
+                  <div className="absolute inset-0 flex items-center justify-center bg-[var(--color-surface)]">
                     <ShoppingBag className="h-5 w-5 text-muted" />
                   </div>
                 )}
@@ -237,7 +237,7 @@ export function LookbookResultCard({ outfit, onSave, isSaveLoading }: LookbookRe
           {data.ipucu && (
             <div
               className="flex items-start gap-2.5 rounded-lg px-3 py-2.5"
-              style={{ background: IBG, border: "1px solid rgba(201,168,76,0.15)" }}
+              style={{ background: IBG, border: "1px solid var(--color-gold-dim)" }}
             >
               <Lightbulb className="h-3.5 w-3.5 text-gold flex-shrink-0 mt-0.5" />
               <p className="text-[12px] leading-relaxed italic" style={{ color: "var(--color-gold)" }}>
@@ -258,7 +258,7 @@ export function LookbookResultCard({ outfit, onSave, isSaveLoading }: LookbookRe
           style={
             data.kaydedildi
               ? { background: IBG, border: ABD, color: "var(--color-gold)" }
-              : { background: "linear-gradient(135deg,#C9A84C,#E8C96A,#C9A84C)", color: "#000" }
+              : { background: "linear-gradient(135deg,var(--color-gold),#E8C96A,var(--color-gold))", color: "#000" }
           }
         >
           {isSaveLoading ? (

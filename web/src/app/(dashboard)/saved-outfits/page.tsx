@@ -8,16 +8,18 @@ import { useDeleteSuitcase, useSuitcases } from "@/lib/hooks/useTravel";
 import { BookOpen, Plane, Plus, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { useT } from "@/lib/i18n";
 
 type Tab = "kombinler" | "bavullar";
 
-const S  = "#111110";
-const C  = "#161614";
-const B  = "1px solid #1E1E18";
-const IA = "rgba(201,168,76,0.12)";
-const GA = "1px solid rgba(201,168,76,0.25)";
+const S  = "var(--color-bg)";
+const C  = "var(--color-surface)";
+const B  = "1px solid var(--color-border)";
+const IA = "var(--color-gold-dim)";
+const GA = "1px solid var(--color-gold-border)";
 
 export default function SavedOutfitsPage() {
+  const { t } = useT();
   const [activeTab, setActiveTab] = useState<Tab>("kombinler");
   const [isTravelModalOpen, setIsTravelModalOpen] = useState(false);
 
@@ -33,8 +35,8 @@ export default function SavedOutfitsPage() {
   const suitcases = suitcasesData?.bavullar ?? [];
 
   const TABS: { id: Tab; label: string; count: number; icon: React.ElementType }[] = [
-    { id: "kombinler", label: "Kombinlerim",         count: outfits.length,   icon: Sparkles },
-    { id: "bavullar",  label: "Seyahat Bavullarım",  count: suitcases.length, icon: Plane },
+    { id: "kombinler", label: t("saved_outfits.my_outfits"),   count: outfits.length,   icon: Sparkles },
+    { id: "bavullar",  label: t("saved_outfits.travel_bags"),  count: suitcases.length, icon: Plane },
   ];
 
   return (
@@ -44,11 +46,11 @@ export default function SavedOutfitsPage() {
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-[10px] font-bold uppercase tracking-[0.25em] mb-1" style={{ color: "var(--color-muted)" }}>
-            STİL ARŞİVİ
+            {t("saved_outfits.style_archive")}
           </p>
-          <h1 className="text-2xl font-black text-text leading-none">Arşivim</h1>
+          <h1 className="text-2xl font-black text-text leading-none">{t("web.saved_outfits.title")}</h1>
           <p className="text-sm mt-1" style={{ color: "var(--color-muted)" }}>
-            Kayıtlı kombinlerin ve seyahat bavulların
+            {t("web.saved_outfits.subtitle")}
           </p>
         </div>
 
@@ -56,17 +58,17 @@ export default function SavedOutfitsPage() {
           <Link
             href="/outfits"
             className="flex items-center gap-1.5 px-4 py-2 rounded-2xl text-sm font-bold text-black flex-shrink-0 mt-1"
-            style={{ background: "linear-gradient(135deg, #C9A84C 0%, #E8C97A 100%)" }}
+            style={{ background: "linear-gradient(135deg, var(--color-gold) 0%, var(--color-gold-light) 100%)" }}
           >
-            <Sparkles className="h-3.5 w-3.5" /> Yeni Kombin
+            <Sparkles className="h-3.5 w-3.5" /> {t("web.saved_outfits.new_outfit")}
           </Link>
         ) : (
           <button
             onClick={() => setIsTravelModalOpen(true)}
             className="flex items-center gap-1.5 px-4 py-2 rounded-2xl text-sm font-bold text-black flex-shrink-0 mt-1"
-            style={{ background: "linear-gradient(135deg, #C9A84C 0%, #E8C97A 100%)" }}
+            style={{ background: "linear-gradient(135deg, var(--color-gold) 0%, var(--color-gold-light) 100%)" }}
           >
-            <Plus className="h-3.5 w-3.5" /> Yeni Seyahat
+            <Plus className="h-3.5 w-3.5" /> {t("saved_outfits.new_trip")}
           </button>
         )}
       </div>
@@ -128,16 +130,16 @@ export default function SavedOutfitsPage() {
               >
                 <BookOpen className="h-7 w-7" style={{ color: "var(--color-gold)" }} />
               </div>
-              <p className="text-base font-bold text-text mb-1">Henüz kaydedilmiş kombin yok</p>
+              <p className="text-base font-bold text-text mb-1">{t("web.saved_outfits.empty_title")}</p>
               <p className="text-sm mb-4" style={{ color: "var(--color-muted)" }}>
-                AI Kombin sayfasından kombinler oluştur ve kaydet.
+                {t("web.saved_outfits.empty_subtitle")}
               </p>
               <Link
                 href="/outfits"
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-bold text-black"
-                style={{ background: "linear-gradient(135deg, #C9A84C 0%, #E8C97A 100%)" }}
+                style={{ background: "linear-gradient(135deg, var(--color-gold) 0%, var(--color-gold-light) 100%)" }}
               >
-                <Sparkles className="h-4 w-4" /> Kombin Oluştur
+                <Sparkles className="h-4 w-4" /> {t("outfit_generator.create_outfit")}
               </Link>
             </div>
           ) : (

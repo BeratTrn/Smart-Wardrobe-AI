@@ -3,11 +3,12 @@
 import Image from "next/image";
 import { ExternalLink, ShoppingBag } from "lucide-react";
 import type { WebProduct } from "@/types";
+import { useT } from "@/lib/i18n";
 
-const BDR = "1px solid #1E1E18";
-const SBG = "#161614";
-const IBG = "rgba(201,168,76,0.12)";
-const ABD = "1px solid rgba(201,168,76,0.25)";
+const BDR = "1px solid var(--color-border)";
+const SBG = "var(--color-surface)";
+const IBG = "var(--color-gold-dim)";
+const ABD = "1px solid var(--color-gold-border)";
 
 interface WebProductCardProps {
   product: WebProduct;
@@ -19,6 +20,7 @@ const formatPrice = (fiyat: number | null) => {
 };
 
 export function WebProductCard({ product }: WebProductCardProps) {
+  const { t } = useT();
   const fiyatMetni = formatPrice(product.fiyat);
 
   return (
@@ -40,7 +42,7 @@ export function WebProductCard({ product }: WebProductCardProps) {
             unoptimized
           />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center" style={{ background: "#111110" }}>
+          <div className="absolute inset-0 flex items-center justify-center" style={{ background: "var(--color-bg)" }}>
             <ShoppingBag className="h-6 w-6 text-muted" />
           </div>
         )}
@@ -49,7 +51,7 @@ export function WebProductCard({ product }: WebProductCardProps) {
             className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full text-gold"
             style={{ background: IBG, border: ABD, backdropFilter: "blur(6px)" }}
           >
-            🔗 Bunu da dene
+            🔗 {t("web.outfits.try_this_too")}
           </span>
         </div>
       </div>
@@ -63,7 +65,7 @@ export function WebProductCard({ product }: WebProductCardProps) {
             <span className="text-[11px] text-muted">{product.kaynak}</span>
           )}
           <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-muted group-hover:text-gold transition-colors">
-            Satın Al <ExternalLink className="h-3 w-3" />
+            {t("web.outfits.buy_now")} <ExternalLink className="h-3 w-3" />
           </span>
         </div>
       </div>

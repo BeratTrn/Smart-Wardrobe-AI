@@ -9,14 +9,16 @@ import { useGenerateOutfit, useGenerateWebOutfit, useRateOutfit, useSaveOutfit }
 import { useWeather }           from "@/lib/hooks/useWeather";
 import type { OutfitGeneratePayload, OutfitRecommendation } from "@/types";
 import type { SaveToArchivePayload } from "@/lib/api/outfits";
+import { useT } from "@/lib/i18n";
 
-const BG  = "#111110";
-const SBG = "#161614";
-const BDR = "1px solid #1E1E18";
-const IBG = "rgba(201,168,76,0.12)";
-const ABD = "1px solid rgba(201,168,76,0.25)";
+const BG  = "var(--color-bg)";
+const SBG = "var(--color-surface)";
+const BDR = "1px solid var(--color-border)";
+const IBG = "var(--color-gold-dim)";
+const ABD = "1px solid var(--color-gold-border)";
 
 export default function OutfitsPage() {
+  const { t } = useT();
   const { weather } = useWeather();
   const generateOutfit = useGenerateOutfit();
   const generateWebOutfit = useGenerateWebOutfit();
@@ -57,9 +59,9 @@ export default function OutfitsPage() {
     <div className="space-y-6 animate-fade-in pb-10">
       {/* Header */}
       <div>
-        <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-muted mb-1">AI STİL</p>
-        <h1 className="text-2xl font-black text-text leading-none">AI Kombin Üretici</h1>
-        <p className="text-sm text-muted mt-1">Durum, hava ve stilini seç, AI dolabından senin için en uygun kombini seçsin.</p>
+        <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-muted mb-1">{t("web.outfits.kicker")}</p>
+        <h1 className="text-2xl font-black text-text leading-none">{t("outfit_generator.outfit_generator")}</h1>
+        <p className="text-sm text-muted mt-1">{t("outfit_generator.select_condition")}</p>
       </div>
 
       <div className="grid lg:grid-cols-[380px_1fr] xl:grid-cols-[420px_1fr] gap-8 items-start">
@@ -87,8 +89,8 @@ export default function OutfitsPage() {
           {!isGenerating && freshResults.length > 0 && (
             <div className="space-y-4 animate-slide-up">
               <div className="flex items-center justify-between">
-                <p className="text-[18px] font-bold text-text">Önerilen kombin</p>
-                <span className="text-[13px] font-semibold text-muted">{freshResults.length} kombin</span>
+                <p className="text-[18px] font-bold text-text">{t("outfit_generator.recommended_outfit")}</p>
+                <span className="text-[13px] font-semibold text-muted">{freshResults.length} {t("outfit_generator.outfit")}</span>
               </div>
               
               {freshResults.map((r) => (
@@ -111,8 +113,8 @@ export default function OutfitsPage() {
                 <Sparkles className="h-7 w-7 text-gold" />
               </div>
               <div>
-                <p className="text-[17px] font-bold text-text mb-1.5">Kombin burada belirecek</p>
-                <p className="text-sm text-muted">Soldaki panelden durum, hava ve stili seç, AI kombini hazırlasın</p>
+                <p className="text-[17px] font-bold text-text mb-1.5">{t("web.outfits.empty_title")}</p>
+                <p className="text-sm text-muted">{t("web.outfits.empty_subtitle")}</p>
               </div>
             </div>
           )}

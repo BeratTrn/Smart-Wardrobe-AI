@@ -38,10 +38,10 @@ export function LookbookModal({ outfit, onClose, onSave, isSaveLoading }: Lookbo
       <div className="fixed inset-0 z-50 flex items-center justify-center p-6 sm:p-12 pointer-events-none">
         <div
           className="relative w-full max-w-5xl max-h-[90vh] overflow-hidden rounded-[32px] pointer-events-auto flex flex-col shadow-2xl"
-          style={{ background: "#0A0A0A", border: "1px solid #1E1E18", boxShadow: "0 25px 50px -12px rgba(0,0,0,0.8), 0 0 0 1px rgba(201,168,76,0.1)" }}
+          style={{ background: "#0A0A0A", border: "1px solid var(--color-border)", boxShadow: "0 25px 50px -12px rgba(0,0,0,0.8), 0 0 0 1px var(--color-gold-dim)" }}
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-6 md:p-8 border-b" style={{ borderColor: "rgba(201,168,76,0.1)" }}>
+          <div className="flex items-center justify-between p-6 md:p-8 border-b" style={{ borderColor: "var(--color-gold-dim)" }}>
             <div className="flex items-center gap-4">
               <button
                 onClick={onClose}
@@ -58,7 +58,7 @@ export function LookbookModal({ outfit, onClose, onSave, isSaveLoading }: Lookbo
             <div className="flex items-center gap-4">
               <div
                 className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[11px] font-bold text-gold"
-                style={{ background: "rgba(201,168,76,0.1)", border: "1px solid rgba(201,168,76,0.3)" }}
+                style={{ background: "var(--color-gold-dim)", border: "1px solid var(--color-gold-border)" }}
               >
                 <Sparkles className="h-3.5 w-3.5" /> AI Engine
               </div>
@@ -90,7 +90,7 @@ export function LookbookModal({ outfit, onClose, onSave, isSaveLoading }: Lookbo
               <div 
                 onClick={() => fileInputRef.current?.click()}
                 className="flex-1 rounded-[32px] flex flex-col items-center justify-center cursor-pointer hover:bg-white/5 transition-colors min-h-[400px] group relative overflow-hidden"
-                style={{ background: "#111110", border: tryOnImage ? "none" : "1px border-dashed rgba(201,168,76,0.3)" }}
+                style={{ background: "var(--color-bg)", border: tryOnImage ? "none" : "1px border-dashed rgba(201,168,76,0.3)" }}
               >
                 {tryOnImage ? (
                   <>
@@ -105,7 +105,7 @@ export function LookbookModal({ outfit, onClose, onSave, isSaveLoading }: Lookbo
                 ) : (
                   <>
                     <div className="absolute inset-0 bg-gold-gradient opacity-0 group-hover:opacity-5 transition-opacity" />
-                    <div className="h-20 w-20 rounded-full flex items-center justify-center mb-6 transition-transform group-hover:scale-110" style={{ background: "rgba(201,168,76,0.1)", border: "1px solid rgba(201,168,76,0.2)" }}>
+                    <div className="h-20 w-20 rounded-full flex items-center justify-center mb-6 transition-transform group-hover:scale-110" style={{ background: "var(--color-gold-dim)", border: "1px solid var(--color-gold-border)" }}>
                       <User className="h-8 w-8 text-gold" />
                     </div>
                     <h3 className="text-xl text-white font-bold mb-2">Fotoğrafınızı Ekleyin</h3>
@@ -159,7 +159,7 @@ export function LookbookModal({ outfit, onClose, onSave, isSaveLoading }: Lookbo
                       {urun.resimUrl ? (
                         <Image src={urun.resimUrl} alt={urun.ad} fill unoptimized className="object-cover transition-transform duration-500 group-hover:scale-105" />
                       ) : (
-                        <div className="absolute inset-0 flex items-center justify-center bg-[#111110]">
+                        <div className="absolute inset-0 flex items-center justify-center bg-[var(--color-bg)]">
                           <ShoppingBag className="h-6 w-6 text-muted" />
                         </div>
                       )}
@@ -174,7 +174,7 @@ export function LookbookModal({ outfit, onClose, onSave, isSaveLoading }: Lookbo
               </div>
 
               {/* Stylist Note */}
-              <div className="mt-auto rounded-[24px] p-6 relative overflow-hidden" style={{ background: "linear-gradient(135deg, #1A1812 0%, #111110 100%)", border: "1px solid rgba(201,168,76,0.15)" }}>
+              <div className="mt-auto rounded-[24px] p-6 relative overflow-hidden" style={{ background: "linear-gradient(135deg, #1A1812 0%, var(--color-bg) 100%)", border: "1px solid var(--color-gold-dim)" }}>
                 <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-gold flex items-center gap-2 mb-4 relative z-10">
                   <Sparkles className="h-4 w-4" /> STİLİSTİN NOTU
                 </p>
@@ -182,7 +182,7 @@ export function LookbookModal({ outfit, onClose, onSave, isSaveLoading }: Lookbo
                   "{outfit.aciklama}"
                 </p>
                 {outfit.ipucu && (
-                  <div className="flex items-start gap-3 p-4 rounded-xl relative z-10" style={{ background: "rgba(201,168,76,0.05)", border: "1px solid rgba(201,168,76,0.1)" }}>
+                  <div className="flex items-start gap-3 p-4 rounded-xl relative z-10" style={{ background: "rgba(201,168,76,0.05)", border: "1px solid var(--color-gold-dim)" }}>
                     <Lightbulb className="h-5 w-5 text-gold flex-shrink-0" />
                     <p className="text-[13px] text-gold leading-relaxed">
                       {outfit.ipucu}
