@@ -10,11 +10,11 @@ import { useThemeStore } from "@/lib/store/themeStore";
 import { getErrorMessage } from "@/lib/utils/errors";
 import type { UserProfile } from "@/types";
 
-const SBG = "#161614";
-const BDR = "1px solid #1E1E18";
+const SBG = "var(--color-surface)";
+const BDR = "1px solid var(--color-border)";
 const GBD = "1px solid var(--color-gold)";
-const IBG = "rgba(201,168,76,0.12)";
-const ABD = "1px solid rgba(201,168,76,0.25)";
+const IBG = "var(--color-gold-dim)";
+const ABD = "1px solid var(--color-gold-border)";
 
 interface PreferencesTabProps { profile: UserProfile; }
 
@@ -55,7 +55,7 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
       type="button"
       onClick={() => onChange(!checked)}
       className="relative h-6 w-11 rounded-full transition-colors flex-shrink-0"
-      style={{ background: checked ? "var(--color-gold)" : "#2A2A22" }}
+      style={{ background: checked ? "var(--color-gold)" : "var(--color-border)" }}
     >
       <span
         className="absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform"

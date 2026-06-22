@@ -13,8 +13,8 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { getErrorMessage } from "@/lib/utils/errors";
 
-const SBG = "#161614";
-const BDR = "1px solid #1E1E18";
+const SBG = "var(--color-surface)";
+const BDR = "1px solid var(--color-border)";
 
 const ACCOUNT_LINKS: { icon: React.ElementType; label: string; href: string }[] = [
   { icon: FileText,   label: "Gizlilik Politikasi", href: "/privacy" },
@@ -35,7 +35,7 @@ function LinkRow({ icon: Icon, label, href }: { icon: React.ElementType; label: 
       className="flex items-center gap-3 rounded-xl px-4 py-3 transition-colors hover:bg-white/4 group"
       style={{ background: SBG, border: BDR }}
     >
-      <div className="h-8 w-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "rgba(201,168,76,0.08)" }}>
+      <div className="h-8 w-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "var(--color-gold-dim)" }}>
         <Icon className="h-3.5 w-3.5 text-muted group-hover:text-gold transition-colors" />
       </div>
       <span className="flex-1 text-sm text-text">{label}</span>
@@ -115,7 +115,7 @@ export function SecurityTab() {
         </form>
       </div>
 
-      <div className="h-px" style={{ background: "#1E1E18" }} />
+      <div className="h-px" style={{ background: "var(--color-border)" }} />
 
       <div>
         <SectionLabel>HESAP</SectionLabel>
@@ -126,7 +126,7 @@ export function SecurityTab() {
         </div>
       </div>
 
-      <div className="h-px" style={{ background: "#1E1E18" }} />
+      <div className="h-px" style={{ background: "var(--color-border)" }} />
 
       <div>
         <SectionLabel>OTURUM</SectionLabel>

@@ -11,8 +11,8 @@ import { Input } from "@/components/ui/Input";
 import { getErrorMessage } from "@/lib/utils/errors";
 import type { UserProfile } from "@/types";
 
-const SBG = "#161614";
-const BDR = "1px solid #1E1E18";
+const SBG = "var(--color-surface)";
+const BDR = "1px solid var(--color-border)";
 
 interface ProfileTabProps {
   profile: UserProfile;
@@ -23,7 +23,7 @@ function InfoRow({ icon: Icon, label, value }: { icon: React.ElementType; label:
     <div className="flex items-center gap-3 rounded-xl px-4 py-3" style={{ background: SBG, border: BDR }}>
       <div
         className="h-8 w-8 rounded-lg flex items-center justify-center flex-shrink-0"
-        style={{ background: "rgba(201,168,76,0.1)" }}
+        style={{ background: "var(--color-gold-dim)" }}
       >
         <Icon className="h-3.5 w-3.5 text-gold" />
       </div>
@@ -65,7 +65,7 @@ export function ProfileTab({ profile }: ProfileTabProps) {
         <InfoRow icon={Mail}   label="E-Posta"       value={profile.email} />
       </div>
 
-      <div className="h-px" style={{ background: "#1E1E18" }} />
+      <div className="h-px" style={{ background: "var(--color-border)" }} />
 
       <div>
         <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted mb-3">PROFILI DUZENLE</p>
