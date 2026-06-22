@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_wardrobe_ai/core/constants/app_colors.dart';
+import 'package:smart_wardrobe_ai/core/theme/app_theme_extension.dart';
 import 'package:smart_wardrobe_ai/data/services/api_service.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/profile/profile_shared_widgets.dart';
 import 'package:smart_wardrobe_ai/presentation/widgets/shared/app_background.dart';
@@ -124,10 +125,38 @@ class _BodyProfileScreenState extends State<BodyProfileScreen>
   Future<void> _loadPrefs() async {
     final prefs = await SharedPreferences.getInstance();
     if (!mounted) return;
+    // 1) Anlık görünüm için yerel önbellekten göster (network beklemeden).
     setState(() {
       _selectedShape = prefs.getString(_prefShape);
       _selectedFit = prefs.getString(_prefFit);
     });
+
+    // 2) Otoriter kaynak backend'dir — web'de veya başka bir cihazda
+    // kaydedilmiş olabilecek gerçek değeri çek ve üzerine yaz. Tek backend/
+    // tek veritabanı olduğu için web ile mobil aynı `vucut` alanını paylaşır.
+    final kullanici = await ApiService.instance.fetchMe();
+    if (!mounted || kullanici == null) return;
+
+    final vucut = kullanici['vucut'] as Map<String, dynamic>?;
+    final sunucudakiSekil = (vucut?['sekil'] as String?) ?? '';
+    final sunucudakiKalip = (vucut?['kalip'] as String?) ?? '';
+
+    setState(() {
+      _selectedShape = sunucudakiSekil.isNotEmpty ? sunucudakiSekil : null;
+      _selectedFit = sunucudakiKalip.isNotEmpty ? sunucudakiKalip : null;
+    });
+
+    // Yerel önbelleği de senkron tut (offline ilk açılış için).
+    if (sunucudakiSekil.isNotEmpty) {
+      await prefs.setString(_prefShape, sunucudakiSekil);
+    } else {
+      await prefs.remove(_prefShape);
+    }
+    if (sunucudakiKalip.isNotEmpty) {
+      await prefs.setString(_prefFit, sunucudakiKalip);
+    } else {
+      await prefs.remove(_prefFit);
+    }
   }
 
   void _showSnackBar(String message, {bool isError = false}) {
@@ -135,7 +164,7 @@ class _BodyProfileScreenState extends State<BodyProfileScreen>
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: AppColors.surface,
+        backgroundColor: AppColorsExtension.of(context).surface,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
@@ -191,7 +220,7 @@ class _BodyProfileScreenState extends State<BodyProfileScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: AppColorsExtension.of(context).bg,
       body: AppBackground(
         child: SafeArea(
           bottom: false,
@@ -269,7 +298,7 @@ class _BodyProfileScreenState extends State<BodyProfileScreen>
                     fontFamily: 'Cormorant',
                     fontSize: 26,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.text,
+                    color: AppColorsExtension.of(context).text,
                     letterSpacing: -.4,
                     height: 1.1,
                   ),
@@ -278,7 +307,7 @@ class _BodyProfileScreenState extends State<BodyProfileScreen>
                 Text(
                   'body_profile.personal_data_for_ai_combinations'.tr(),
                   style: TextStyle(
-                    color: AppColors.muted,
+                    color: AppColorsExtension.of(context).muted,
                     fontSize: 11,
                     letterSpacing: .3,
                   ),
@@ -409,8 +438,8 @@ class _SectionHeader extends StatelessWidget {
             const SizedBox(width: 8),
             Text(
               label,
-              style: const TextStyle(
-                color: AppColors.muted,
+              style: TextStyle(
+                color: AppColorsExtension.of(context).muted,
                 fontSize: 9.5,
                 fontWeight: FontWeight.w600,
                 letterSpacing: 2.8,
@@ -421,8 +450,8 @@ class _SectionHeader extends StatelessWidget {
         const SizedBox(height: 6),
         Text(
           subtitle,
-          style: const TextStyle(
-            color: AppColors.textSub,
+          style: TextStyle(
+            color: AppColorsExtension.of(context).textSub,
             fontSize: 13.5,
             letterSpacing: .1,
             height: 1.3,
@@ -468,12 +497,12 @@ class _SelectionRow extends StatelessWidget {
                 ],
               )
             : null,
-        color: isSelected ? null : AppColors.surface,
+        color: isSelected ? null : AppColorsExtension.of(context).surface,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: isSelected
               ? AppColors.gold.withValues(alpha: .38)
-              : AppColors.border,
+              : AppColorsExtension.of(context).border,
           width: isSelected ? 1.2 : 1,
         ),
         boxShadow: isSelected
@@ -506,7 +535,7 @@ class _SelectionRow extends StatelessWidget {
               height: 30,
               color: isSelected
                   ? AppColors.gold.withValues(alpha: .28)
-                  : AppColors.border,
+                  : AppColorsExtension.of(context).border,
             ),
           ),
 
@@ -521,7 +550,9 @@ class _SelectionRow extends StatelessWidget {
                     fontFamily: 'Cormorant',
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
-                    color: isSelected ? AppColors.goldLight : AppColors.text,
+                    color: isSelected
+                        ? AppColors.goldLight
+                        : AppColorsExtension.of(context).text,
                     letterSpacing: -.2,
                     height: 1.1,
                   ),
@@ -530,7 +561,9 @@ class _SelectionRow extends StatelessWidget {
                 Text(
                   description,
                   style: TextStyle(
-                    color: isSelected ? AppColors.textSub : AppColors.muted,
+                    color: isSelected
+                        ? AppColorsExtension.of(context).textSub
+                        : AppColorsExtension.of(context).muted,
                     fontSize: 11,
                     height: 1.4,
                     letterSpacing: .1,
@@ -558,7 +591,7 @@ class _SelectionRow extends StatelessWidget {
                   )
                 : Icon(
                     Icons.circle_outlined,
-                    color: AppColors.border,
+                    color: AppColorsExtension.of(context).border,
                     size: 19,
                     key: const ValueKey('off'),
                   ),
@@ -601,18 +634,22 @@ class _LeadingIcon extends StatelessWidget {
     width: 32,
     height: 32,
     decoration: BoxDecoration(
-      color: isSelected ? AppColors.gold.withValues(alpha: .14) : AppColors.bg,
+      color: isSelected
+          ? AppColors.gold.withValues(alpha: .14)
+          : AppColorsExtension.of(context).bg,
       borderRadius: BorderRadius.circular(9),
       border: Border.all(
         color: isSelected
             ? AppColors.gold.withValues(alpha: .35)
-            : AppColors.border,
+            : AppColorsExtension.of(context).border,
       ),
     ),
     child: Icon(
       icon,
       size: 15,
-      color: isSelected ? AppColors.goldLight : AppColors.muted,
+      color: isSelected
+          ? AppColors.goldLight
+          : AppColorsExtension.of(context).muted,
     ),
   );
 }
