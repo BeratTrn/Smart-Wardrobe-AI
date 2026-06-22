@@ -31,6 +31,23 @@ export function useLogin() {
   });
 }
 
+// Google ile giriş (ID token backend'e gönderilir, /auth/google doğrular)
+
+export function useGoogleAuth() {
+  const { setAuth } = useAuthStore();
+  const router = useRouter();
+
+  return useMutation({
+    mutationFn: authApi.googleAuth,
+    onSuccess: (data) => {
+      setAuth(data.token, data.kullanici);
+      const params = new URLSearchParams(window.location.search);
+      const redirectTo = params.get("from") ?? "/dashboard";
+      router.replace(redirectTo);
+    },
+  });
+}
+
 // Register
 
 export function useRegister() {
