@@ -1,6 +1,7 @@
 const axios = require('axios');
 const FormData = require('form-data');
 const Groq = require('groq-sdk');
+const { hexToColorName } = require('./styleProfileService');
 
 const FASTAPI_URL = process.env.FASTAPI_URL || 'http://localhost:8000';
 
@@ -340,16 +341,39 @@ const generateWeatherNotificationText = async (items, hava, sehir) => {
     const sicaklik = hava.sicaklik ?? 20;
     const durum    = hava.durum    ?? 'güneşli';
 
+    // Dolaptaki GERÇEK parçaları kategoriye göre grupla ve modele ver —
+    // aksi halde model rastgele/uydurma kıyafetlerden bahsediyordu. Renkler
+    // hex kod ("#2A415F") olarak saklanıyor; bildirimde okunaklı olsun diye
+    // önce insan-okunabilir Türkçe renk adına çeviriyoruz (örn. "lacivert").
+    const byCategory = {};
+    items.forEach((it) => {
+        const kategori = it.kategori || 'Diğer';
+        const renkAdi = hexToColorName(it.renk);
+        if (!byCategory[kategori]) byCategory[kategori] = new Set();
+        if (renkAdi && renkAdi !== 'nötr') byCategory[kategori].add(renkAdi);
+    });
+    const itemsList = Object.entries(byCategory)
+        .map(([kategori, renkler]) => {
+            const renkListesi = [...renkler].slice(0, 4).join(', ');
+            return renkListesi ? `${kategori} (${renkListesi})` : kategori;
+        })
+        .join(' | ');
+
     const response = await groq.chat.completions.create({
         messages: [{
             role: 'user',
             content: `${sehir}'de bugün ${sicaklik}°C ve ${durum}. ` +
-                     `${items.length} parçalık dolabım var. ` +
-                     `Kısa, samimi Türkçe bir kombin önerisi push bildirimi yaz (en fazla 2 cümle).`
+                     `Dolabımdaki gerçek parçalar şunlar: ${itemsList}. ` +
+                     `Bu hava için SADECE yukarıdaki listeden 2-3 gerçek parça seçerek kısa, sıcak ve doğal bir Türkçe ` +
+                     `kombin önerisi push bildirimi yaz (tam olarak 1-2 cümle, en fazla ~140 karakter). ` +
+                     `Kurallar: listede olmayan bir kıyafeti asla uydurma; renkleri ve kategori adlarını HİÇBİR ZAMAN ` +
+                     `"#" ile başlayan hex kod olarak yazma, sadece verilen Türkçe renk adlarını kullan; ` +
+                     `"renkli Üst Giyim" gibi mekanik/tekrarlayan kalıplar kurma — gerçek bir arkadaşın yazdığı gibi ` +
+                     `akıcı, günlük bir dille yaz (örnek ton: "Bugün hava ... için lacivert ceketini siyah pantolonunla dene, harika gider!").`
         }],
         model:       'llama-3.3-70b-versatile',
-        temperature: 0.7,
-        max_tokens:  100,
+        temperature: 0.8,
+        max_tokens:  90,
     });
 
     return response.choices[0].message.content.trim();
