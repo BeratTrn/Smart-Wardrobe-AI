@@ -6,11 +6,11 @@ import { Calendar, Info, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import type { TravelSuitcase } from "@/types";
 
-const S  = "#111110";
-const C  = "#161614";
-const B  = "1px solid #1E1E18";
-const IA = "rgba(201,168,76,0.12)";
-const GA = "1px solid rgba(201,168,76,0.25)";
+const S  = "var(--color-bg)";
+const C  = "var(--color-surface)";
+const B  = "1px solid var(--color-border)";
+const IA = "var(--color-gold-dim)";
+const GA = "1px solid var(--color-gold-border)";
 
 interface SuitcaseCardProps {
   suitcase: TravelSuitcase;
@@ -46,7 +46,7 @@ export function SuitcaseCard({ suitcase, onDelete, isDeleting, isFresh = false }
       {isFresh && (
         <div
           className="h-0.5 w-full"
-          style={{ background: "linear-gradient(90deg, #C9A84C, #E8C97A, #C9A84C)" }}
+          style={{ background: "linear-gradient(90deg, var(--color-gold), var(--color-gold-light), var(--color-gold))" }}
         />
       )}
 
@@ -139,7 +139,7 @@ export function SuitcaseCard({ suitcase, onDelete, isDeleting, isFresh = false }
         {(isExpanded || !aiAciklamasi) && aiIpucu && (
           <div
             className="rounded-xl px-4 py-3.5 flex items-start gap-2.5 mt-2"
-            style={{ background: "transparent", border: "1px solid rgba(201,168,76,0.3)" }}
+            style={{ background: "transparent", border: "1px solid var(--color-gold-border)" }}
           >
             <Info className="h-4 w-4 flex-shrink-0 mt-0.5" style={{ color: "var(--color-gold)" }} />
             <p className="text-[13px] leading-relaxed italic" style={{ color: "var(--color-gold)" }}>

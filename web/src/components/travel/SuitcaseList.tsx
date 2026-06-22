@@ -13,10 +13,10 @@ interface SuitcaseListProps {
   onNewSuitcase?: () => void;
 }
 
-const S  = "#111110";
-const B  = "1px solid #1E1E18";
-const IA = "rgba(201,168,76,0.12)";
-const GA = "1px solid rgba(201,168,76,0.25)";
+const S  = "var(--color-bg)";
+const B  = "1px solid var(--color-border)";
+const IA = "var(--color-gold-dim)";
+const GA = "1px solid var(--color-gold-border)";
 
 export function SuitcaseList({ suitcases, isLoading, onDelete, pendingDeleteId, onNewSuitcase }: SuitcaseListProps) {
   if (isLoading) {
@@ -57,7 +57,7 @@ export function SuitcaseList({ suitcases, isLoading, onDelete, pendingDeleteId, 
         <button
           onClick={onNewSuitcase}
           className="inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl text-[15px] font-bold text-black hover:opacity-90 transition-opacity relative z-10"
-          style={{ background: "linear-gradient(135deg, #C9A84C 0%, #E8C97A 100%)" }}
+          style={{ background: "linear-gradient(135deg, var(--color-gold) 0%, var(--color-gold-light) 100%)" }}
         >
           <Luggage className="h-5 w-5" /> Bavul Hazırla
         </button>

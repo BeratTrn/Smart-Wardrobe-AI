@@ -5,11 +5,11 @@ import { X, MapPin, Calendar, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { useGenerateSuitcase } from "@/lib/hooks/useTravel";
 
-const S  = "#111110";
-const C  = "#161614";
-const B  = "1px solid #1E1E18";
-const IA = "rgba(201,168,76,0.12)";
-const GA = "1px solid rgba(201,168,76,0.25)";
+const S  = "var(--color-bg)";
+const C  = "var(--color-surface)";
+const B  = "1px solid var(--color-border)";
+const IA = "var(--color-gold-dim)";
+const GA = "1px solid var(--color-gold-border)";
 
 interface TravelModalProps {
   isOpen: boolean;
@@ -135,7 +135,7 @@ export function TravelModal({ isOpen, onClose }: TravelModalProps) {
             onClick={handleGenerate}
             disabled={isPending || !sehir || !baslangicTarihi || !bitisTarihi}
             className="w-full h-14 mt-4 rounded-2xl flex items-center justify-center gap-2 text-black font-bold text-[15px] transition-opacity disabled:opacity-50"
-            style={{ background: "linear-gradient(135deg, #C9A84C 0%, #E8C97A 100%)" }}
+            style={{ background: "linear-gradient(135deg, var(--color-gold) 0%, var(--color-gold-light) 100%)" }}
           >
             {isPending ? (
               <>Hazırlanıyor...</>

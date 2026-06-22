@@ -5,10 +5,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Plane, Loader2, Luggage, Sparkles } from "lucide-react";
 import { suitcaseSchema, type SuitcaseFormData } from "@/lib/validations/settings";
 
-const S  = "#111110";
-const C  = "#161614";
-const B  = "1px solid #1E1E18";
-const GB = "1px solid rgba(201,168,76,0.4)";
+const S  = "var(--color-bg)";
+const C  = "var(--color-surface)";
+const B  = "1px solid var(--color-border)";
+const GB = "1px solid var(--color-gold-border)";
 
 interface SuitcaseFormProps {
   onGenerate: (data: SuitcaseFormData) => void;
@@ -41,7 +41,7 @@ export function SuitcaseForm({ onGenerate, isLoading }: SuitcaseFormProps) {
         <div className="flex items-center gap-2 mb-1">
           <div
             className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold"
-            style={{ background: "rgba(201,168,76,0.12)", border: "1px solid rgba(201,168,76,0.25)", color: "var(--color-gold)" }}
+            style={{ background: "var(--color-gold-dim)", border: "1px solid var(--color-gold-border)", color: "var(--color-gold)" }}
           >
             <Sparkles className="h-3 w-3" /> AI SEYAHAT
           </div>
@@ -81,7 +81,7 @@ export function SuitcaseForm({ onGenerate, isLoading }: SuitcaseFormProps) {
               <input
                 type="date"
                 min={today()}
-                className={`${DATE_INPUT_STYLE} ${errors.baslangicTarihi ? "border-danger" : "border-[#272720]"}`}
+                className={`${DATE_INPUT_STYLE} ${errors.baslangicTarihi ? "border-danger" : "border-[var(--color-border)]"}`}
                 {...register("baslangicTarihi")}
               />
               {errors.baslangicTarihi && (
@@ -93,7 +93,7 @@ export function SuitcaseForm({ onGenerate, isLoading }: SuitcaseFormProps) {
               <input
                 type="date"
                 min={startDate || today()}
-                className={`${DATE_INPUT_STYLE} ${errors.bitisTarihi ? "border-danger" : "border-[#272720]"}`}
+                className={`${DATE_INPUT_STYLE} ${errors.bitisTarihi ? "border-danger" : "border-[var(--color-border)]"}`}
                 {...register("bitisTarihi")}
               />
               {errors.bitisTarihi && (
@@ -108,7 +108,7 @@ export function SuitcaseForm({ onGenerate, isLoading }: SuitcaseFormProps) {
           type="submit"
           disabled={isLoading}
           className="w-full py-3.5 rounded-2xl text-black font-bold text-sm hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
-          style={{ background: "linear-gradient(135deg, #C9A84C 0%, #E8C97A 50%, #C9A84C 100%)" }}
+          style={{ background: "linear-gradient(135deg, var(--color-gold) 0%, var(--color-gold-light) 50%, var(--color-gold) 100%)" }}
         >
           {isLoading ? (
             <>
