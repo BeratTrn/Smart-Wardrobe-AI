@@ -655,4 +655,7 @@ describe('userController.updateProfile — gecerli cinsiyet atamasi (16)', () =>
         );
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
-            kullanici: updated
+            kullanici: updatedUser,
+        }));
+    });
+});
