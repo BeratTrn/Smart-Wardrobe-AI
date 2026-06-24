@@ -501,4 +501,4 @@ const generateWeatherNotificationText = async (items, hava, sehir, userProfile =
     return response.choices[0].message.content.trim();
 };
 
-module.exports = { analyzeItem, wardrobeOnKontrol, generateOutfitSuggestion, generateSuitcaseSuggestion, generateWeatherNotificationText, buildUserProfileContext };
+module.exports = { analyzeItem, wardrobeOnKontrol, generateOutfitSuggestion, generateSuitcaseSuggestion, generateWeatherNotificationText, buildUserProfileContext, groq };
