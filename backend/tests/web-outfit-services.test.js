@@ -101,7 +101,11 @@ beforeAll(async () => {
     await mongoose.connect(mongoServer.getUri());
 
     const Groq = require('groq-sdk');
-    groqCreateMock = Groq.mock.results[0].value.chat.completions.create;
+    // aiService.js (webOutfitService'in bağımlılığı) modül yüklenirken ilk new Groq() çağrısını
+    // yapar (results[0]). webOutfitService.js kendi new Groq()'sunu sonra oluşturur (results[1]).
+    // Bu yüzden webOutfitService'in Groq instance'ı results[1]'dedir.
+    const webOutfitGroqIndex = Groq.mock.results.length > 1 ? 1 : 0;
+    groqCreateMock = Groq.mock.results[webOutfitGroqIndex].value.chat.completions.create;
 });
 
 afterEach(async () => {
