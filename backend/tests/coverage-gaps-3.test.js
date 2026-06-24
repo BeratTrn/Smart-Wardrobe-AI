@@ -650,12 +650,9 @@ describe('userController.updateProfile — gecerli cinsiyet atamasi (16)', () =>
 
         expect(User.findByIdAndUpdate).toHaveBeenCalledWith(
             FAKE_USER_ID,
-            expect.objectContaining({ cinsiyet: 'Erkek' }),
+            expect.objectContaining({ $set: expect.objectContaining({ cinsiyet: 'Erkek' }) }),
             { new: true, runValidators: true }
         );
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
-            kullanici: updatedUser,
-        }));
-    });
-});
+            kullanici: updated
