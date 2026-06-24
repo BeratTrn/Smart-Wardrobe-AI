@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:easy_localization/easy_localization.dart';
+import 'package:image/image.dart' as img;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:smart_wardrobe_ai/core/constants/app_colors.dart';
@@ -96,6 +97,48 @@ class _AddItemScreenState extends State<AddItemScreen>
     super.dispose();
   }
 
+  /// Görsel baytlarından dominant rengi hesaplar (piksel örnekleme).
+  /// Her 8. pikseli tarar, R/G/B bileşenlerini ortalar → hex döner.
+  String _dominantColorHex(Uint8List bytes) {
+    try {
+      final decoded = img.decodeImage(bytes);
+      if (decoded == null) return '#808080';
+
+      // En fazla 100x100 örnekle (hız için)
+      final resized = decoded.width > 100 || decoded.height > 100
+          ? img.copyResize(decoded, width: 100, height: 100)
+          : decoded;
+
+      int rSum = 0, gSum = 0, bSum = 0, count = 0;
+
+      for (int y = 0; y < resized.height; y++) {
+        for (int x = 0; x < resized.width; x++) {
+          final pixel = resized.getPixel(x, y);
+          final r = pixel.r.toInt();
+          final g = pixel.g.toInt();
+          final b = pixel.b.toInt();
+          final a = pixel.a.toInt();
+          // Şeffaf ve çok açık/koyu pikselleri atla (arka plan gürültüsü)
+          if (a < 50) continue;
+          final brightness = (r + g + b) / 3;
+          if (brightness < 20 || brightness > 235) continue;
+          rSum += r;
+          gSum += g;
+          bSum += b;
+          count++;
+        }
+      }
+
+      if (count == 0) return '#808080';
+      final rAvg = (rSum / count).round().clamp(0, 255);
+      final gAvg = (gSum / count).round().clamp(0, 255);
+      final bAvg = (bSum / count).round().clamp(0, 255);
+      return '#${rAvg.toRadixString(16).padLeft(2, '0')}${gAvg.toRadixString(16).padLeft(2, '0')}${bAvg.toRadixString(16).padLeft(2, '0')}'.toUpperCase();
+    } catch (_) {
+      return '#808080';
+    }
+  }
+
   // 1. Fotoğraf seç
 
   Future<void> _pick(ImageSource source) async {
@@ -142,11 +185,14 @@ class _AddItemScreenState extends State<AddItemScreen>
 
       if (!mounted) return;
 
+      // Rengi client-side piksel analizinden hesapla (backend renginden daha doğru)
+      final localColor = _dominantColorHex(bytes);
+
       // AI tahminlerini forma aktar
       setState(() {
         // Sadece geçerli backend enum değerlerini kabul et
         if (_categories.contains(result.kategori)) _selectedCategory = result.kategori;
-        if (result.renk.isNotEmpty) _colorCtrl.text = result.renk;
+        _colorCtrl.text = localColor;
         _step = 'review';
       });
     } on ApiException catch (e) {

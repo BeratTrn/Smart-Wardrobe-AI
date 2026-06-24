@@ -43,7 +43,7 @@ export default function SavedOutfitsPage() {
     <div className="space-y-5 animate-fade-in">
 
       {/* Header */}
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col sm:flex-row items-start justify-between gap-3">
         <div>
           <p className="text-[10px] font-bold uppercase tracking-[0.25em] mb-1" style={{ color: "var(--color-muted)" }}>
             {t("saved_outfits.style_archive")}
@@ -173,6 +173,3 @@ export default function SavedOutfitsPage() {
         isOpen={isTravelModalOpen} 
         onClose={() => setIsTravelModalOpen(false)} 
       />
-    </div>
-  );
-}

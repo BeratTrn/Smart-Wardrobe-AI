@@ -985,10 +985,10 @@ export default function SettingsPage() {
         <p className="text-sm mt-1 text-muted">{t("web.settings.subtitle")}</p>
       </div>
 
-      <div className="flex gap-6 items-start">
+      <div className="flex flex-col gap-6 items-start lg:flex-row">
 
         {/* Sidebar */}
-        <aside className="w-64 flex-shrink-0 sticky top-4 space-y-3">
+        <aside className="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-4 space-y-3">
 
           {/* Profile card */}
           <div className="rounded-[20px] overflow-hidden" style={{ background: S1, border: b }}>
@@ -1141,8 +1141,4 @@ export default function SettingsPage() {
             )}
           </div>
         </div>
-      </div>
-    </div>
-    </>
-  );
-}
+      <

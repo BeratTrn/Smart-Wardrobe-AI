@@ -69,7 +69,7 @@ export default function WardrobePage() {
     <div className="flex flex-col gap-5 animate-fade-in">
 
       {/* Header */}
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col sm:flex-row items-start justify-between gap-3">
         <div>
           <p className="text-[10px] font-bold tracking-[0.2em] text-muted uppercase mb-1">{t("wardrobe.my_wardrobe")}</p>
           <h1 className="text-3xl font-black text-text leading-none mb-1">{t("wardrobe.wardrobe")}</h1>
@@ -234,6 +234,3 @@ export default function WardrobePage() {
         </div>
       )}
 
-    </div>
-  );
-}
