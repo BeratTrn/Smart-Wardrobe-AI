@@ -126,4 +126,7 @@ export default function OutfitsPage() {
         onClose={() => setLookbookOutfitId(null)}
         onSave={(outfit) => { handleSave(outfit); setLookbookOutfitId(null); }}
         isSaveLoading={pendingSaveId === lookbookOutfitId}
-    
+      />
+    </div>
+  );
+}

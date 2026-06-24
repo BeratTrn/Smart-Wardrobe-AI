@@ -234,3 +234,6 @@ export default function WardrobePage() {
         </div>
       )}
 
+    </div>
+  );
+}

@@ -173,3 +173,6 @@ export default function SavedOutfitsPage() {
         isOpen={isTravelModalOpen} 
         onClose={() => setIsTravelModalOpen(false)} 
       />
+    </div>
+  );
+}
