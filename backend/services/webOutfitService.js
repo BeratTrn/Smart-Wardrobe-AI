@@ -1,10 +1,4 @@
-const Groq = require('groq-sdk');
-const { buildUserProfileContext } = require('./aiService');
-
-// generateOutfitSuggestion ile aynı AI sağlayıcısı; ayrı bir client örneği
-// kullanmak aiService.js'i bu özelliğe bağımlı kılmadan bağımsız geliştirip
-// test edebilmemizi sağlar.
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY || 'dummy_key_for_build' });
+const { buildUserProfileContext, groq } = require('./aiService');
 
 /**
  * Groq / Llama 3.3 ile kullanıcının GARDIROBU + WEB'DEN BULUNAN ÜRÜNLER arasından
