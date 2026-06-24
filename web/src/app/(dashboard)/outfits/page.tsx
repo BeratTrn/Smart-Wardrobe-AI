@@ -64,9 +64,9 @@ export default function OutfitsPage() {
         <p className="text-sm text-muted mt-1">{t("outfit_generator.select_condition")}</p>
       </div>
 
-      <div className="grid lg:grid-cols-[380px_1fr] xl:grid-cols-[420px_1fr] gap-8 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] xl:grid-cols-[420px_1fr] gap-6 lg:gap-8 items-start">
         {/* Left: Sticky Generator */}
-        <div className="sticky top-6">
+        <div className="lg:sticky lg:top-6">
           <OutfitGeneratorPanel onGenerate={handleGenerate} isLoading={isGenerating} weather={weather} />
         </div>
 
