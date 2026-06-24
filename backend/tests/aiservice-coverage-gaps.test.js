@@ -159,7 +159,7 @@ describe('aiService — generateWeatherNotificationText (lines 339-356)', () => 
         const callArgs = groqCreateMock.mock.calls[0][0];
         expect(callArgs.messages[0].content).toContain('20°C');
         expect(callArgs.messages[0].content).toContain('güneşli');
-        expect(callArgs.messages[0].content).toContain(`${userItems.length} parçalık`);
+        expect(callArgs.messages[0].content).toContain('Dolabımdaki gerçek parçalar');
     });
 
     test('hava.sicaklik ve hava.durum verilmişse bunlar kullanılır', async () => {
